@@ -13,6 +13,7 @@
 #define TEXT_ORANGE  0x27
 #define TEXT_SALMON  0x26
 #define TEXT_YELLOW  0x28
+#define TEXT_RED     0x16   /* HUD labels: HI-SCORE, 1UP */
 
 /* Draw at a tile cell (col, row), painting each cell's background black. */
 void text_draw(uint32_t *fb, int col, int row, const char *s, uint8_t color);

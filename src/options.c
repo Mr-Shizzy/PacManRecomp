@@ -578,7 +578,7 @@ static void draw_screen(uint32_t *fb) {
 static void draw_level_hud(uint32_t *fb) {
     char num[8];
     snprintf(num, sizeof(num), "%d", g_ram[RAM_STAGE] + 1);
-    text_draw(fb, HUD_LABEL_COL, HUD_LEVEL_ROW, "LEVEL", TEXT_WHITE);
+    text_draw(fb, HUD_LABEL_COL, HUD_LEVEL_ROW, "LEVEL", TEXT_RED);
     text_draw(fb, HUD_VALUE_END + 1 - (int)strlen(num), HUD_LEVEL_ROW + 2, num, TEXT_WHITE);
 }
 
