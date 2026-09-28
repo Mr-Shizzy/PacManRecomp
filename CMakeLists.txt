@@ -32,6 +32,13 @@ target_include_directories(PacManRecomp PRIVATE
 
 target_link_libraries(PacManRecomp PRIVATE ${SDL2_LIBRARIES} ${NESRECOMP_RUNNER_LIBRARIES})
 
+# ---- Pre-boot GUI launcher (recomp-ui / Dear ImGui) ----
+# Defines RECOMP_LAUNCHER on the target, un-gating the launcher block in
+# launcher.c's main(), and stages the launcher assets next to the exe.
+set(RECOMP_UI_ROOT "${CMAKE_SOURCE_DIR}/../recomp-ui" CACHE PATH "recomp-ui checkout")
+include(${RECOMP_UI_ROOT}/recomp_ui.cmake)
+recomp_target_launcher_ui(PacManRecomp CONSOLE nes)
+
 add_custom_command(TARGET PacManRecomp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${NESRECOMP_ROOT}/runner/external/SDL2/lib/x64/SDL2.dll"
