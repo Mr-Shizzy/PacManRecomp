@@ -377,6 +377,96 @@ static void title_menu_input(uint8_t pressed) {
     }
 }
 
+/* ---- gameplay: cheats and speeds -----------------------------------------
+ * Game loop (demo flag $48 = 00): $3F 04 = play, 08 = death sequence (set
+ * only by the ghost-collision check, which also sets $32, $DB and $87).
+ * Lives: $67 current player, $77 the other. Stage: $68/$78, FF at game
+ * start and incremented at each new stage's setup (stage 0 = level 1).
+ * Speeds: 11 pairs (fraction, whole pixels) at $9F-$B4 reloaded from the
+ * stage table at every stage/life start; pairs 0-3 are Pac-Man's, 6-10 the
+ * ghosts' (normal, frightened, tunnel, Blinky's two "Elroy" speeds). */
+#define RAM_ANIM        0x32
+#define RAM_LIVES       0x67
+#define RAM_STAGE       0x68
+#define RAM_LIVES_2     0x77
+#define RAM_STAGE_2     0x78
+#define RAM_SPEEDS      0x9F
+#define RAM_DEATH_TMR   0xDB
+#define SCRIPT_PLAY     0x04
+#define SCRIPT_DEATH    0x08
+#define SPEED_PAIRS     11
+
+static uint16_t s_speed_base[SPEED_PAIRS];
+static uint16_t s_speed_written[SPEED_PAIRS];
+static int      s_speed_known;
+
+static void apply_speeds(void) {
+    for (int p = 0; p < SPEED_PAIRS; p++) {
+        int mult = p <= 3 ? g_opt.pac_speed : p >= 6 ? g_opt.ghost_speed : 1;
+        uint8_t *r = &g_ram[RAM_SPEEDS + 2 * p];
+        uint16_t cur = (uint16_t)(r[0] | r[1] << 8);
+        if (!s_speed_known || cur != s_speed_written[p]) s_speed_base[p] = cur;
+        uint32_t v = (uint32_t)s_speed_base[p] * (uint32_t)mult;
+        if (v > 0x07FF) v = 0x07FF;                 /* < 8 px per frame */
+        r[0] = (uint8_t)v;
+        r[1] = (uint8_t)(v >> 8);
+        s_speed_written[p] = (uint16_t)v;
+    }
+    s_speed_known = 1;
+}
+
+static void gameplay_frame(void) {
+    static uint8_t prev_script = 0xFF, prev_demo = 0xFF;
+    static uint8_t snap_anim, snap_timer, snap_87;
+    static int level_pending;
+    uint8_t demo = g_ram[RAM_FLAG_DEMO], script = g_ram[RAM_SCRIPT];
+
+    if (demo != 0x00) {                 /* title / attract demo: hands off */
+        prev_demo = demo;
+        prev_script = script;
+        s_speed_known = 0;
+        level_pending = 0;
+        return;
+    }
+    if (prev_demo != 0x00) level_pending = g_opt.start_level > 1;
+    if (level_pending) {
+        /* New game: the stage reads FF (set a frame or two after the demo
+         * flag clears) until the first stage setup increments it. */
+        if (g_ram[RAM_STAGE] == 0xFF) {
+            uint8_t st = (uint8_t)(g_opt.start_level - 2);
+            g_ram[RAM_STAGE] = st;
+            if (g_ram[RAM_STAGE_2] == 0xFF) g_ram[RAM_STAGE_2] = st;
+            level_pending = 0;
+        } else if (script == SCRIPT_PLAY) {
+            level_pending = 0;          /* missed it; never touch a live stage */
+        }
+    }
+
+    if (g_opt.inf_lives) {
+        if (g_ram[RAM_LIVES] && g_ram[RAM_LIVES] < 3)     g_ram[RAM_LIVES] = 3;
+        if (g_ram[RAM_LIVES_2] && g_ram[RAM_LIVES_2] < 3) g_ram[RAM_LIVES_2] = 3;
+    }
+
+    if (g_opt.invincible && prev_script == SCRIPT_PLAY && script == SCRIPT_DEATH) {
+        /* A ghost caught Pac-Man last frame: undo the switch to the death
+         * sequence so he passes straight through. */
+        g_ram[RAM_SCRIPT]    = SCRIPT_PLAY;
+        g_ram[RAM_ANIM]      = snap_anim;
+        g_ram[RAM_DEATH_TMR] = snap_timer;
+        g_ram[RAM_TIMER_LO]  = snap_87;
+        script = SCRIPT_PLAY;
+    }
+    if (script == SCRIPT_PLAY) {
+        snap_anim  = g_ram[RAM_ANIM];
+        snap_timer = g_ram[RAM_DEATH_TMR];
+        snap_87    = g_ram[RAM_TIMER_LO];
+    }
+
+    apply_speeds();
+    prev_demo = demo;
+    prev_script = script;
+}
+
 void options_on_frame(void) {
     if (s_injected) {
         s_injected = 0;
@@ -393,6 +483,7 @@ void options_on_frame(void) {
     }
     s_was_menu = menu;
     if (menu) title_menu_input(pressed);
+    gameplay_frame();
 }
 
 /* ---- drawing ----------------------------------------------------------- */

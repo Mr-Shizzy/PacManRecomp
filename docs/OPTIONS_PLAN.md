@@ -39,22 +39,26 @@ menu is open.
 - Custom glyphs drawn in the game's font style: `:` `?` `%` and arrows.
 - Values in white, cursor in yellow, as on the original title screen.
 
-## Work items
+## Status
 
-Easy (runner settings / RAM):
-- Framework: title slot, freeze, navigation, drawing, save/load
-- Stretch, filter, integer scale (live runner settings)
-- Inverse colors (present-time palette)
-- Volume, echo (audio output stage)
-- Infinite lives (RAM)
-- Reset to default
+All items are implemented (2026-09-28):
 
-Needs disassembly research first:
-- Title cursor logic (to add the third slot cleanly)
-- Music vs SFX mute (find where the sound engine starts each)
-- Pac-Man speed and ghost speed (find the movement-speed tables/routines)
-- Invincibility (find the ghost collision check)
-- Start level (find where the stage is set at game start)
+| Item | How |
+|---|---|
+| Framework, title slot, freeze, navigation, save/load | `src/options.c`, title menu state `$3F=02` / `$48=FF`, idle timer `$87/$88` held |
+| Stretch, filter, integer scale | runner `g_nes_config` + `nesrecomp_apply_video_settings()` |
+| Inverse colors | whole-frame invert in `game_post_render` |
+| Volume | runner `g_nes_config.volume` (live) |
+| Echo | `nesrecomp_set_audio_filter()` 200 ms feedback delay |
+| Music / SFX | `apu_set_mute_mask()` on channels owned by muted sound slots (music = slots 0-1, 13-14) |
+| Pac-Man / ghost speed | scale the stage speed table `$9F-$B4` (pairs 0-3 Pac-Man, 6-10 ghosts) |
+| Infinite lives | keep `$67`/`$77` at least 3 |
+| Start level | set stage `$68`/`$78` while it reads FF at game start |
+| Invincible | undo the collision's switch to the death script (`$3F` 04 -> 08) |
+| Reset to default | restores both runner and Pac-Man settings |
+
+Known limits: at high combined speeds a ghost can occasionally pass through
+Pac-Man without touching (the game checks overlap once per frame).
 
 ## Order
 
