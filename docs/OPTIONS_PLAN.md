@@ -22,7 +22,7 @@ menu is open.
 |---|---|
 | VIDEO | Stretch · Filter · Integer scale · Inverse colors |
 | AUDIO | Volume · Music on/off · SFX on/off · Echo |
-| CONTROLS | Menu style: Classic / Modern (default Classic) |
+| CONTROLS | Menu style: Classic / Modern (default Classic) � Rumble (default off) |
 | EXTRAS | Pac-Man speed 1x/2x/3x · Ghost speed 1x/2x/3x |
 | CHEATS | Infinite lives · Start level · Invincibility |
 | RESET TO DEFAULT | YES / NO confirm |
@@ -58,6 +58,8 @@ All items are implemented (2026-09-28):
 | Infinite lives | keep `$67`/`$77` at least 3 |
 | Start level | set stage `$68`/`$78` while it reads FF at game start |
 | Invincible | undo the collision's switch to the death script (`$3F` 04 -> 08) |
+| Rumble | light while ghosts are blue (`$88` bits), hard 0.3 s burst on eating a ghost (script 06), medium through the death melt (script 08 with `$87` != 0); `nesrecomp_rumble()` |
+| Title detection | flag `$48`=FF is shared with the attract-demo game, so also require the title's "PLAY" text in nametable 0 |
 | Reset to default | restores both runner and Pac-Man settings |
 
 ## Order

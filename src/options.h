@@ -11,6 +11,7 @@ typedef struct {
     int sfx;            /* sound effects on */
     int echo;           /* echo effect */
     int modern;         /* menu style: 0 classic (Select/Start), 1 modern */
+    int rumble;         /* controller rumble effects */
     int pac_fast;       /* Pac-Man at 1.5x speed */
     int ghost_fast;     /* ghosts at 1.5x speed */
     int show_level;     /* level number in the HUD */

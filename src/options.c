@@ -30,7 +30,8 @@
 
 #define SCRIPT_SCROLL   0x00
 #define SCRIPT_MENU     0x02
-#define DEMO_TITLE      0xFF
+#define DEMO_TITLE      0xFF    /* also FF in the attract-demo game, so */
+#define NT_TITLE_PLAY   0x20E   /* ...check the title's own "1 PLAYER" text */
 
 /* ---- pad bits (g_controller1_buttons) ---------------------------------- */
 #define BTN_A       0x80
@@ -47,7 +48,7 @@
 PacOptions g_opt;
 
 static const PacOptions k_defaults = {
-    .inverse = 0, .music = 1, .sfx = 1, .echo = 0, .modern = 0,
+    .inverse = 0, .music = 1, .sfx = 1, .echo = 0, .modern = 0, .rumble = 0,
     .pac_fast = 0, .ghost_fast = 0, .show_level = 0,
     .inf_lives = 0, .start_level = 1, .invincible = 0,
 };
@@ -116,7 +117,8 @@ static const Item k_audio[] = {
     { "BACK",      IT_BACK },
 };
 static const Item k_controls[] = {
-    { "MENU STYLE", IT_STYLE, &g_opt.modern },
+    { "MENU STYLE", IT_STYLE,  &g_opt.modern },
+    { "RUMBLE",     IT_TOGGLE, &g_opt.rumble },
     { "BACK",       IT_BACK },
 };
 static const Item k_extras[] = {
@@ -147,6 +149,13 @@ static const ScreenDef k_screens[SCR_COUNT] = {
     [SCR_RESET]    = { "RESET TO DEFAULT", k_reset,    N(k_reset),    SCR_OPTIONS },
 };
 
+/* The title loop is showing: flag FF and the title's "PLAY" still in
+ * nametable 0 (the attract-demo game also runs with flag FF, over the maze). */
+static int title_showing(void) {
+    return g_ram[RAM_FLAG_DEMO] == DEMO_TITLE &&
+           !memcmp(&g_ppu_nt[NT_TITLE_PLAY], "PLAY", 4);
+}
+
 static Screen  s_scr = SCR_TITLE;
 static int     s_sel[SCR_COUNT];
 static int     s_was_menu;
@@ -168,6 +177,7 @@ static struct { const char *key; int *val; } k_keys[] = {
     { "SoundFx",       &g_opt.sfx },
     { "Echo",          &g_opt.echo },
     { "ModernMenus",   &g_opt.modern },
+    { "Rumble",        &g_opt.rumble },
     { "PacManFast",    &g_opt.pac_fast },
     { "GhostFast",     &g_opt.ghost_fast },
     { "ShowLevel",     &g_opt.show_level },
@@ -440,6 +450,51 @@ void options_quit_to_title(void) {
     s_quitting = 1;
 }
 
+/* ---- rumble -------------------------------------------------------------
+ * Light while the ghosts are frightened ($88 holds one bit per blue ghost,
+ * as the collision check reads it), a hard burst when a ghost is eaten (the
+ * game switches to its freeze script 06), and medium through the melting
+ * death animation (script 08 once $87 turns nonzero, when the death sound
+ * starts). Refreshed every few frames with a short duration so it stops by
+ * itself if the game stops us calling. */
+#define RAM_FRIGHT       0x88
+#define SCRIPT_FREEZE    0x06
+#define RUMBLE_REFRESH   6          /* frames */
+#define RUMBLE_SPAN_MS   200
+#define EAT_BURST_FRAMES 18         /* ~300 ms */
+
+enum { RUMBLE_OFF, RUMBLE_LIGHT, RUMBLE_MEDIUM, RUMBLE_HARD };
+
+static void rumble_set(int level) {
+    static int cur = RUMBLE_OFF, age;
+    static const uint16_t k_low[]  = { 0, 0x1800, 0x7000, 0xFFFF };
+    static const uint16_t k_high[] = { 0, 0x2400, 0x6000, 0xFFFF };
+    if (level == cur && (level == RUMBLE_OFF || ++age < RUMBLE_REFRESH)) return;
+    cur = level;
+    age = 0;
+    nesrecomp_rumble(1, k_low[level], k_high[level], level ? RUMBLE_SPAN_MS : 0);
+}
+
+static void rumble_frame(uint8_t demo, uint8_t script, uint8_t prev_script) {
+    static int burst;
+    if (!g_opt.rumble || demo != 0x00 || (g_ram[RAM_FLAG_PAUSE] & 1)) {
+        burst = 0;
+        rumble_set(RUMBLE_OFF);
+        return;
+    }
+    if (script == SCRIPT_FREEZE && prev_script != SCRIPT_FREEZE) burst = EAT_BURST_FRAMES;
+    if (burst > 0) {
+        burst--;
+        rumble_set(RUMBLE_HARD);
+    } else if (script == SCRIPT_DEATH && g_ram[RAM_TIMER_LO] != 0) {
+        rumble_set(RUMBLE_MEDIUM);
+    } else if ((script == SCRIPT_PLAY || script == SCRIPT_FREEZE) && (g_ram[RAM_FRIGHT] & 0x0F)) {
+        rumble_set(RUMBLE_LIGHT);
+    } else {
+        rumble_set(RUMBLE_OFF);
+    }
+}
+
 static void gameplay_frame(void) {
     static uint8_t prev_script = 0xFF, prev_demo = 0xFF;
     static uint8_t snap_anim, snap_timer, snap_87;
@@ -447,6 +502,7 @@ static void gameplay_frame(void) {
     uint8_t demo = g_ram[RAM_FLAG_DEMO], script = g_ram[RAM_SCRIPT];
 
     if (demo != 0x00) {                 /* title / attract demo: hands off */
+        rumble_frame(demo, script, prev_script);
         s_quitting = 0;
         prev_demo = demo;
         prev_script = script;
@@ -493,6 +549,7 @@ static void gameplay_frame(void) {
         g_ram[RAM_TIMER_LO] = GAME_OVER_SHOWN;      /* shorter GAME OVER */
 
     apply_speeds();
+    rumble_frame(demo, script, prev_script);
     prev_demo = demo;
     prev_script = script;
 }
@@ -506,7 +563,7 @@ void options_on_frame(void) {
     uint8_t pressed = (uint8_t)(btn & ~s_prev);
     s_prev = btn;
 
-    int menu = g_ram[RAM_FLAG_DEMO] == DEMO_TITLE && g_ram[RAM_SCRIPT] == SCRIPT_MENU;
+    int menu = title_showing() && g_ram[RAM_SCRIPT] == SCRIPT_MENU;
     if (menu && !s_was_menu) {
         s_scr = SCR_TITLE;
         s_sel[SCR_TITLE] = g_ram[RAM_GAME_MODE] & 1;
@@ -587,7 +644,7 @@ void options_render(uint32_t *fb) {
         draw_level_hud(fb);
     if (s_quitting)     /* unpaused behind the game's back: hide its PAUSE text */
         text_draw(fb, 23, 17, "     ", TEXT_WHITE);
-    if (g_ram[RAM_FLAG_DEMO] != DEMO_TITLE) return;
+    if (!title_showing()) return;
     if (g_ram[RAM_SCRIPT] == SCRIPT_SCROLL) {
         /* The title scrolls in from below: the picture sits 240 - scroll_Y
          * pixels lower than at rest, so our lines ride along with it. */
