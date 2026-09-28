@@ -21,6 +21,7 @@ add_executable(PacManRecomp
     src/logo.c
     src/mods.c
     src/hdbuild.c
+    src/capture.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )
