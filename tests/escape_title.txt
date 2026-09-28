@@ -1,0 +1,5 @@
+WAIT 120
+ESCAPE
+WAIT 60
+LOG should-not-reach
+EXIT 5

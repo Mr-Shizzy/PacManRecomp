@@ -1,0 +1,38 @@
+WAIT 400
+HOLD START
+WAIT 6
+RELEASE START
+WAIT 20
+WAIT 70
+HOLD START
+WAIT 6
+RELEASE START
+WAIT 20
+WAIT 20
+LOG escape-during-ready
+ESCAPE
+WAIT 240
+ASSERT_RAM8 4A 01 paused-by-escape
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e1_escape_prompt.png
+WAIT 2
+ESCAPE
+WAIT 10
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e2_escape_closed.png
+ASSERT_RAM8 4A 01 still-paused
+HOLD START
+WAIT 6
+RELEASE START
+WAIT 20
+WAIT 30
+ASSERT_RAM8 4A 02 resumed
+ESCAPE
+WAIT 10
+ASSERT_RAM8 4A 03 paused-again
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e3_escape_play.png
+HOLD START
+WAIT 6
+RELEASE START
+WAIT 20
+WAIT 30
+ASSERT_RAM8 4A 03 no-keeps-paused
+EXIT 0

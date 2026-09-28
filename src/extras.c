@@ -19,7 +19,7 @@ uint32_t game_get_expected_crc32(void) { return 0x9E4E9CC2u; }
 
 const char *game_get_name(void) { return "Pac-Man"; }
 
-void game_on_init(void) {}
+void game_on_init(void) { nesrecomp_set_escape_handler(pause_menu_escape); }
 void game_on_frame(uint64_t frame_count) {
     (void)frame_count;
     pause_menu_on_frame();
