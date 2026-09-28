@@ -11,6 +11,7 @@
 #include "pause_menu.h"
 #include "options.h"
 #include "highscores.h"
+#include "soundpack.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -24,6 +25,7 @@ const char *game_get_name(void) { return "Pac-Man"; }
 void game_on_init(void) {
     options_init();
     hs_init();
+    soundpack_init();
     nesrecomp_set_escape_handler(pause_menu_escape);
 }
 void game_on_frame(uint64_t frame_count) {
@@ -36,6 +38,7 @@ void game_post_nmi(uint64_t frame_count) {
     (void)frame_count;
     options_post_nmi();
     hs_post_nmi();
+    soundpack_frame();
 }
 
 int game_handle_arg(const char *key, const char *val) { (void)key; (void)val; return 0; }

@@ -18,6 +18,7 @@
 #include "config.h"
 #include "apu.h"
 #include "highscores.h"
+#include "soundpack.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -282,7 +283,7 @@ static int slot_is_music(int i) { return i <= 1 || i == 13 || i == 14; }
 
 static void update_sound_mute(void) {
     uint8_t mask = 0;
-    if (!g_opt.music || !g_opt.sfx) {
+    {
         int owner[4] = { -1, -1, -1, -1 };
         for (int i = 0; i < 16; i++) {
             if (!g_ram[RAM_SND_REQ + i]) continue;
@@ -301,7 +302,9 @@ static void update_sound_mute(void) {
             }
             int music = slot_is_music(owner[ch]);
             hold[ch] = 0;
-            if ((music && !g_opt.music) || (!music && !g_opt.sfx)) {
+            /* Muted category, or a sounds/ file replaces this slot. */
+            if ((music && !g_opt.music) || (!music && !g_opt.sfx) ||
+                soundpack_replaces(owner[ch])) {
                 mask |= (uint8_t)(1 << ch);
                 hold[ch] = 4;
             }
