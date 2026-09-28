@@ -26,6 +26,10 @@ void options_init(void);
 /* Title-screen menu and options input; call first in game_on_frame(). */
 void options_on_frame(void);
 
+/* Per-frame effects that read the game's post-NMI state (sound mute);
+ * call from game_post_nmi(). */
+void options_post_nmi(void);
+
 /* Draw the title menu / options screens; call from game_post_render(). */
 void options_render(uint32_t *fb);
 

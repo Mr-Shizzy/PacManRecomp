@@ -29,7 +29,10 @@ void game_on_frame(uint64_t frame_count) {
     options_on_frame();
     pause_menu_on_frame();
 }
-void game_post_nmi(uint64_t frame_count) { (void)frame_count; }
+void game_post_nmi(uint64_t frame_count) {
+    (void)frame_count;
+    options_post_nmi();
+}
 
 int game_handle_arg(const char *key, const char *val) { (void)key; (void)val; return 0; }
 const char *game_arg_usage(void) { return NULL; }

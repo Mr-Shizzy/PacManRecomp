@@ -16,6 +16,7 @@
 #include "nes_text.h"
 #include "nes_runtime.h"
 #include "config.h"
+#include "apu.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -241,6 +242,52 @@ static void echo_filter(int16_t *s, int n, int rate) {
         s[i] = (int16_t)out;
         if (++s_echo_pos >= delay) s_echo_pos = 0;
     }
+}
+
+/* ---- music / sound-effect mute ------------------------------------------
+ * The sound engine runs 16 slots: request flags at $0600+i, state at
+ * $0620+8i whose first byte names the APU channel (1-4 queued, 5-8 playing;
+ * pulse1, pulse2, triangle, noise). Lower slots win a shared channel. Music
+ * is the start jingle (slots 0-1) and the intermission tunes (slots 13-14);
+ * the rest are effects. Muting silences a channel at the mixer only, so the
+ * game (which waits on the jingle) keeps its exact timing. */
+#define RAM_SND_REQ   0x600
+#define RAM_SND_SLOT  0x620
+
+static int slot_is_music(int i) { return i <= 1 || i == 13 || i == 14; }
+
+static void update_sound_mute(void) {
+    uint8_t mask = 0;
+    if (!g_opt.music || !g_opt.sfx) {
+        int owner[4] = { -1, -1, -1, -1 };
+        for (int i = 0; i < 16; i++) {
+            if (!g_ram[RAM_SND_REQ + i]) continue;
+            int b = g_ram[RAM_SND_SLOT + 8 * i];
+            int ch = b >= 5 ? b - 5 : b - 1;
+            if (ch < 0 || ch > 3 || owner[ch] >= 0) continue;
+            owner[ch] = i;
+        }
+        /* A looping effect (the siren) restarts with a one-frame gap; hold
+         * the mute across short ownerless gaps so nothing blips through. */
+        static int hold[4];
+        for (int ch = 0; ch < 4; ch++) {
+            if (owner[ch] < 0) {
+                if (hold[ch] > 0) { hold[ch]--; mask |= (uint8_t)(1 << ch); }
+                continue;
+            }
+            int music = slot_is_music(owner[ch]);
+            hold[ch] = 0;
+            if ((music && !g_opt.music) || (!music && !g_opt.sfx)) {
+                mask |= (uint8_t)(1 << ch);
+                hold[ch] = 4;
+            }
+        }
+    }
+    apu_set_mute_mask(mask);
+}
+
+void options_post_nmi(void) {
+    update_sound_mute();
 }
 
 void options_init(void) {
