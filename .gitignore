@@ -10,3 +10,6 @@ proposed.toml
 
 # Test screenshots
 tests/out/
+
+# Launcher-remembered ROM path (local)
+rom.cfg
