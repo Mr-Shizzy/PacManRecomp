@@ -1,0 +1,10 @@
+TURBO ON
+WAIT 1000
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/h0_intro.png
+WAIT 1120
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/h1_board_scroll.png
+WAIT 150
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/h2_board.png
+WAIT 400
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/h3_demo.png
+EXIT 0

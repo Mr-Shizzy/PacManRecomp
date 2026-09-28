@@ -12,7 +12,7 @@ root=$(dirname "$here")
 run="$here/run"
 
 mkdir -p "$run"
-rm -f "$run/config.ini" "$run/pacman_options.ini" "$run/keybinds.ini"
+rm -f "$run/config.ini" "$run/pacman_options.ini" "$run/pacman_scores.ini" "$run/keybinds.ini"
 cp "$root/build/PacManRecomp.exe" "$root/build/SDL2.dll" "$run/"
 
 script=$1

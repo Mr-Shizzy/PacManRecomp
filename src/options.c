@@ -17,6 +17,7 @@
 #include "nes_runtime.h"
 #include "config.h"
 #include "apu.h"
+#include "highscores.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -49,14 +50,14 @@ PacOptions g_opt;
 
 static const PacOptions k_defaults = {
     .inverse = 0, .music = 1, .sfx = 1, .echo = 0, .modern = 0, .rumble = 0,
-    .pac_fast = 0, .ghost_fast = 0, .show_level = 0,
+    .pac_fast = 0, .ghost_fast = 0, .show_level = 0, .highscores = 0,
     .inf_lives = 0, .start_level = 1, .invincible = 0,
 };
 
 /* ---- menu model -------------------------------------------------------- */
 typedef enum {
     SCR_TITLE, SCR_OPTIONS, SCR_VIDEO, SCR_AUDIO, SCR_CONTROLS,
-    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_COUNT
+    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_RESET_SCORES, SCR_COUNT
 } Screen;
 
 typedef enum {
@@ -68,6 +69,7 @@ typedef enum {
     IT_STYLE,       /* *val 0 classic / 1 modern */
     IT_SPEED,       /* *val 0 normal / 1 1.5x */
     IT_RESET,       /* reset everything to defaults */
+    IT_RESET_SCORES,/* clear the leaderboard */
 } ItemKind;
 
 typedef struct {
@@ -77,6 +79,7 @@ typedef struct {
     int         lo, hi, step;
     const char *fmt;
     int         runner;         /* 1 = runner setting (config.ini) */
+    int         hs_only;        /* shown only while HIGH SCORES is on */
 } Item;
 
 typedef struct {
@@ -125,6 +128,8 @@ static const Item k_extras[] = {
     { "PAC-MAN SPEED", IT_SPEED,  &g_opt.pac_fast },
     { "GHOST SPEED",   IT_SPEED,  &g_opt.ghost_fast },
     { "SHOW LEVEL",    IT_TOGGLE, &g_opt.show_level },
+    { "HIGH SCORES",   IT_TOGGLE, &g_opt.highscores },
+    { "RESET HIGH SCORES", IT_SECTION, 0, SCR_RESET_SCORES, 0, 0, 0, 0, 1 },
     { "BACK",          IT_BACK },
 };
 static const Item k_cheats[] = {
@@ -137,6 +142,10 @@ static const Item k_reset[] = {
     { "NO",  IT_BACK },
     { "YES", IT_RESET },
 };
+static const Item k_reset_scores[] = {
+    { "NO",  IT_BACK },
+    { "YES", IT_RESET_SCORES },
+};
 
 static const ScreenDef k_screens[SCR_COUNT] = {
     [SCR_TITLE]    = { NULL,               k_title,    N(k_title),    SCR_TITLE },
@@ -147,6 +156,7 @@ static const ScreenDef k_screens[SCR_COUNT] = {
     [SCR_EXTRAS]   = { "EXTRAS",           k_extras,   N(k_extras),   SCR_OPTIONS },
     [SCR_CHEATS]   = { "CHEATS",           k_cheats,   N(k_cheats),   SCR_OPTIONS },
     [SCR_RESET]    = { "RESET TO DEFAULT", k_reset,    N(k_reset),    SCR_OPTIONS },
+    [SCR_RESET_SCORES] = { "RESET HIGH SCORES", k_reset_scores, N(k_reset_scores), SCR_EXTRAS },
 };
 
 /* The title loop is showing: flag FF and the title's "PLAY" still in
@@ -181,6 +191,7 @@ static struct { const char *key; int *val; } k_keys[] = {
     { "PacManFast",    &g_opt.pac_fast },
     { "GhostFast",     &g_opt.ghost_fast },
     { "ShowLevel",     &g_opt.show_level },
+    { "HighScores",    &g_opt.highscores },
     { "InfiniteLives", &g_opt.inf_lives },
     { "StartLevel",    &g_opt.start_level },
     { "Invincible",    &g_opt.invincible },
@@ -341,7 +352,8 @@ static int activate(const Item *it) {
         return 1;
     case IT_SECTION:
         go((Screen)it->lo);
-        if (it->lo == SCR_RESET) s_sel[SCR_RESET] = 0;     /* always NO first */
+        if (it->lo == SCR_RESET || it->lo == SCR_RESET_SCORES)
+            s_sel[it->lo] = 0;                          /* always NO first */
         break;
     case IT_BACK:
         go(k_screens[s_scr].parent);
@@ -350,11 +362,25 @@ static int activate(const Item *it) {
         reset_all();
         go(k_screens[s_scr].parent);
         break;
+    case IT_RESET_SCORES:
+        hs_reset();
+        go(k_screens[s_scr].parent);
+        break;
     default:
         change_value(it, +1);
         break;
     }
     return 0;
+}
+
+static int item_visible(const Item *it) { return !it->hs_only || g_opt.highscores; }
+
+/* Move the cursor by dir (+1/-1), wrapping and skipping hidden items. */
+static void move_sel(const ScreenDef *sd, int *sel, int dir) {
+    for (int n = 0; n < sd->count; n++) {
+        *sel = (*sel + dir + sd->count) % sd->count;
+        if (item_visible(&sd->items[*sel])) return;
+    }
 }
 
 static void title_menu_input(uint8_t pressed) {
@@ -365,12 +391,12 @@ static void title_menu_input(uint8_t pressed) {
 
     if (!g_opt.modern) {
         /* Classic: Select moves the cursor, Start picks (the original feel). */
-        if (pressed & BTN_SELECT) *sel = (*sel + 1) % sd->count;
+        if (pressed & BTN_SELECT) move_sel(sd, sel, +1);
         else if (pressed & BTN_START) start_game = activate(it);
     } else {
         /* Modern: D-pad moves / changes, A (or Start) picks, B goes back. */
-        if (pressed & BTN_UP)   *sel = (*sel + sd->count - 1) % sd->count;
-        if (pressed & BTN_DOWN) *sel = (*sel + 1) % sd->count;
+        if (pressed & BTN_UP)   move_sel(sd, sel, -1);
+        if (pressed & BTN_DOWN) move_sel(sd, sel, +1);
         if (pressed & BTN_LEFT)  change_value(it, -1);
         if (pressed & BTN_RIGHT) change_value(it, +1);
         if (pressed & (BTN_A | BTN_START)) start_game = activate(it);
@@ -621,14 +647,16 @@ static void draw_screen(uint32_t *fb) {
     text_draw(fb, (32 - hl) / 2, OPT_HEADER, sd->header, TEXT_SALMON);
 
     int row0 = OPT_ROW0;
-    if (s_scr == SCR_RESET) {
-        text_draw(fb, 6, 17, "RESET ALL SETTINGS?", TEXT_WHITE);
-        row0 = 20;
-    }
+    int confirm = s_scr == SCR_RESET || s_scr == SCR_RESET_SCORES;
+    if (s_scr == SCR_RESET) text_draw(fb, 6, 17, "RESET ALL SETTINGS?", TEXT_WHITE);
+    if (s_scr == SCR_RESET_SCORES) text_draw(fb, 5, 17, "ERASE ALL HIGH SCORES?", TEXT_WHITE);
+    if (confirm) row0 = 20;
+    int shown = 0;
     for (int i = 0; i < sd->count; i++) {
         const Item *it = &sd->items[i];
-        int row = row0 + i * 2;
-        int col = s_scr == SCR_RESET ? 14 : OPT_COL;
+        if (!item_visible(it)) continue;
+        int row = row0 + shown++ * 2;
+        int col = confirm ? 14 : OPT_COL;
         text_draw(fb, col, row, it->label, TEXT_WHITE);
         if (i == s_sel[s_scr]) text_draw(fb, col - 2, row, "@", TEXT_WHITE);
         char val[16];
@@ -672,4 +700,20 @@ void options_post_process(uint32_t *fb) {
     if (!g_opt.inverse) return;
     int n = g_render_width * 240;
     for (int i = 0; i < n; i++) fb[i] ^= 0x00FFFFFFu;
+}
+
+int options_title_y(int *y_off) {
+    if (!title_showing()) return 0;
+    if (g_ram[RAM_SCRIPT] == SCRIPT_SCROLL) { *y_off = 240 - g_ram[RAM_SCROLL_Y]; return 1; }
+    if (g_ram[RAM_SCRIPT] == SCRIPT_MENU)   { *y_off = 0; return 1; }
+    return 0;
+}
+
+int options_menu_open(void) {
+    return title_showing() && g_ram[RAM_SCRIPT] == SCRIPT_MENU && s_scr != SCR_TITLE;
+}
+
+int options_cheats_active(void) {
+    return g_opt.inf_lives || g_opt.invincible || g_opt.start_level > 1 ||
+           g_opt.pac_fast || g_opt.ghost_fast;
 }

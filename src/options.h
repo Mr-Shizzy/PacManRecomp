@@ -15,6 +15,7 @@ typedef struct {
     int pac_fast;       /* Pac-Man at 1.5x speed */
     int ghost_fast;     /* ghosts at 1.5x speed */
     int show_level;     /* level number in the HUD */
+    int highscores;     /* persistent top-10 leaderboard */
     int inf_lives;
     int start_level;    /* 1..MAX */
     int invincible;
@@ -38,6 +39,16 @@ void options_render(uint32_t *fb);
 /* Leave the current game for the title screen through the game's own
  * game-over path (keeps the high score). Call while in a game. */
 void options_quit_to_title(void);
+
+/* 1 while the title screen (scroll-in or menu) is on screen; *y_off gets
+ * how far below its resting place the title currently sits. */
+int options_title_y(int *y_off);
+
+/* 1 while the title's OPTIONS screens are open (not the 1P/2P menu). */
+int options_menu_open(void);
+
+/* 1 if any cheat or speed option is on (the game can't go on the board). */
+int options_cheats_active(void);
 
 /* Apply whole-frame effects (inverse colors); call last in game_post_render(). */
 void options_post_process(uint32_t *fb);

@@ -1,6 +1,6 @@
 # Persistent high scores + top-10 leaderboard — plan
 
-Status: approved 2026-09-28; in progress.
+Status: implemented 2026-09-28 (`src/highscores.c`).
 
 ## Decisions (agreed 2026-09-28)
 
@@ -34,17 +34,26 @@ Status: approved 2026-09-28; in progress.
   line per rank: initials and score. Written only when the board changes.
 - Never touched by `RESET TO DEFAULT` (that resets settings, not scores).
 
-## Research needed before coding
+## How it works (research results)
 
-1. Score RAM: where each player's score and the HI-SCORE live (likely BCD
-   digits), and how the game updates and draws them, so HI-SCORE can be
-   seeded from the board and kept in sync.
-2. Game-over flow per player in 1P and 2P games (script 0A path), to know
-   when a player's final score is final and to hold the game there while
-   initials are entered.
-3. The attract sequence (title loop script 04 sub-steps) to insert the
-   leaderboard between the character intro and the demo game.
-4. Which controller player 2 uses in a 2-player game.
+- **Scores:** HI-SCORE `$61-$66`, current player `$70-$75`, other player
+  `$80-$85`; one decimal digit per byte, least significant first, displayed
+  with a trailing 0. The game raises HI-SCORE live when the current score
+  passes it. With the option on, HI-SCORE is seeded from board #1 on the
+  title/attract and drawn over the title's score bar (row 4, cols 12-18).
+- **Final game over:** lives run out -> script `0A`. It is the last one when
+  it is a 1-player game or the other player's lives (`$77`) are 0.
+- **Freeze:** the main loop waits for the NMI to clear `$40`; re-arming it
+  after every NMI holds the game still while sound and input keep running.
+- **Attract:** the title loop never draws the maze, so the maze appearing
+  with the demo flag FF marks the start of the computer-played demo; the
+  board shows then (after the character intro and chase).
+- **Player 2** reads controller 2 in 2-player games; their initials accept
+  either controller so one pad is enough.
+- **Reset:** `EXTRAS > RESET HIGH SCORES` (YES/NO, NO first), shown only
+  while high scores are on.
 
-- **Reset:** `EXTRAS > RESET HIGH SCORES` with a YES/NO confirm (NO
-  first), shown when high scores are on.
+## Tests
+
+`tests/hs_attract.txt`, `hs_entry.txt`, `hs_cheat.txt`, `hs_2p.txt` (run
+with `sh tests/run.sh <script> "HighScores = 1"`).

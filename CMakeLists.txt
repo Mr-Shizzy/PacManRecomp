@@ -16,6 +16,7 @@ add_executable(PacManRecomp
     src/pause_menu.c
     src/options.c
     src/nes_text.c
+    src/highscores.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )
