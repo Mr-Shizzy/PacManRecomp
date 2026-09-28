@@ -19,6 +19,7 @@ typedef struct {
     int inf_lives;
     int start_level;    /* 1..MAX */
     int invincible;
+    char mod[128];      /* active mod folder in mods/, "" = none */
 } PacOptions;
 
 extern PacOptions g_opt;
@@ -35,6 +36,9 @@ void options_post_nmi(void);
 
 /* Draw the title menu / options screens; call from game_post_render(). */
 void options_render(uint32_t *fb);
+
+/* Save the Pac-Man settings now (e.g. after a mod switch). */
+void options_save_now(void);
 
 /* Leave the current game for the title screen through the game's own
  * game-over path (keeps the high score). Call while in a game. */

@@ -13,6 +13,7 @@
 #include "highscores.h"
 #include "soundpack.h"
 #include "logo.h"
+#include "mods.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -26,8 +27,7 @@ const char *game_get_name(void) { return "Pac-Man"; }
 void game_on_init(void) {
     options_init();
     hs_init();
-    soundpack_init();
-    logo_init();
+    mods_init();                /* sounds, logo, HD graphics */
     nesrecomp_set_escape_handler(pause_menu_escape);
 }
 void game_on_frame(uint64_t frame_count) {

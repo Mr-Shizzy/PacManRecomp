@@ -19,6 +19,7 @@
 #include "apu.h"
 #include "highscores.h"
 #include "soundpack.h"
+#include "mods.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -58,7 +59,7 @@ static const PacOptions k_defaults = {
 /* ---- menu model -------------------------------------------------------- */
 typedef enum {
     SCR_TITLE, SCR_OPTIONS, SCR_VIDEO, SCR_AUDIO, SCR_CONTROLS,
-    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_RESET_SCORES, SCR_COUNT
+    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_RESET_SCORES, SCR_MODS, SCR_COUNT
 } Screen;
 
 typedef enum {
@@ -103,6 +104,7 @@ static const Item k_options[] = {
     { "CONTROLS",         IT_SECTION, 0, SCR_CONTROLS },
     { "EXTRAS",           IT_SECTION, 0, SCR_EXTRAS },
     { "CHEATS",           IT_SECTION, 0, SCR_CHEATS },
+    { "MODS",             IT_SECTION, 0, SCR_MODS },
     { "RESET TO DEFAULT", IT_SECTION, 0, SCR_RESET },
     { "BACK",             IT_BACK },
 };
@@ -158,6 +160,7 @@ static const ScreenDef k_screens[SCR_COUNT] = {
     [SCR_CHEATS]   = { "CHEATS",           k_cheats,   N(k_cheats),   SCR_OPTIONS },
     [SCR_RESET]    = { "RESET TO DEFAULT", k_reset,    N(k_reset),    SCR_OPTIONS },
     [SCR_RESET_SCORES] = { "RESET HIGH SCORES", k_reset_scores, N(k_reset_scores), SCR_EXTRAS },
+    [SCR_MODS]     = { "MODS",             NULL,       0,             SCR_OPTIONS },
 };
 
 /* The title loop is showing: flag FF and the title's "PLAY" still in
@@ -204,8 +207,11 @@ static void options_save(void) {
     fprintf(f, "# Pac-Man options - edited by the in-game OPTIONS menu.\n");
     for (int i = 0; i < N(k_keys); i++)
         fprintf(f, "%s = %d\n", k_keys[i].key, *k_keys[i].val);
+    fprintf(f, "Mod = %s\n", g_opt.mod);
     fclose(f);
 }
+
+void options_save_now(void) { options_save(); }
 
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v; }
 
@@ -213,9 +219,14 @@ static void options_load(void) {
     g_opt = k_defaults;
     FILE *f = fopen(options_path(), "r");
     if (!f) return;
-    char line[128], key[64];
+    char line[256], key[64];
     int v;
     while (fgets(line, sizeof(line), f)) {
+        if (!strncmp(line, "Mod = ", 6)) {
+            snprintf(g_opt.mod, sizeof(g_opt.mod), "%s", line + 6);
+            g_opt.mod[strcspn(g_opt.mod, "\r\n")] = '\0';
+            continue;
+        }
         if (sscanf(line, " %63[A-Za-z] = %d", key, &v) != 2) continue;
         for (int i = 0; i < N(k_keys); i++)
             if (!strcmp(key, k_keys[i].key)) *k_keys[i].val = v;
@@ -237,6 +248,7 @@ static void setting_changed(const Item *it) {
 
 static void reset_all(void) {
     g_opt = k_defaults;
+    mods_apply("");                         /* back to the original game */
     g_nes_config.stretch = 0;
     g_nes_config.linear_filter = 0;
     g_nes_config.integer_scale = 1;
@@ -355,6 +367,7 @@ static int activate(const Item *it) {
         return 1;
     case IT_SECTION:
         go((Screen)it->lo);
+        if (it->lo == SCR_MODS) mods_menu_open();
         if (it->lo == SCR_RESET || it->lo == SCR_RESET_SCORES)
             s_sel[it->lo] = 0;                          /* always NO first */
         break;
@@ -387,6 +400,13 @@ static void move_sel(const ScreenDef *sd, int *sel, int dir) {
 }
 
 static void title_menu_input(uint8_t pressed) {
+    if (s_scr == SCR_MODS) {                /* its own list (mods.c) */
+        if (mods_menu_input(pressed, g_opt.modern)) go(SCR_OPTIONS);
+        g_controller1_buttons = 0;
+        g_ram[RAM_TIMER_LO] = 1;
+        g_ram[RAM_TIMER_HI] = 0;
+        return;
+    }
     const ScreenDef *sd = &k_screens[s_scr];
     int *sel = &s_sel[s_scr];
     const Item *it = &sd->items[*sel];
@@ -695,6 +715,7 @@ void options_render(uint32_t *fb) {
         draw_title_items(fb, 240 - g_ram[RAM_SCROLL_Y]);
     } else if (g_ram[RAM_SCRIPT] == SCRIPT_MENU) {
         if (s_scr == SCR_TITLE) draw_title_items(fb, 0);
+        else if (s_scr == SCR_MODS) mods_menu_render(fb);
         else draw_screen(fb);
     }
 }

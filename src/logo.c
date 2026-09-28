@@ -1,7 +1,7 @@
 /*
- * src/logo.c — replacement title logo from <exe>/logo.png.
+ * src/logo.c — replacement title logo (the active mod's logo.png).
  *
- * With a logo.png next to the exe, the title's PAC-MAN logo (tile rows 7-12)
+ * With a logo.png in the active mod, the title's PAC-MAN logo (tile rows 7-12)
  * is blanked and the image is shown there instead, fitted inside the logo
  * band with its proportions kept and centered. It is drawn as a runner
  * overlay at the image's own resolution, so a large PNG stays sharp. It rides
@@ -25,13 +25,11 @@
 static int s_logo;
 static int s_w, s_h;
 
-void logo_init(void) {
-    char dir[1024], path[1100];
-    nesrecomp_exe_dir(dir, sizeof(dir));
-    snprintf(path, sizeof(path), "%slogo.png", dir);
-    s_logo = nesrecomp_overlay_load_png(path);
+void logo_load(const char *path) {
+    if (s_logo) nesrecomp_overlay_free(s_logo);
+    s_logo = path ? nesrecomp_overlay_load_png(path) : 0;
     if (s_logo && !nesrecomp_overlay_size(s_logo, &s_w, &s_h)) s_logo = 0;
-    if (s_logo) printf("[Logo] logo.png loaded (%dx%d)\n", s_w, s_h);
+    if (s_logo) printf("[Logo] %s loaded (%dx%d)\n", path, s_w, s_h);
 }
 
 void logo_render(uint32_t *fb) {

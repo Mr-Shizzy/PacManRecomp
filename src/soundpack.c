@@ -1,7 +1,7 @@
 /*
- * src/soundpack.c — user sound effects / music from <exe>/sounds/*.wav.
+ * src/soundpack.c — user sound effects / music (the active mod's sounds/*.wav).
  *
- * Drop a WAV named after a sound into sounds/ next to the exe and it replaces
+ * A WAV named after a sound in the active mod's sounds/ folder replaces
  * the game's own: the original keeps running silently (so the game's timing
  * never changes) and the file plays through the runner's mod mixer instead.
  * Missing files leave the original sound alone; no folder = stock game.
@@ -125,15 +125,26 @@ done:
     return clip;
 }
 
-void soundpack_init(void) {
-    char dir[1024], path[1200];
-    nesrecomp_exe_dir(dir, sizeof(dir));
+void soundpack_load(const char *sounds_dir) {
+    char path[1200];
+    /* Drop the previous set (a mod switch): stop and release every clip. */
+    nes_mod_audio_stop_all();
+    for (int i = 0; i < N_SOUNDS; i++) {
+        NESModAudioClip c = s_sounds[i].clip;
+        if (!c) continue;
+        for (int j = i; j < N_SOUNDS; j++)
+            if (s_sounds[j].clip == c) s_sounds[j].clip = NES_MOD_AUDIO_CLIP_INVALID;
+        nes_mod_audio_unregister(c);
+    }
+    memset(s_replaced, 0, sizeof(s_replaced));
+    if (!sounds_dir) return;
+
     for (int i = 0; i < N_SOUNDS; i++) {
         /* Shared files (dot, siren) load once and share the clip. */
         for (int j = 0; j < i; j++)
             if (!strcmp(s_sounds[j].file, s_sounds[i].file)) s_sounds[i].clip = s_sounds[j].clip;
         if (!s_sounds[i].clip) {
-            snprintf(path, sizeof(path), "%ssounds/%s.wav", dir, s_sounds[i].file);
+            snprintf(path, sizeof(path), "%s/%s.wav", sounds_dir, s_sounds[i].file);
             s_sounds[i].clip = load_wav(path);
             if (s_sounds[i].clip) printf("[Sounds] %s.wav loaded\n", s_sounds[i].file);
         }

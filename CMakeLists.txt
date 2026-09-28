@@ -19,6 +19,8 @@ add_executable(PacManRecomp
     src/highscores.c
     src/soundpack.c
     src/logo.c
+    src/mods.c
+    src/hdbuild.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )
