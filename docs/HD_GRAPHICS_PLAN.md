@@ -1,6 +1,6 @@
 # Mods: beginner-friendly graphics, sounds and mod selection — plan
 
-Status: planning (not implemented).
+Status: implemented 2026-09-28 (mods.c, hdbuild.c, capture.c, tools/hd_layout_*.py, tools/make_mod_template.py; guide in docs/MODDING.md).
 
 ## Goal
 

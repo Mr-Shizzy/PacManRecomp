@@ -170,10 +170,11 @@ bg("power_pellet", 8, 8, ["01"], [], wild=True)
 
 FONT = {chr(c): f"{c:02X}" for c in list(range(0x41, 0x5B)) + list(range(0x30, 0x3A))}
 FONT.update({"dash": "3A", "period": "5B", "cursor": "5C", "copyright": "5D"})
+# All text uses the same few color sets; give every character all of them
+# (some letters never appeared on screen during capture).
+font_pals = sorted(set().union(*(bg_pals.get(t, set()) for t in FONT.values())))
 for name, t in FONT.items():
-    ps = sorted(bg_pals.get(t, ()))
-    if ps:
-        bg("font/" + name, 8, 8, [t], ps, tint=True)
+    bg("font/" + name, 8, 8, [t], font_pals, tint=True)
 
 NES_PALETTE = [int(x, 16) & 0xFFFFFF for x in re.findall(
     r"0x[0-9A-Fa-f]{8}", open(os.path.join(os.path.dirname(__file__), "..", "..", "nesrecomp",

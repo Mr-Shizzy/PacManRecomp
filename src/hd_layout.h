@@ -183,69 +183,85 @@ static const HdPiece hd_p80[] = { {0, 0, 0x03, 0} };
 static const HdPiece hd_p81[] = { {0, 0, 0x09, 0} };
 static const HdPiece hd_p82[] = { {0, 0, 0x01, 0} };
 static const HdPiece hd_p83[] = { {0, 0, 0x41, 0} };
-static const uint32_t hd_c83[] = { 0x0F060F33u, 0x0F200F06u };
+static const uint32_t hd_c83[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
 static const HdPiece hd_p84[] = { {0, 0, 0x42, 0} };
-static const uint32_t hd_c84[] = { 0x0F060F33u, 0x0F200F06u };
+static const uint32_t hd_c84[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
 static const HdPiece hd_p85[] = { {0, 0, 0x43, 0} };
-static const uint32_t hd_c85[] = { 0x0F170F21u, 0x0F200F06u };
+static const uint32_t hd_c85[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
 static const HdPiece hd_p86[] = { {0, 0, 0x44, 0} };
 static const uint32_t hd_c86[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
 static const HdPiece hd_p87[] = { {0, 0, 0x45, 0} };
-static const uint32_t hd_c87[] = { 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p88[] = { {0, 0, 0x48, 0} };
-static const uint32_t hd_c88[] = { 0x0F060F33u, 0x0F200F06u };
-static const HdPiece hd_p89[] = { {0, 0, 0x49, 0} };
-static const uint32_t hd_c89[] = { 0x0F060F33u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p90[] = { {0, 0, 0x4B, 0} };
+static const uint32_t hd_c87[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p88[] = { {0, 0, 0x46, 0} };
+static const uint32_t hd_c88[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p89[] = { {0, 0, 0x47, 0} };
+static const uint32_t hd_c89[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p90[] = { {0, 0, 0x48, 0} };
 static const uint32_t hd_c90[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p91[] = { {0, 0, 0x4C, 0} };
-static const uint32_t hd_c91[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u };
-static const HdPiece hd_p92[] = { {0, 0, 0x4D, 0} };
-static const uint32_t hd_c92[] = { 0x0F200F06u };
-static const HdPiece hd_p93[] = { {0, 0, 0x4E, 0} };
-static const uint32_t hd_c93[] = { 0x0F060F33u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p94[] = { {0, 0, 0x4F, 0} };
-static const uint32_t hd_c94[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u };
-static const HdPiece hd_p95[] = { {0, 0, 0x50, 0} };
-static const uint32_t hd_c95[] = { 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p96[] = { {0, 0, 0x52, 0} };
-static const uint32_t hd_c96[] = { 0x0F200F06u };
-static const HdPiece hd_p97[] = { {0, 0, 0x53, 0} };
-static const uint32_t hd_c97[] = { 0x0F060F33u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p98[] = { {0, 0, 0x54, 0} };
-static const uint32_t hd_c98[] = { 0x0F200F06u };
-static const HdPiece hd_p99[] = { {0, 0, 0x57, 0} };
-static const uint32_t hd_c99[] = { 0x0F060F33u };
-static const HdPiece hd_p100[] = { {0, 0, 0x59, 0} };
+static const HdPiece hd_p91[] = { {0, 0, 0x49, 0} };
+static const uint32_t hd_c91[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p92[] = { {0, 0, 0x4A, 0} };
+static const uint32_t hd_c92[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p93[] = { {0, 0, 0x4B, 0} };
+static const uint32_t hd_c93[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p94[] = { {0, 0, 0x4C, 0} };
+static const uint32_t hd_c94[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p95[] = { {0, 0, 0x4D, 0} };
+static const uint32_t hd_c95[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p96[] = { {0, 0, 0x4E, 0} };
+static const uint32_t hd_c96[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p97[] = { {0, 0, 0x4F, 0} };
+static const uint32_t hd_c97[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p98[] = { {0, 0, 0x50, 0} };
+static const uint32_t hd_c98[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p99[] = { {0, 0, 0x51, 0} };
+static const uint32_t hd_c99[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p100[] = { {0, 0, 0x52, 0} };
 static const uint32_t hd_c100[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p101[] = { {0, 0, 0x30, 0} };
-static const uint32_t hd_c101[] = { 0x0F200F06u };
-static const HdPiece hd_p102[] = { {0, 0, 0x31, 0} };
-static const uint32_t hd_c102[] = { 0x0F200F06u };
-static const HdPiece hd_p103[] = { {0, 0, 0x32, 0} };
-static const uint32_t hd_c103[] = { 0x0F200F06u };
-static const HdPiece hd_p104[] = { {0, 0, 0x33, 0} };
-static const uint32_t hd_c104[] = { 0x0F200F06u };
-static const HdPiece hd_p105[] = { {0, 0, 0x34, 0} };
-static const uint32_t hd_c105[] = { 0x0F200F06u };
-static const HdPiece hd_p106[] = { {0, 0, 0x35, 0} };
-static const uint32_t hd_c106[] = { 0x0F200F06u };
-static const HdPiece hd_p107[] = { {0, 0, 0x36, 0} };
-static const uint32_t hd_c107[] = { 0x0F200F06u };
-static const HdPiece hd_p108[] = { {0, 0, 0x37, 0} };
-static const uint32_t hd_c108[] = { 0x0F200F06u };
-static const HdPiece hd_p109[] = { {0, 0, 0x38, 0} };
-static const uint32_t hd_c109[] = { 0x0F200F06u };
-static const HdPiece hd_p110[] = { {0, 0, 0x39, 0} };
-static const uint32_t hd_c110[] = { 0x0F200F06u };
-static const HdPiece hd_p111[] = { {0, 0, 0x3A, 0} };
-static const uint32_t hd_c111[] = { 0x0F060F33u, 0x0F170F21u, 0x0F330F27u };
-static const HdPiece hd_p112[] = { {0, 0, 0x5B, 0} };
-static const uint32_t hd_c112[] = { 0x0F200F06u };
-static const HdPiece hd_p113[] = { {0, 0, 0x5C, 0} };
-static const uint32_t hd_c113[] = { 0x0F200F06u };
-static const HdPiece hd_p114[] = { {0, 0, 0x5D, 0} };
-static const uint32_t hd_c114[] = { 0x0F200F06u };
+static const HdPiece hd_p101[] = { {0, 0, 0x53, 0} };
+static const uint32_t hd_c101[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p102[] = { {0, 0, 0x54, 0} };
+static const uint32_t hd_c102[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p103[] = { {0, 0, 0x55, 0} };
+static const uint32_t hd_c103[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p104[] = { {0, 0, 0x56, 0} };
+static const uint32_t hd_c104[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p105[] = { {0, 0, 0x57, 0} };
+static const uint32_t hd_c105[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p106[] = { {0, 0, 0x58, 0} };
+static const uint32_t hd_c106[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p107[] = { {0, 0, 0x59, 0} };
+static const uint32_t hd_c107[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p108[] = { {0, 0, 0x5A, 0} };
+static const uint32_t hd_c108[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p109[] = { {0, 0, 0x30, 0} };
+static const uint32_t hd_c109[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p110[] = { {0, 0, 0x31, 0} };
+static const uint32_t hd_c110[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p111[] = { {0, 0, 0x32, 0} };
+static const uint32_t hd_c111[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p112[] = { {0, 0, 0x33, 0} };
+static const uint32_t hd_c112[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p113[] = { {0, 0, 0x34, 0} };
+static const uint32_t hd_c113[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p114[] = { {0, 0, 0x35, 0} };
+static const uint32_t hd_c114[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p115[] = { {0, 0, 0x36, 0} };
+static const uint32_t hd_c115[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p116[] = { {0, 0, 0x37, 0} };
+static const uint32_t hd_c116[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p117[] = { {0, 0, 0x38, 0} };
+static const uint32_t hd_c117[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p118[] = { {0, 0, 0x39, 0} };
+static const uint32_t hd_c118[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p119[] = { {0, 0, 0x3A, 0} };
+static const uint32_t hd_c119[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p120[] = { {0, 0, 0x5B, 0} };
+static const uint32_t hd_c120[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p121[] = { {0, 0, 0x5C, 0} };
+static const uint32_t hd_c121[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p122[] = { {0, 0, 0x5D, 0} };
+static const uint32_t hd_c122[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
 
 static const HdGraphic hd_graphics[] = {
     { "pacman/closed", 1, 16, 16, 4, hd_p0, 1, hd_c0, 0, 0, 1, 0 },
@@ -331,37 +347,45 @@ static const HdGraphic hd_graphics[] = {
     { "dot", 0, 8, 8, 1, hd_p80, 0, 0, 0, 0, 1, 0 },
     { "dot_alt", 0, 8, 8, 1, hd_p81, 0, 0, "dot", 'n', 1, 0 },
     { "power_pellet", 0, 8, 8, 1, hd_p82, 0, 0, 0, 0, 1, 0 },
-    { "font/A", 0, 8, 8, 1, hd_p83, 2, hd_c83, 0, 0, 0, 1 },
-    { "font/B", 0, 8, 8, 1, hd_p84, 2, hd_c84, 0, 0, 0, 1 },
-    { "font/C", 0, 8, 8, 1, hd_p85, 2, hd_c85, 0, 0, 0, 1 },
+    { "font/A", 0, 8, 8, 1, hd_p83, 4, hd_c83, 0, 0, 0, 1 },
+    { "font/B", 0, 8, 8, 1, hd_p84, 4, hd_c84, 0, 0, 0, 1 },
+    { "font/C", 0, 8, 8, 1, hd_p85, 4, hd_c85, 0, 0, 0, 1 },
     { "font/D", 0, 8, 8, 1, hd_p86, 4, hd_c86, 0, 0, 0, 1 },
-    { "font/E", 0, 8, 8, 1, hd_p87, 3, hd_c87, 0, 0, 0, 1 },
-    { "font/H", 0, 8, 8, 1, hd_p88, 2, hd_c88, 0, 0, 0, 1 },
-    { "font/I", 0, 8, 8, 1, hd_p89, 3, hd_c89, 0, 0, 0, 1 },
-    { "font/K", 0, 8, 8, 1, hd_p90, 4, hd_c90, 0, 0, 0, 1 },
-    { "font/L", 0, 8, 8, 1, hd_p91, 3, hd_c91, 0, 0, 0, 1 },
-    { "font/M", 0, 8, 8, 1, hd_p92, 1, hd_c92, 0, 0, 0, 1 },
-    { "font/N", 0, 8, 8, 1, hd_p93, 3, hd_c93, 0, 0, 0, 1 },
-    { "font/O", 0, 8, 8, 1, hd_p94, 3, hd_c94, 0, 0, 0, 1 },
-    { "font/P", 0, 8, 8, 1, hd_p95, 3, hd_c95, 0, 0, 0, 1 },
-    { "font/R", 0, 8, 8, 1, hd_p96, 1, hd_c96, 0, 0, 0, 1 },
-    { "font/S", 0, 8, 8, 1, hd_p97, 3, hd_c97, 0, 0, 0, 1 },
-    { "font/T", 0, 8, 8, 1, hd_p98, 1, hd_c98, 0, 0, 0, 1 },
-    { "font/W", 0, 8, 8, 1, hd_p99, 1, hd_c99, 0, 0, 0, 1 },
-    { "font/Y", 0, 8, 8, 1, hd_p100, 4, hd_c100, 0, 0, 0, 1 },
-    { "font/0", 0, 8, 8, 1, hd_p101, 1, hd_c101, 0, 0, 0, 1 },
-    { "font/1", 0, 8, 8, 1, hd_p102, 1, hd_c102, 0, 0, 0, 1 },
-    { "font/2", 0, 8, 8, 1, hd_p103, 1, hd_c103, 0, 0, 0, 1 },
-    { "font/3", 0, 8, 8, 1, hd_p104, 1, hd_c104, 0, 0, 0, 1 },
-    { "font/4", 0, 8, 8, 1, hd_p105, 1, hd_c105, 0, 0, 0, 1 },
-    { "font/5", 0, 8, 8, 1, hd_p106, 1, hd_c106, 0, 0, 0, 1 },
-    { "font/6", 0, 8, 8, 1, hd_p107, 1, hd_c107, 0, 0, 0, 1 },
-    { "font/7", 0, 8, 8, 1, hd_p108, 1, hd_c108, 0, 0, 0, 1 },
-    { "font/8", 0, 8, 8, 1, hd_p109, 1, hd_c109, 0, 0, 0, 1 },
-    { "font/9", 0, 8, 8, 1, hd_p110, 1, hd_c110, 0, 0, 0, 1 },
-    { "font/dash", 0, 8, 8, 1, hd_p111, 3, hd_c111, 0, 0, 0, 1 },
-    { "font/period", 0, 8, 8, 1, hd_p112, 1, hd_c112, 0, 0, 0, 1 },
-    { "font/cursor", 0, 8, 8, 1, hd_p113, 1, hd_c113, 0, 0, 0, 1 },
-    { "font/copyright", 0, 8, 8, 1, hd_p114, 1, hd_c114, 0, 0, 0, 1 },
+    { "font/E", 0, 8, 8, 1, hd_p87, 4, hd_c87, 0, 0, 0, 1 },
+    { "font/F", 0, 8, 8, 1, hd_p88, 4, hd_c88, 0, 0, 0, 1 },
+    { "font/G", 0, 8, 8, 1, hd_p89, 4, hd_c89, 0, 0, 0, 1 },
+    { "font/H", 0, 8, 8, 1, hd_p90, 4, hd_c90, 0, 0, 0, 1 },
+    { "font/I", 0, 8, 8, 1, hd_p91, 4, hd_c91, 0, 0, 0, 1 },
+    { "font/J", 0, 8, 8, 1, hd_p92, 4, hd_c92, 0, 0, 0, 1 },
+    { "font/K", 0, 8, 8, 1, hd_p93, 4, hd_c93, 0, 0, 0, 1 },
+    { "font/L", 0, 8, 8, 1, hd_p94, 4, hd_c94, 0, 0, 0, 1 },
+    { "font/M", 0, 8, 8, 1, hd_p95, 4, hd_c95, 0, 0, 0, 1 },
+    { "font/N", 0, 8, 8, 1, hd_p96, 4, hd_c96, 0, 0, 0, 1 },
+    { "font/O", 0, 8, 8, 1, hd_p97, 4, hd_c97, 0, 0, 0, 1 },
+    { "font/P", 0, 8, 8, 1, hd_p98, 4, hd_c98, 0, 0, 0, 1 },
+    { "font/Q", 0, 8, 8, 1, hd_p99, 4, hd_c99, 0, 0, 0, 1 },
+    { "font/R", 0, 8, 8, 1, hd_p100, 4, hd_c100, 0, 0, 0, 1 },
+    { "font/S", 0, 8, 8, 1, hd_p101, 4, hd_c101, 0, 0, 0, 1 },
+    { "font/T", 0, 8, 8, 1, hd_p102, 4, hd_c102, 0, 0, 0, 1 },
+    { "font/U", 0, 8, 8, 1, hd_p103, 4, hd_c103, 0, 0, 0, 1 },
+    { "font/V", 0, 8, 8, 1, hd_p104, 4, hd_c104, 0, 0, 0, 1 },
+    { "font/W", 0, 8, 8, 1, hd_p105, 4, hd_c105, 0, 0, 0, 1 },
+    { "font/X", 0, 8, 8, 1, hd_p106, 4, hd_c106, 0, 0, 0, 1 },
+    { "font/Y", 0, 8, 8, 1, hd_p107, 4, hd_c107, 0, 0, 0, 1 },
+    { "font/Z", 0, 8, 8, 1, hd_p108, 4, hd_c108, 0, 0, 0, 1 },
+    { "font/0", 0, 8, 8, 1, hd_p109, 4, hd_c109, 0, 0, 0, 1 },
+    { "font/1", 0, 8, 8, 1, hd_p110, 4, hd_c110, 0, 0, 0, 1 },
+    { "font/2", 0, 8, 8, 1, hd_p111, 4, hd_c111, 0, 0, 0, 1 },
+    { "font/3", 0, 8, 8, 1, hd_p112, 4, hd_c112, 0, 0, 0, 1 },
+    { "font/4", 0, 8, 8, 1, hd_p113, 4, hd_c113, 0, 0, 0, 1 },
+    { "font/5", 0, 8, 8, 1, hd_p114, 4, hd_c114, 0, 0, 0, 1 },
+    { "font/6", 0, 8, 8, 1, hd_p115, 4, hd_c115, 0, 0, 0, 1 },
+    { "font/7", 0, 8, 8, 1, hd_p116, 4, hd_c116, 0, 0, 0, 1 },
+    { "font/8", 0, 8, 8, 1, hd_p117, 4, hd_c117, 0, 0, 0, 1 },
+    { "font/9", 0, 8, 8, 1, hd_p118, 4, hd_c118, 0, 0, 0, 1 },
+    { "font/dash", 0, 8, 8, 1, hd_p119, 4, hd_c119, 0, 0, 0, 1 },
+    { "font/period", 0, 8, 8, 1, hd_p120, 4, hd_c120, 0, 0, 0, 1 },
+    { "font/cursor", 0, 8, 8, 1, hd_p121, 4, hd_c121, 0, 0, 0, 1 },
+    { "font/copyright", 0, 8, 8, 1, hd_p122, 4, hd_c122, 0, 0, 0, 1 },
 };
 #define HD_GRAPHICS_N ((int)(sizeof(hd_graphics) / sizeof(hd_graphics[0])))
