@@ -14,6 +14,8 @@ add_executable(PacManRecomp
     ${NESRECOMP_RUNNER_SOURCES}
     src/extras.c
     src/pause_menu.c
+    src/options.c
+    src/nes_text.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )
