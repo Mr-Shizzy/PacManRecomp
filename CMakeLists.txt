@@ -18,6 +18,7 @@ add_executable(PacManRecomp
     src/nes_text.c
     src/highscores.c
     src/soundpack.c
+    src/logo.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )

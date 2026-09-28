@@ -12,6 +12,7 @@
 #include "options.h"
 #include "highscores.h"
 #include "soundpack.h"
+#include "logo.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -26,6 +27,7 @@ void game_on_init(void) {
     options_init();
     hs_init();
     soundpack_init();
+    logo_init();
     nesrecomp_set_escape_handler(pause_menu_escape);
 }
 void game_on_frame(uint64_t frame_count) {
@@ -55,6 +57,7 @@ uint8_t game_ram_read_hook(uint16_t pc, uint16_t addr, uint8_t val) {
 }
 
 void game_post_render(uint32_t *framebuf) {
+    logo_render(framebuf);
     options_render(framebuf);
     pause_menu_render(framebuf);
     hs_render(framebuf);

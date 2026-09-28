@@ -30,6 +30,11 @@ cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang
 cmake --build build
 ```
 
+## Modding
+
+HD texture packs, replacement sounds/music and a custom title logo: see
+[docs/MODDING.md](docs/MODDING.md).
+
 ## Testing
 
 `tests/*.txt` are NESRecomp input scripts (headless). Run them with
