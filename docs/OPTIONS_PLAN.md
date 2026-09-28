@@ -34,10 +34,11 @@ menu is open.
   exit prompt.
   - Classic: Select moves the cursor, Start picks (the original feel).
   - Modern: D-pad moves, A picks, B goes back; Left/Right changes values.
-- Settings apply instantly and save automatically (config.ini, Pac-Man
-  section).
+- Settings apply instantly and save automatically: display and volume in
+  the runner's config.ini, the rest in pacman_options.ini next to the exe.
 - Custom glyphs drawn in the game's font style: `:` `?` `%` and arrows.
-- Values in white, cursor in yellow, as on the original title screen.
+- Labels and cursor in white as on the original title screen, values in
+  the title palette's orange, section headers in the logo's salmon.
 
 ## Status
 
