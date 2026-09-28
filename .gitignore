@@ -1,0 +1,12 @@
+# Build output
+build/
+
+# ROM and anything derived from it (regenerate with NESRecomp.exe)
+*.nes
+generated/
+*_finder_audit.csv
+*_auto_entries.csv
+proposed.toml
+
+# Test screenshots
+tests/out/
