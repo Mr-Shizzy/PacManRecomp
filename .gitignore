@@ -16,3 +16,6 @@ rom.cfg
 
 # Isolated test runs (tests/run.sh)
 tests/run/
+
+# HD pack work folder (ROM-derived art)
+hdpack_starter/
