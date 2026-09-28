@@ -13,6 +13,7 @@ find_package(SDL2 REQUIRED)
 add_executable(PacManRecomp
     ${NESRECOMP_RUNNER_SOURCES}
     src/extras.c
+    src/pause_menu.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )

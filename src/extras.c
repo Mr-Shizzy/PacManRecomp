@@ -1,12 +1,14 @@
 /*
  * src/extras.c — Pac-Man (USA, Namco 1993) runner hooks
  *
- * Implements game_extras.h. No game-specific behavior yet: every hook is the
- * stock default (native recompiled RESET/NMI, no overrides).
+ * Implements game_extras.h. The game runs stock (native recompiled RESET/NMI,
+ * no overrides); the only addition is the pause-screen exit prompt
+ * (pause_menu.c).
  */
 #include "game_extras.h"
 #include "nes_runtime.h"
 #include "pacman_full_decls.h"
+#include "pause_menu.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -18,7 +20,10 @@ uint32_t game_get_expected_crc32(void) { return 0x9E4E9CC2u; }
 const char *game_get_name(void) { return "Pac-Man"; }
 
 void game_on_init(void) {}
-void game_on_frame(uint64_t frame_count) { (void)frame_count; }
+void game_on_frame(uint64_t frame_count) {
+    (void)frame_count;
+    pause_menu_on_frame();
+}
 void game_post_nmi(uint64_t frame_count) { (void)frame_count; }
 
 int game_handle_arg(const char *key, const char *val) { (void)key; (void)val; return 0; }
@@ -34,7 +39,7 @@ uint8_t game_ram_read_hook(uint16_t pc, uint16_t addr, uint8_t val) {
     return val;
 }
 
-void game_post_render(uint32_t *framebuf) { (void)framebuf; }
+void game_post_render(uint32_t *framebuf) { pause_menu_render(framebuf); }
 void game_fill_frame_record(void *record) { (void)record; }
 int game_handle_debug_cmd(const char *cmd, int id, const char *json) {
     (void)cmd; (void)id; (void)json;
