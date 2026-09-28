@@ -13,3 +13,6 @@ tests/out/
 
 # Launcher-remembered ROM path (local)
 rom.cfg
+
+# Isolated test runs (tests/run.sh)
+tests/run/

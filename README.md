@@ -32,10 +32,14 @@ cmake --build build
 
 ## Testing
 
-`tests/*.txt` are NESRecomp input scripts (headless). Example:
+`tests/*.txt` are NESRecomp input scripts (headless). Run them with
+`tests/run.sh`, which copies the fresh build into `tests/run/` so tests never
+touch your own settings next to `build/PacManRecomp.exe`:
 
 ```bash
-build/PacManRecomp.exe pacman.nes --script tests/input_probe.txt
+sh tests/run.sh options_classic.txt
+sh tests/run.sh options_modern.txt "ModernMenus = 1"
 ```
 
+Extra arguments become lines of the test's `pacman_options.ini`.
 Screenshots land in `tests/out/`.

@@ -475,8 +475,19 @@ static void rumble_set(int level) {
     nesrecomp_rumble(1, k_low[level], k_high[level], level ? RUMBLE_SPAN_MS : 0);
 }
 
+/* A tiny blip for each dot eaten: the current player's pellet count ($6A)
+ * counts down as dots are eaten (reset at each stage start). Fire-and-forget,
+ * only while no other rumble is running. */
+#define RAM_PELLETS     0x6A
+#define DOT_BLIP_MS     40
+
 static void rumble_frame(uint8_t demo, uint8_t script, uint8_t prev_script) {
     static int burst;
+    static uint8_t prev_pellets;
+    uint8_t pellets = g_ram[RAM_PELLETS];
+    int ate_dot = demo == 0x00 && pellets < prev_pellets;
+    prev_pellets = pellets;
+
     if (!g_opt.rumble || demo != 0x00 || (g_ram[RAM_FLAG_PAUSE] & 1)) {
         burst = 0;
         rumble_set(RUMBLE_OFF);
@@ -492,6 +503,7 @@ static void rumble_frame(uint8_t demo, uint8_t script, uint8_t prev_script) {
         rumble_set(RUMBLE_LIGHT);
     } else {
         rumble_set(RUMBLE_OFF);
+        if (ate_dot) nesrecomp_rumble(1, 0x0C00, 0x1800, DOT_BLIP_MS);
     }
 }
 
