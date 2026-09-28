@@ -23,3 +23,8 @@ void text_draw_px(uint32_t *fb, int x, int y, const char *s, uint8_t color);
 
 /* Paint tile rows [row0, row1] black (full width), offset by y_px pixels. */
 void text_clear_rows(uint32_t *fb, int row0, int row1, int y_px);
+
+/* Keep a pixel rectangle out of HD texture-pack replacement, so overlays drawn
+ * there show as drawn (upscaled) instead of being covered by HD tiles of the
+ * game art underneath. No-op without an active pack. */
+void text_mark_native(int x, int y, int w, int h);

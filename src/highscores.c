@@ -372,6 +372,7 @@ static void draw_centered(uint32_t *fb, int cx, int y, const char *s, uint8_t co
 /* Paint a pixel span of one text row black (between the score bar's other
  * fields, so they are left alone). */
 static void clear_span(uint32_t *fb, int x0, int x1, int y) {
+    text_mark_native(x0, y, x1 - x0, 8);
     for (int py = y; py < y + 8; py++) {
         if (py < 0 || py >= 240) continue;
         uint32_t *line = fb + py * g_render_width + g_widescreen_left;

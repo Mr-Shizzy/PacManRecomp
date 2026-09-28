@@ -3,6 +3,7 @@
  */
 #include "nes_text.h"
 #include "nes_runtime.h"
+#include "hdpack.h"
 
 #define TILE_CURSOR 0x5C        /* title-screen cursor */
 #define COLOR_BG    0x0F        /* the title/maze background black */
@@ -16,6 +17,20 @@ static const struct { char c; uint8_t rows[8]; } s_glyphs[] = {
     { '>', { 0x30, 0x18, 0x0C, 0x06, 0x0C, 0x18, 0x30, 0x00 } },
     { '!', { 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x00 } },
 };
+
+void text_mark_native(int x, int y, int w, int h) {
+    HdPixel *px = hdpack_pixels();
+    if (!px) return;
+    for (int py = y; py < y + h; py++) {
+        if (py < 0 || py >= 240) continue;
+        for (int ix = x; ix < x + w; ix++) {
+            if (ix < 0 || ix >= 256) continue;
+            HdPixel *p = &px[py * g_render_width + g_widescreen_left + ix];
+            p->bg_has = 0;
+            p->sp_has = 0;
+        }
+    }
+}
 
 /* Fill `rows` (8 bytes, 1 bit per pixel, MSB left) for character c.
  * Returns 0 for a blank cell. */
@@ -46,6 +61,7 @@ void text_draw_px(uint32_t *fb, int x, int y, const char *s, uint8_t color) {
         if (x < 0 || x > 248) continue;
         uint8_t rows[8] = { 0 };
         glyph_rows(*s, rows);
+        text_mark_native(x, y, 8, 8);
         for (int r = 0; r < 8; r++) {
             int py = y + r;
             if (py < 0 || py >= 240) continue;
@@ -62,6 +78,7 @@ void text_draw(uint32_t *fb, int col, int row, const char *s, uint8_t color) {
 
 void text_clear_rows(uint32_t *fb, int row0, int row1, int y_px) {
     const uint32_t bg = g_nes_palette[COLOR_BG];
+    text_mark_native(0, row0 * 8 + y_px, 256, (row1 - row0 + 1) * 8);
     for (int py = row0 * 8 + y_px; py < (row1 + 1) * 8 + y_px; py++) {
         if (py < 0 || py >= 240) continue;
         uint32_t *line = fb + py * g_render_width + g_widescreen_left;
