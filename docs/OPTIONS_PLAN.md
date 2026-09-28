@@ -52,14 +52,13 @@ All items are implemented (2026-09-28):
 | Volume | runner `g_nes_config.volume` (live) |
 | Echo | `nesrecomp_set_audio_filter()` 200 ms feedback delay |
 | Music / SFX | `apu_set_mute_mask()` on channels owned by muted sound slots (music = slots 0-1, 13-14) |
-| Pac-Man / ghost speed | scale the stage speed table `$9F-$B4` (pairs 0-3 Pac-Man, 6-10 ghosts) |
+| Pac-Man / ghost speed | scale the stage speed table `$9F-$B4` by 1.5 (pairs 0-3 Pac-Man, 6-10 ghosts); 2x/3x were unplayable |
+| Show level | LEVEL + stage `$68`+1 in the HUD column, rows 11/13 |
+| Pause menu | MAIN MENU (game-over script 0A with both players out of lives; keeps the high score) / LAUNCHER / BACK |
 | Infinite lives | keep `$67`/`$77` at least 3 |
 | Start level | set stage `$68`/`$78` while it reads FF at game start |
 | Invincible | undo the collision's switch to the death script (`$3F` 04 -> 08) |
 | Reset to default | restores both runner and Pac-Man settings |
-
-Known limits: at high combined speeds a ghost can occasionally pass through
-Pac-Man without touching (the game checks overlap once per frame).
 
 ## Order
 

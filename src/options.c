@@ -48,7 +48,7 @@ PacOptions g_opt;
 
 static const PacOptions k_defaults = {
     .inverse = 0, .music = 1, .sfx = 1, .echo = 0, .modern = 0,
-    .pac_speed = 1, .ghost_speed = 1,
+    .pac_fast = 0, .ghost_fast = 0, .show_level = 0,
     .inf_lives = 0, .start_level = 1, .invincible = 0,
 };
 
@@ -65,6 +65,7 @@ typedef enum {
     IT_TOGGLE,      /* *val 0/1 */
     IT_RANGE,       /* *val lo..hi by step, shown with fmt */
     IT_STYLE,       /* *val 0 classic / 1 modern */
+    IT_SPEED,       /* *val 0 normal / 1 1.5x */
     IT_RESET,       /* reset everything to defaults */
 } ItemKind;
 
@@ -119,8 +120,9 @@ static const Item k_controls[] = {
     { "BACK",       IT_BACK },
 };
 static const Item k_extras[] = {
-    { "PAC-MAN SPEED", IT_RANGE, &g_opt.pac_speed,   1, 3, 1, "%dX" },
-    { "GHOST SPEED",   IT_RANGE, &g_opt.ghost_speed, 1, 3, 1, "%dX" },
+    { "PAC-MAN SPEED", IT_SPEED,  &g_opt.pac_fast },
+    { "GHOST SPEED",   IT_SPEED,  &g_opt.ghost_fast },
+    { "SHOW LEVEL",    IT_TOGGLE, &g_opt.show_level },
     { "BACK",          IT_BACK },
 };
 static const Item k_cheats[] = {
@@ -166,8 +168,9 @@ static struct { const char *key; int *val; } k_keys[] = {
     { "SoundFx",       &g_opt.sfx },
     { "Echo",          &g_opt.echo },
     { "ModernMenus",   &g_opt.modern },
-    { "PacManSpeed",   &g_opt.pac_speed },
-    { "GhostSpeed",    &g_opt.ghost_speed },
+    { "PacManFast",    &g_opt.pac_fast },
+    { "GhostFast",     &g_opt.ghost_fast },
+    { "ShowLevel",     &g_opt.show_level },
     { "InfiniteLives", &g_opt.inf_lives },
     { "StartLevel",    &g_opt.start_level },
     { "Invincible",    &g_opt.invincible },
@@ -196,8 +199,8 @@ static void options_load(void) {
             if (!strcmp(key, k_keys[i].key)) *k_keys[i].val = v;
     }
     fclose(f);
-    g_opt.pac_speed   = clampi(g_opt.pac_speed, 1, 3);
-    g_opt.ghost_speed = clampi(g_opt.ghost_speed, 1, 3);
+    g_opt.pac_fast    = clampi(g_opt.pac_fast, 0, 1);
+    g_opt.ghost_fast  = clampi(g_opt.ghost_fast, 0, 1);
     g_opt.start_level = clampi(g_opt.start_level, 1, START_LEVEL_MAX);
 }
 
@@ -304,6 +307,7 @@ static void change_value(const Item *it, int dir) {
     switch (it->kind) {
     case IT_TOGGLE:
     case IT_STYLE:
+    case IT_SPEED:
         *it->val = !*it->val;
         break;
     case IT_RANGE: {
@@ -402,17 +406,38 @@ static int      s_speed_known;
 
 static void apply_speeds(void) {
     for (int p = 0; p < SPEED_PAIRS; p++) {
-        int mult = p <= 3 ? g_opt.pac_speed : p >= 6 ? g_opt.ghost_speed : 1;
+        int fast = p <= 3 ? g_opt.pac_fast : p >= 6 ? g_opt.ghost_fast : 0;
         uint8_t *r = &g_ram[RAM_SPEEDS + 2 * p];
         uint16_t cur = (uint16_t)(r[0] | r[1] << 8);
         if (!s_speed_known || cur != s_speed_written[p]) s_speed_base[p] = cur;
-        uint32_t v = (uint32_t)s_speed_base[p] * (uint32_t)mult;
-        if (v > 0x07FF) v = 0x07FF;                 /* < 8 px per frame */
+        uint32_t v = fast ? (uint32_t)s_speed_base[p] * 3 / 2 : s_speed_base[p];
         r[0] = (uint8_t)v;
         r[1] = (uint8_t)(v >> 8);
         s_speed_written[p] = (uint16_t)v;
     }
     s_speed_known = 1;
+}
+
+/* "Main menu" from the pause prompt: end the game the way the game ends it
+ * (both players out of lives, game-over script 0A), so the title screen
+ * comes back through the stock path and the high score is kept. */
+#define RAM_FLAG_PAUSE    0x4A
+#define RAM_NEW_STAGE     0x69
+#define RAM_SND_PAUSE     0x60F
+#define SCRIPT_GAME_OVER  0x0A
+#define GAME_OVER_SHOWN   0xA0      /* $87 counts up to wrap: ~1.5 s left */
+
+static int s_quitting;
+
+void options_quit_to_title(void) {
+    g_ram[RAM_LIVES]     = 0;
+    g_ram[RAM_LIVES_2]   = 0;
+    g_ram[RAM_NEW_STAGE] = 0;
+    g_ram[RAM_TIMER_LO]  = 0;
+    g_ram[RAM_SCRIPT]    = SCRIPT_GAME_OVER;
+    if (g_ram[RAM_FLAG_PAUSE] & 1) g_ram[RAM_FLAG_PAUSE]++;     /* unpause */
+    g_ram[RAM_SND_PAUSE] = 0;
+    s_quitting = 1;
 }
 
 static void gameplay_frame(void) {
@@ -422,6 +447,7 @@ static void gameplay_frame(void) {
     uint8_t demo = g_ram[RAM_FLAG_DEMO], script = g_ram[RAM_SCRIPT];
 
     if (demo != 0x00) {                 /* title / attract demo: hands off */
+        s_quitting = 0;
         prev_demo = demo;
         prev_script = script;
         s_speed_known = 0;
@@ -461,6 +487,10 @@ static void gameplay_frame(void) {
         snap_timer = g_ram[RAM_DEATH_TMR];
         snap_87    = g_ram[RAM_TIMER_LO];
     }
+
+    if (s_quitting && script == SCRIPT_GAME_OVER &&
+        g_ram[RAM_TIMER_LO] && g_ram[RAM_TIMER_LO] < GAME_OVER_SHOWN)
+        g_ram[RAM_TIMER_LO] = GAME_OVER_SHOWN;      /* shorter GAME OVER */
 
     apply_speeds();
     prev_demo = demo;
@@ -509,6 +539,7 @@ static void value_text(const Item *it, char *buf, int n) {
     switch (it->kind) {
     case IT_TOGGLE: snprintf(buf, n, "%s", *it->val ? "ON" : "OFF"); break;
     case IT_STYLE:  snprintf(buf, n, "%s", *it->val ? "MODERN" : "CLASSIC"); break;
+    case IT_SPEED:  snprintf(buf, n, "%s", *it->val ? "1.5X" : "NORMAL"); break;
     case IT_RANGE:  snprintf(buf, n, it->fmt, *it->val); break;
     default: break;
     }
@@ -538,7 +569,24 @@ static void draw_screen(uint32_t *fb) {
     }
 }
 
+/* HUD column (right of the maze): HI-SCORE row 3 / value row 5, 1UP row 7 /
+ * score row 9, scores ending at column 28. LEVEL follows the same rhythm. */
+#define HUD_LABEL_COL  23
+#define HUD_VALUE_END  28
+#define HUD_LEVEL_ROW  11
+
+static void draw_level_hud(uint32_t *fb) {
+    char num[8];
+    snprintf(num, sizeof(num), "%d", g_ram[RAM_STAGE] + 1);
+    text_draw(fb, HUD_LABEL_COL, HUD_LEVEL_ROW, "LEVEL", TEXT_WHITE);
+    text_draw(fb, HUD_VALUE_END + 1 - (int)strlen(num), HUD_LEVEL_ROW + 2, num, TEXT_WHITE);
+}
+
 void options_render(uint32_t *fb) {
+    if (g_ram[RAM_FLAG_DEMO] == 0x00 && g_opt.show_level && g_ram[RAM_STAGE] != 0xFF)
+        draw_level_hud(fb);
+    if (s_quitting)     /* unpaused behind the game's back: hide its PAUSE text */
+        text_draw(fb, 23, 17, "     ", TEXT_WHITE);
     if (g_ram[RAM_FLAG_DEMO] != DEMO_TITLE) return;
     if (g_ram[RAM_SCRIPT] == SCRIPT_SCROLL) {
         /* The title scrolls in from below: the picture sits 240 - scroll_Y

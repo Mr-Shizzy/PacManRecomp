@@ -11,8 +11,9 @@ typedef struct {
     int sfx;            /* sound effects on */
     int echo;           /* echo effect */
     int modern;         /* menu style: 0 classic (Select/Start), 1 modern */
-    int pac_speed;      /* 1..3 */
-    int ghost_speed;    /* 1..3 */
+    int pac_fast;       /* Pac-Man at 1.5x speed */
+    int ghost_fast;     /* ghosts at 1.5x speed */
+    int show_level;     /* level number in the HUD */
     int inf_lives;
     int start_level;    /* 1..MAX */
     int invincible;
@@ -32,6 +33,10 @@ void options_post_nmi(void);
 
 /* Draw the title menu / options screens; call from game_post_render(). */
 void options_render(uint32_t *fb);
+
+/* Leave the current game for the title screen through the game's own
+ * game-over path (keeps the high score). Call while in a game. */
+void options_quit_to_title(void);
 
 /* Apply whole-frame effects (inverse colors); call last in game_post_render(). */
 void options_post_process(uint32_t *fb);
