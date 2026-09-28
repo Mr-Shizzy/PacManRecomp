@@ -49,4 +49,11 @@ SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e4_after.png
 WAIT 300
 ASSERT_RAM8 48 FF back-at-title
 SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e5_title.png
+WAIT 200
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e6_title_rest.png
+HOLD START
+WAIT 4
+RELEASE START
+WAIT 200
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e7_hud.png
 EXIT 0

@@ -2,7 +2,7 @@
  * src/nes_text.h — draw text over the frame in Pac-Man's own font.
  *
  * Letters, digits, '-' and '.' come from the game's ASCII-indexed background
- * tiles; ':' '?' '%' '<' '>' are extra glyphs drawn in the same style.
+ * tiles; ':' '?' '%' '<' '>' '!' are extra glyphs drawn in the same style.
  * '@' is the title-screen cursor. Space and unknown characters are blank.
  */
 #pragma once

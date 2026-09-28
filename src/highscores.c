@@ -159,6 +159,7 @@ static int     s_note;              /* show "score not saved" at game over */
 static struct { int player; uint32_t score; } s_queue[2];
 static int     s_queue_n, s_queue_i;
 static char    s_ini[4];
+static int     s_top;               /* this entry takes 1st place */
 static int     s_pos;
 static uint8_t s_prev1, s_prev2;
 
@@ -173,6 +174,7 @@ static void start(HsState st) {
 }
 
 static void begin_entry(void) {
+    s_top = s_queue[s_queue_i].score > s_board[0].score;
     memcpy(s_ini, "AAA", 4);
     s_pos = 0;
     start(HS_ENTRY);
@@ -333,7 +335,8 @@ static void draw_entry(uint32_t *fb) {
     text_draw(fb, 8, 5, "CONGRATULATIONS", TEXT_SALMON);
     snprintf(buf, sizeof(buf), "PLAYER %d", s_queue[s_queue_i].player);
     text_draw(fb, 12, 8, buf, TEXT_WHITE);
-    text_draw(fb, 6, 10, "YOU MADE THE TOP 10", TEXT_WHITE);
+    if (s_top) text_draw(fb, 4, 10, "YOU HAVE THE HIGH SCORE!", TEXT_YELLOW);
+    else       text_draw(fb, 6, 10, "YOU MADE THE TOP 10", TEXT_WHITE);
     text_draw(fb, 6, 13, "ENTER YOUR INITIALS", TEXT_SALMON);
     int blink = (s_frames / 12) & 1;
     for (int i = 0; i < 3; i++) {
@@ -355,6 +358,56 @@ static void draw_entry(uint32_t *fb) {
     }
 }
 
+/* Score digits without the 7-column padding ("00" for zero). */
+static void score_plain(uint32_t points, char out[12]) {
+    if (points < 10) snprintf(out, 12, "00");
+    else snprintf(out, 12, "%lu", (unsigned long)points);
+}
+
+/* Draw s centered on pixel column cx at pixel row y. */
+static void draw_centered(uint32_t *fb, int cx, int y, const char *s, uint8_t color) {
+    text_draw_px(fb, cx - (int)strlen(s) * 4, y, s, color);
+}
+
+/* Paint a pixel span of one text row black (between the score bar's other
+ * fields, so they are left alone). */
+static void clear_span(uint32_t *fb, int x0, int x1, int y) {
+    for (int py = y; py < y + 8; py++) {
+        if (py < 0 || py >= 240) continue;
+        uint32_t *line = fb + py * g_render_width + g_widescreen_left;
+        for (int x = x0; x < x1; x++) line[x] = g_nes_palette[0x0F];
+    }
+}
+
+/* Title score bar: "HI-SCORE" spans columns 12-19 (centre x 128); its value
+ * row sits between the 1UP and 2UP scores (x 80..200 is ours). */
+#define TITLE_HI_CX   128
+#define TITLE_HI_ROW  4
+/* In-game HUD column: "HI-SCORE" spans columns 22-29 (centre x 208); the
+ * maze wall ends at x 176, so initials take row 4 and the number row 5. */
+#define HUD_HI_CX     208
+#define HUD_X0        176
+
+static void draw_title_hiscore(uint32_t *fb, int y_off) {
+    char num[12], line[20];
+    score_plain(s_board[0].score, num);
+    snprintf(line, sizeof(line), "%.3s  %s", s_board[0].ini, num);
+    int y = TITLE_HI_ROW * 8 + y_off;
+    clear_span(fb, 80, 200, y);
+    draw_centered(fb, TITLE_HI_CX, y, line, TEXT_WHITE);
+}
+
+static void draw_hud_hiscore(uint32_t *fb) {
+    char num[12];
+    uint32_t live = read_score(RAM_HISCORE);
+    score_plain(live, num);
+    clear_span(fb, HUD_X0, 256, 4 * 8);
+    clear_span(fb, HUD_X0, 256, 5 * 8);
+    if (live == s_board[0].score)   /* not passed yet: it's #1's score */
+        draw_centered(fb, HUD_HI_CX, 4 * 8, s_board[0].ini, TEXT_WHITE);
+    draw_centered(fb, HUD_HI_CX, 5 * 8, num, TEXT_WHITE);
+}
+
 void hs_render(uint32_t *fb) {
     if (!g_opt.highscores) return;
     /* Title-loop screens (scroll-in, menu, character intro) show the score
@@ -362,11 +415,9 @@ void hs_render(uint32_t *fb) {
     int y = 0;
     int title_bar = options_title_y(&y) ||
         (g_ram[RAM_FLAG_DEMO] == 0xFF && g_ram[RAM_SCRIPT] == SCRIPT_ATTRACT && !maze_showing());
-    if (s_state == HS_IDLE && title_bar) {
-        char sc[8];
-        score_text(s_board[0].score, sc);
-        text_draw_px(fb, 12 * 8, 4 * 8 + y, sc, TEXT_WHITE);
-    }
+    if (s_state == HS_IDLE && title_bar) draw_title_hiscore(fb, y);
+    if (s_state == HS_IDLE && !title_bar && (g_ram[RAM_FLAG_DEMO] == 0x00 || maze_showing()))
+        draw_hud_hiscore(fb);
     switch (s_state) {
     case HS_ATTRACT:
     case HS_RESULTS: draw_board(fb, scroll_offset()); break;
