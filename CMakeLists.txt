@@ -21,6 +21,8 @@ add_executable(PacManRecomp
     src/logo.c
     src/mods.c
     src/hdbuild.c
+    src/modgen.c
+    src/launcher_pages.c
     src/capture.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
@@ -28,7 +30,8 @@ add_executable(PacManRecomp
 
 target_compile_definitions(PacManRecomp PRIVATE
     NESRECOMP_GAME_ID="pacman"
-    NESRECOMP_GAME_ROM_CRC32="9e4e9cc2")
+    NESRECOMP_GAME_ROM_CRC32="9e4e9cc2"
+    NESRECOMP_GAME_LAUNCHER_PAGES=1)
 
 target_include_directories(PacManRecomp PRIVATE
     ${NESRECOMP_RUNNER_INCLUDE_DIRS}

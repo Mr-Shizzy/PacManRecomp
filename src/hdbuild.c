@@ -34,8 +34,10 @@
 
 #include "stb_image.h"                  /* stbi_load (runner) */
 
-/* Minimal RGBA PNG writer (stored deflate: bigger files, no dependencies;
- * the runner's bundled writer only does RGB). */
+/* ---- RGBA PNG writer ---------------------------------------------------------
+ * The runner's bundled writer only does RGB and stores uncompressed, so this
+ * one does RGBA with a small deflate (LZ77 + fixed Huffman codes): starter
+ * mods and packs are mostly flat color and transparency and shrink ~20x. */
 static uint32_t crc_tab[256];
 static uint32_t png_crc(const unsigned char *b, size_t n, uint32_t c) {
     if (!crc_tab[1])
@@ -58,30 +60,111 @@ static void chunk(FILE *f, const char *type, const unsigned char *data, uint32_t
     uint32_t c = png_crc((const unsigned char *)type, 4, 0xFFFFFFFFu);
     put32(f, png_crc(data, n, c) ^ 0xFFFFFFFFu);
 }
-static int write_png_rgba(const char *path, int w, int h, const unsigned char *px) {
+
+typedef struct { unsigned char *buf; size_t n, cap; uint32_t bits; int nb; } Bits;
+static void put_bits(Bits *w, uint32_t v, int n) {         /* LSB first */
+    w->bits |= v << w->nb;
+    w->nb += n;
+    while (w->nb >= 8) {
+        if (w->n == w->cap) {
+            w->cap = w->cap ? w->cap * 2 : 65536;
+            w->buf = (unsigned char *)realloc(w->buf, w->cap);
+        }
+        w->buf[w->n++] = (unsigned char)w->bits;
+        w->bits >>= 8;
+        w->nb -= 8;
+    }
+}
+static void put_code(Bits *w, uint32_t code, int n) {      /* Huffman codes: MSB first */
+    uint32_t r = 0;
+    for (int i = 0; i < n; i++) r |= ((code >> i) & 1u) << (n - 1 - i);
+    put_bits(w, r, n);
+}
+static void put_sym(Bits *w, int v) {                      /* fixed literal/length code */
+    if (v < 144)      put_code(w, 0x30 + v, 8);
+    else if (v < 256) put_code(w, 0x190 + v - 144, 9);
+    else if (v < 280) put_code(w, v - 256, 7);
+    else              put_code(w, 0xC0 + v - 280, 8);
+}
+static void put_match(Bits *w, int len, int dist) {
+    static const short lbase[29] = { 3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258 };
+    static const unsigned char lext[29] = { 0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0 };
+    static const unsigned short dbase[30] = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577 };
+    static const unsigned char dext[30] = { 0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13 };
+    int l = 28;
+    while (lbase[l] > len) l--;
+    put_sym(w, 257 + l);
+    put_bits(w, (uint32_t)(len - lbase[l]), lext[l]);
+    int d = 29;
+    while (dbase[d] > dist) d--;
+    put_code(w, (uint32_t)d, 5);
+    put_bits(w, (uint32_t)(dist - dbase[d]), dext[d]);
+}
+
+/* zlib stream of `src` (one fixed-Huffman block). Caller frees *out. */
+static int zlib_compress(const unsigned char *src, size_t n, unsigned char **out, size_t *out_n) {
+    enum { WIN = 32768, HBITS = 15, MAXLEN = 258, CHAIN = 32 };
+    int *head = (int *)malloc(sizeof(int) << HBITS), *prev = (int *)malloc(sizeof(int) * WIN);
+    if (!head || !prev) { free(head); free(prev); return 0; }
+    for (int i = 0; i < 1 << HBITS; i++) head[i] = -1;
+    Bits w = { 0 };
+    put_bits(&w, 0x78, 8); put_bits(&w, 0x01, 8);
+    put_bits(&w, 1, 1); put_bits(&w, 1, 2);                 /* final block, fixed codes */
+    size_t i = 0;
+    while (i < n) {
+        int best = 0, dist = 0;
+        if (i + 3 <= n) {
+            uint32_t hsh = ((src[i] << 10) ^ (src[i + 1] << 5) ^ src[i + 2]) & ((1u << HBITS) - 1);
+            int cand = head[hsh], chain = CHAIN;
+            size_t lim = n - i < MAXLEN ? n - i : MAXLEN;
+            while (cand >= 0 && i - (size_t)cand <= WIN - 1 && chain--) {
+                size_t k = 0;
+                while (k < lim && src[cand + k] == src[i + k]) k++;
+                if ((int)k > best) { best = (int)k; dist = (int)(i - cand); if (k == lim) break; }
+                int p = prev[cand % WIN];
+                if (p >= cand) break;
+                cand = p;
+            }
+            prev[i % WIN] = head[hsh];
+            head[hsh] = (int)i;
+        }
+        if (best >= 3) {
+            put_match(&w, best, dist);
+            for (size_t k = 1; k < (size_t)best; k++) {     /* index the skipped bytes */
+                size_t j = i + k;
+                if (j + 3 > n) break;
+                uint32_t hsh = ((src[j] << 10) ^ (src[j + 1] << 5) ^ src[j + 2]) & ((1u << HBITS) - 1);
+                prev[j % WIN] = head[hsh];
+                head[hsh] = (int)j;
+            }
+            i += (size_t)best;
+        } else {
+            put_sym(&w, src[i++]);
+        }
+    }
+    put_sym(&w, 256);                                        /* end of block */
+    if (w.nb) put_bits(&w, 0, 8 - w.nb);
+    uint32_t a = 1, b = 0;
+    for (size_t k = 0; k < n; k++) { a = (a + src[k]) % 65521; b = (b + a) % 65521; }
+    put_bits(&w, b >> 8, 8); put_bits(&w, b & 0xFF, 8);
+    put_bits(&w, a >> 8, 8); put_bits(&w, a & 0xFF, 8);
+    free(head); free(prev);
+    *out = w.buf; *out_n = w.n;
+    return w.buf != NULL;
+}
+
+int hdbuild_write_png(const char *path, int w, int h, const unsigned char *px) {
     size_t raw_n = (size_t)h * (1 + (size_t)w * 4);
-    size_t nblk = (raw_n + 65534) / 65535;
-    size_t z_n = 2 + raw_n + nblk * 5 + 4;
-    unsigned char *z = (unsigned char *)malloc(z_n), *raw = (unsigned char *)malloc(raw_n);
-    if (!z || !raw) { free(z); free(raw); return 0; }
+    unsigned char *raw = (unsigned char *)malloc(raw_n), *z = NULL;
+    size_t z_n = 0;
+    if (!raw) return 0;
     for (int y = 0; y < h; y++) {
         raw[y * (1 + (size_t)w * 4)] = 0;
         memcpy(raw + y * (1 + (size_t)w * 4) + 1, px + (size_t)y * w * 4, (size_t)w * 4);
     }
-    size_t o = 0;
-    z[o++] = 0x78; z[o++] = 0x01;
-    uint32_t a = 1, b = 0;
-    for (size_t i = 0; i < raw_n; i += 65535) {
-        size_t n = raw_n - i < 65535 ? raw_n - i : 65535;
-        z[o++] = i + n >= raw_n;
-        z[o++] = (unsigned char)n; z[o++] = (unsigned char)(n >> 8);
-        z[o++] = (unsigned char)~n; z[o++] = (unsigned char)(~n >> 8);
-        memcpy(z + o, raw + i, n);
-        o += n;
-    }
-    for (size_t i = 0; i < raw_n; i++) { a = (a + raw[i]) % 65521; b = (b + a) % 65521; }
-    z[o++] = (unsigned char)(b >> 8); z[o++] = (unsigned char)b;
-    z[o++] = (unsigned char)(a >> 8); z[o++] = (unsigned char)a;
+    int ok = zlib_compress(raw, raw_n, &z, &z_n);
+    free(raw);
+    if (!ok) return 0;
     FILE *f = fopen(path, "wb");
     if (f) {
         static const unsigned char sig[8] = { 0x89, 'P', 'N', 'G', 13, 10, 26, 10 };
@@ -90,13 +173,14 @@ static int write_png_rgba(const char *path, int w, int h, const unsigned char *p
                                    8, 6, 0, 0, 0 };
         fwrite(sig, 1, 8, f);
         chunk(f, "IHDR", ihdr, 13);
-        chunk(f, "IDAT", z, (uint32_t)o);
+        chunk(f, "IDAT", z, (uint32_t)z_n);
         chunk(f, "IEND", NULL, 0);
         fclose(f);
     }
-    free(z); free(raw);
+    free(z);
     return f != NULL;
 }
+#define write_png_rgba hdbuild_write_png
 
 #define ATLAS_COLS  32
 #define MAX_SCALE   8

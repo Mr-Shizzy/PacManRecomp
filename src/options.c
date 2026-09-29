@@ -20,6 +20,8 @@
 #include "highscores.h"
 #include "soundpack.h"
 #include "mods.h"
+#include "recomp_launcher.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -213,6 +215,8 @@ static void options_save(void) {
 }
 
 void options_save_now(void) { options_save(); }
+static void options_load(void);
+void options_reload(void) { options_load(); }
 
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v; }
 
@@ -253,6 +257,7 @@ static void reset_all(void) {
     g_nes_config.stretch = 0;
     g_nes_config.linear_filter = 0;
     g_nes_config.integer_scale = 1;
+    g_nes_config.hide_overscan = 0;
     g_nes_config.volume = 100;
     nesrecomp_apply_video_settings();
     config_save(config_path());
@@ -741,4 +746,159 @@ int options_menu_open(void) {
 int options_cheats_active(void) {
     return g_opt.inf_lives || g_opt.invincible || g_opt.start_level > 1 ||
            g_opt.pac_fast || g_opt.ghost_fast;
+}
+
+/* ---- launcher page ------------------------------------------------------
+ * The same settings as the in-game OPTIONS screens, as a launcher page
+ * (recomp-ui host page). Built from the menu tables above so the two can
+ * never drift apart. Display scaling and volume are left out: the launcher's
+ * own Settings page has them. Everything saves the moment it changes. */
+typedef struct { const char *header; const Item *items; int n; } PageSection;
+static const PageSection k_page_sections[] = {
+    { "VIDEO",    k_video,    N(k_video) },
+    { "AUDIO",    k_audio,    N(k_audio) },
+    { "CONTROLS", k_controls, N(k_controls) },
+    { "EXTRAS",   k_extras,   N(k_extras) },
+    { "CHEATS",   k_cheats,   N(k_cheats) },
+};
+
+enum { ROW_HEADER, ROW_ITEM, ROW_RESET_HEADER, ROW_RESET };
+typedef struct { int kind; const char *header; const Item *it; } PageRow;
+static PageRow s_rows[64];
+static int     s_nrows;
+static int     s_reset_armed;
+static char    s_page_status[96];
+
+/* Rows the launcher shows: runner display/volume items are the launcher's. */
+static int page_item(const Item *it) {
+    if (it->kind == IT_BACK) return 0;
+    if (it->runner) return it->val == &g_nes_config.hide_overscan;
+    return 1;
+}
+
+static void page_build(void) {
+    if (s_nrows) return;
+    options_load();
+    for (int i = 0; i < N(k_page_sections); i++) {
+        s_rows[s_nrows++] = (PageRow){ ROW_HEADER, k_page_sections[i].header, NULL };
+        for (int k = 0; k < k_page_sections[i].n; k++)
+            if (page_item(&k_page_sections[i].items[k]))
+                s_rows[s_nrows++] = (PageRow){ ROW_ITEM, NULL, &k_page_sections[i].items[k] };
+    }
+    s_rows[s_nrows++] = (PageRow){ ROW_RESET_HEADER, "RESET", NULL };
+    s_rows[s_nrows++] = (PageRow){ ROW_RESET, NULL, NULL };
+}
+
+static void title_case(char *out, size_t n, const char *in) {
+    size_t k = 0;
+    for (int first = 1; *in && k + 1 < n; in++) {
+        out[k++] = first ? *in : (char)tolower((unsigned char)*in);
+        first = *in == ' ' || *in == '-';
+    }
+    out[k] = '\0';
+}
+
+static int page_count(void *ctx) { (void)ctx; page_build(); return s_nrows; }
+
+static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
+    (void)ctx;
+    page_build();
+    if (i < 0 || i >= s_nrows) return 0;
+    const PageRow *pr = &s_rows[i];
+    if (pr->kind == ROW_HEADER || pr->kind == ROW_RESET_HEADER) {
+        r->type = RECOMP_HOST_ROW_HEADER;
+        snprintf(r->label, sizeof(r->label), "%s", pr->header);
+        return 1;
+    }
+    if (pr->kind == ROW_RESET) {
+        r->type = RECOMP_HOST_ROW_BUTTON;
+        snprintf(r->label, sizeof(r->label), "%s", s_reset_armed
+                 ? "Click again to reset all game options"
+                 : "Reset game options to default");
+        snprintf(r->help, sizeof(r->help),
+                 "Pac-Man's own options, the active mod and Hide overscan. "
+                 "Display and sound settings have their own Restore defaults.");
+        return 1;
+    }
+    const Item *it = pr->it;
+    title_case(r->label, sizeof(r->label), it->label);
+    r->disabled = !item_visible(it);
+    switch (it->kind) {
+    case IT_TOGGLE:
+        r->type = RECOMP_HOST_ROW_TOGGLE;
+        r->value = *it->val != 0;
+        break;
+    case IT_STYLE:
+    case IT_SPEED:
+        r->type = RECOMP_HOST_ROW_CHOICE;
+        r->value = *it->val != 0;
+        r->choice_count = 2;
+        break;
+    case IT_RANGE:
+        r->type = RECOMP_HOST_ROW_RANGE;
+        r->value = *it->val;
+        r->min_value = it->lo; r->max_value = it->hi; r->step = it->step;
+        snprintf(r->value_text, sizeof(r->value_text), it->fmt ? it->fmt : "%d", *it->val);
+        break;
+    case IT_SECTION:                    /* RESET HIGH SCORES */
+        r->type = RECOMP_HOST_ROW_BUTTON;
+        snprintf(r->label, sizeof(r->label), "Erase all high scores");
+        break;
+    default:
+        r->type = RECOMP_HOST_ROW_TEXT;
+        break;
+    }
+    if (it->kind == IT_STYLE)
+        snprintf(r->help, sizeof(r->help), "Classic: Select moves, Start picks. "
+                 "Modern: D-pad moves, A picks, B goes back.");
+    if (it->val == &g_nes_config.hide_overscan)
+        snprintf(r->help, sizeof(r->help), "Hide the top and bottom 8 rows, like an old TV did.");
+    return 1;
+}
+
+static int page_choice(void *ctx, int i, int c, char *out, int cap) {
+    (void)ctx;
+    if (i < 0 || i >= s_nrows || !s_rows[i].it) return 0;
+    const char *lbl = s_rows[i].it->kind == IT_STYLE ? (c ? "Modern" : "Classic")
+                                                     : (c ? "Fast (1.5x)" : "Normal");
+    snprintf(out, (size_t)cap, "%s", lbl);
+    return 1;
+}
+
+static int page_set(void *ctx, int i, int v, const char *rom) {
+    (void)ctx; (void)rom;
+    if (i < 0 || i >= s_nrows) return 0;
+    const PageRow *pr = &s_rows[i];
+    if (pr->kind == ROW_RESET) {
+        if (!s_reset_armed) { s_reset_armed = 1; return 1; }
+        s_reset_armed = 0;
+        g_opt = k_defaults;                     /* also clears the mod */
+        g_nes_config.hide_overscan = 0;
+        config_save(config_path());
+        options_save();
+        snprintf(s_page_status, sizeof(s_page_status), "Game options reset to default.");
+        return 1;
+    }
+    s_reset_armed = 0;
+    const Item *it = pr->it;
+    if (!it) return 0;
+    if (it->kind == IT_SECTION) {
+        hs_reset();
+        snprintf(s_page_status, sizeof(s_page_status), "High scores erased.");
+        return 1;
+    }
+    *it->val = it->kind == IT_RANGE ? clampi(v, it->lo, it->hi) : v != 0;
+    if (it->runner) config_save(config_path());     /* read live each frame */
+    else options_save();
+    s_page_status[0] = '\0';
+    return 1;
+}
+
+static const char *page_status(void *ctx) { (void)ctx; return s_page_status; }
+
+const RecompLauncherCHostPage *options_launcher_page(void) {
+    static const RecompLauncherCHostPage page = {
+        NULL, "Options", page_count, page_get, page_choice, page_set, page_status
+    };
+    return &page;
 }

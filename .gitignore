@@ -19,3 +19,4 @@ tests/run/
 
 # HD pack work folder (ROM-derived art)
 hdpack_starter/
+tests/inter_probe.txt

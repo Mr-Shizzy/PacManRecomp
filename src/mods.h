@@ -17,3 +17,7 @@ void mods_menu_close(void);
 /* Returns 1 when the player backs out of the screen. */
 int  mods_menu_input(uint8_t pressed, int modern);
 void mods_menu_render(uint32_t *fb);
+
+/* The MODS screen as a launcher page (a RecompLauncherCHostPage). */
+struct RecompLauncherCHostPage;
+const struct RecompLauncherCHostPage *mods_launcher_page(void);

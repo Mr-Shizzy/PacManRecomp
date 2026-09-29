@@ -40,6 +40,9 @@ void options_render(uint32_t *fb);
 /* Save the Pac-Man settings now (e.g. after a mod switch). */
 void options_save_now(void);
 
+/* Re-read pacman_options.ini (the launcher, before the game starts). */
+void options_reload(void);
+
 /* Leave the current game for the title screen through the game's own
  * game-over path (keeps the high score). Call while in a game. */
 void options_quit_to_title(void);
@@ -56,3 +59,7 @@ int options_cheats_active(void);
 
 /* Apply whole-frame effects (inverse colors); call last in game_post_render(). */
 void options_post_process(uint32_t *fb);
+
+/* The OPTIONS settings as a launcher page (a RecompLauncherCHostPage). */
+struct RecompLauncherCHostPage;
+const struct RecompLauncherCHostPage *options_launcher_page(void);

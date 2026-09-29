@@ -4,28 +4,30 @@ Make your own version of Pac-Man with new pictures, sounds and a new title
 logo. No programming and no special tools, just an image editor and (for
 sounds) any program that saves WAV files.
 
-The original game is never changed: mods are switched on and off in the game
-under **OPTIONS > MODS**, and **NONE** is always the original.
+The original game is never changed: mods are switched on and off in the
+launcher (**Mods**) or the game (**OPTIONS > MODS**), and **None** is always
+the original.
 
 ---
 
 ## 1. Make your first mod (5 minutes)
 
-1. Install **Python** (free, from python.org) if you don't have it.
-2. Open a terminal in the `PacManRecomp` folder and run:
-   ```bash
-   python tools/make_mod_template.py pacman.nes "build/mods/My Mod"
-   ```
-   This makes a complete mod called **My Mod** next to the game, with every
-   picture of the game as its own PNG file, enlarged 4 times, in the original
-   colors. (Use `--scale 2` or `--scale 8` for smaller or bigger pictures.)
-3. Start the game, go to **OPTIONS > MODS**, pick **My Mod**. The game looks
-   exactly the same, because nothing has been painted yet.
-4. Open any file in `build/mods/My Mod/graphics/` in your image editor (Krita,
-   GIMP, Paint.NET, Aseprite, Photoshop...), paint it, save it (same name,
-   PNG).
-5. In the game, pick **NONE** and then **My Mod** again (or restart the game)
-   to see your changes.
+1. In the launcher, click **Mods**, then **Create new mod (dump pictures)**.
+   (Or in the game: **OPTIONS > MODS > NEW MOD**.)
+   This makes a complete mod called **My Mod 1** in the `mods` folder next to
+   the game, with every picture of the game as its own PNG file, enlarged 4
+   times, in the original colors, picks it, and opens its folder.
+2. Open any file in its `graphics` folder in your image editor (Krita, GIMP,
+   Paint.NET, Aseprite, Photoshop...), paint it, save it (same name, PNG).
+3. Play. (Already in the game? In **OPTIONS > MODS** pick **NONE** and then
+   your mod again to see your changes.)
+
+**Add missing pictures** (launcher) / **ADD PICTURES** (game) tops up the
+active mod with any picture it doesn't have, for example after a game
+update. It never touches pictures you already have.
+
+For power users there is also a script that does the same, with a choice of
+size: `python tools/make_mod_template.py pacman.nes "build/mods/My Mod" --scale 8`.
 
 That's it. Everything below is reference.
 
