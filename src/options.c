@@ -112,6 +112,7 @@ static const Item k_video[] = {
     { "STRETCH",        IT_TOGGLE, &g_nes_config.stretch,       0, 1, 1, 0, 1 },
     { "FILTER",         IT_TOGGLE, &g_nes_config.linear_filter, 0, 1, 1, 0, 1 },
     { "INTEGER SCALE",  IT_TOGGLE, &g_nes_config.integer_scale, 0, 1, 1, 0, 1 },
+    { "HIDE OVERSCAN",  IT_TOGGLE, &g_nes_config.hide_overscan, 0, 1, 1, 0, 1 },
     { "INVERSE COLORS", IT_TOGGLE, &g_opt.inverse },
     { "BACK",           IT_BACK },
 };
