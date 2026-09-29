@@ -774,7 +774,7 @@ static const PageSection k_page_sections[] = {
     { "CHEATS",   k_cheats,   N(k_cheats) },
 };
 
-enum { ROW_HEADER, ROW_ITEM, ROW_RESET_HEADER, ROW_RESET };
+enum { ROW_HEADER, ROW_ITEM, ROW_RESET_HEADER, ROW_RESET, ROW_NOTE };
 typedef struct { int kind; const char *header; const Item *it; } PageRow;
 static PageRow s_rows[64];
 static int     s_nrows;
@@ -793,6 +793,9 @@ static void page_build(void) {
     options_load();
     for (int i = 0; i < N(k_page_sections); i++) {
         s_rows[s_nrows++] = (PageRow){ ROW_HEADER, k_page_sections[i].header, NULL };
+        if (k_page_sections[i].items == k_cheats)
+            s_rows[s_nrows++] = (PageRow){ ROW_NOTE,
+                "Games played with any cheat on don't go on the high score table.", NULL };
         for (int k = 0; k < k_page_sections[i].n; k++)
             if (page_item(&k_page_sections[i].items[k]))
                 s_rows[s_nrows++] = (PageRow){ ROW_ITEM, NULL, &k_page_sections[i].items[k] };
@@ -869,6 +872,11 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         /* Join the launcher's own Display / Audio cards. */
         if (!strcmp(pr->header, "VIDEO")) snprintf(r->merge, sizeof(r->merge), "display");
         if (!strcmp(pr->header, "AUDIO")) snprintf(r->merge, sizeof(r->merge), "audio");
+        return 1;
+    }
+    if (pr->kind == ROW_NOTE) {
+        r->type = RECOMP_HOST_ROW_TEXT;
+        snprintf(r->label, sizeof(r->label), "%s", pr->header);
         return 1;
     }
     if (pr->kind == ROW_RESET) {
