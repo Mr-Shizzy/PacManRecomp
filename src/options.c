@@ -846,7 +846,7 @@ static const PageText k_page_text[] = {
     { &g_opt.start_level, IT_RANGE, "Start on level",
       "Begin new games on this level instead of level 1." },
     { &g_opt.invincible, IT_TOGGLE, "Invincible",
-      "Ghosts can't catch you." },
+      "Ghosts can't kill you: they can still touch you, you just don't die." },
 };
 
 static const PageText *page_text(const Item *it) {
