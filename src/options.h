@@ -12,8 +12,7 @@ typedef struct {
     int echo;           /* echo effect */
     int modern;         /* menu style: 0 classic (Select/Start), 1 modern */
     int rumble;         /* controller rumble effects */
-    int pac_fast;       /* Pac-Man at 1.5x speed */
-    int ghost_fast;     /* ghosts at 1.5x speed */
+    int pac_speed;      /* Pac-Man: 0 normal, 1 1.25x, 2 1.5x */
     int show_level;     /* level number in the HUD */
     int highscores;     /* persistent top-10 leaderboard */
     int inf_lives;

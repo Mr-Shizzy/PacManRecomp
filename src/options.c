@@ -54,7 +54,7 @@ PacOptions g_opt;
 
 static const PacOptions k_defaults = {
     .inverse = 0, .music = 1, .sfx = 1, .echo = 0, .modern = 0, .rumble = 0,
-    .pac_fast = 0, .ghost_fast = 0, .show_level = 0, .highscores = 0,
+    .pac_speed = 0, .show_level = 0, .highscores = 0,
     .inf_lives = 0, .start_level = 1, .invincible = 0,
 };
 
@@ -71,7 +71,7 @@ typedef enum {
     IT_TOGGLE,      /* *val 0/1 */
     IT_RANGE,       /* *val lo..hi by step, shown with fmt */
     IT_STYLE,       /* *val 0 classic / 1 modern */
-    IT_SPEED,       /* *val 0 normal / 1 1.5x */
+    IT_SPEED,       /* *val 0 normal / 1 1.25x / 2 1.5x */
     IT_RESET,       /* reset everything to defaults */
     IT_RESET_SCORES,/* clear the leaderboard */
 } ItemKind;
@@ -131,8 +131,7 @@ static const Item k_controls[] = {
     { "BACK",       IT_BACK },
 };
 static const Item k_extras[] = {
-    { "PAC-MAN SPEED", IT_SPEED,  &g_opt.pac_fast },
-    { "GHOST SPEED",   IT_SPEED,  &g_opt.ghost_fast },
+    { "PAC-MAN SPEED", IT_SPEED,  &g_opt.pac_speed },
     { "SHOW LEVEL",    IT_TOGGLE, &g_opt.show_level },
     { "HIGH SCORES",   IT_TOGGLE, &g_opt.highscores },
     { "RESET HIGH SCORES", IT_SECTION, 0, SCR_RESET_SCORES, 0, 0, 0, 0, 1 },
@@ -195,8 +194,7 @@ static struct { const char *key; int *val; } k_keys[] = {
     { "Echo",          &g_opt.echo },
     { "ModernMenus",   &g_opt.modern },
     { "Rumble",        &g_opt.rumble },
-    { "PacManFast",    &g_opt.pac_fast },
-    { "GhostFast",     &g_opt.ghost_fast },
+    { "PacManSpeed",   &g_opt.pac_speed },
     { "ShowLevel",     &g_opt.show_level },
     { "HighScores",    &g_opt.highscores },
     { "InfiniteLives", &g_opt.inf_lives },
@@ -233,12 +231,12 @@ static void options_load(void) {
             continue;
         }
         if (sscanf(line, " %63[A-Za-z] = %d", key, &v) != 2) continue;
+        if (!strcmp(key, "PacManFast")) { g_opt.pac_speed = v ? 2 : 0; continue; }   /* old: on = 1.5x */
         for (int i = 0; i < N(k_keys); i++)
             if (!strcmp(key, k_keys[i].key)) *k_keys[i].val = v;
     }
     fclose(f);
-    g_opt.pac_fast    = clampi(g_opt.pac_fast, 0, 1);
-    g_opt.ghost_fast  = clampi(g_opt.ghost_fast, 0, 1);
+    g_opt.pac_speed   = clampi(g_opt.pac_speed, 0, 2);
     g_opt.start_level = clampi(g_opt.start_level, 1, START_LEVEL_MAX);
 }
 
@@ -349,8 +347,10 @@ static void change_value(const Item *it, int dir) {
     switch (it->kind) {
     case IT_TOGGLE:
     case IT_STYLE:
-    case IT_SPEED:
         *it->val = !*it->val;
+        break;
+    case IT_SPEED:
+        *it->val = (*it->val + (dir < 0 ? 2 : 1)) % 3;
         break;
     case IT_RANGE: {
         int v = *it->val + dir * it->step;
@@ -471,11 +471,14 @@ static int      s_speed_known;
 
 static void apply_speeds(void) {
     for (int p = 0; p < SPEED_PAIRS; p++) {
-        int fast = p <= 3 ? g_opt.pac_fast : p >= 6 ? g_opt.ghost_fast : 0;
+        /* Pac-Man only: the ghosts' speeds change round by round as part
+         * of the game's difficulty, so they are left alone. */
+        int speed = p <= 3 ? g_opt.pac_speed : 0;
         uint8_t *r = &g_ram[RAM_SPEEDS + 2 * p];
         uint16_t cur = (uint16_t)(r[0] | r[1] << 8);
         if (!s_speed_known || cur != s_speed_written[p]) s_speed_base[p] = cur;
-        uint32_t v = fast ? (uint32_t)s_speed_base[p] * 3 / 2 : s_speed_base[p];
+        uint32_t v = speed == 2 ? (uint32_t)s_speed_base[p] * 3 / 2
+                   : speed == 1 ? (uint32_t)s_speed_base[p] * 5 / 4 : s_speed_base[p];
         r[0] = (uint8_t)v;
         r[1] = (uint8_t)(v >> 8);
         s_speed_written[p] = (uint16_t)v;
@@ -664,7 +667,7 @@ static void value_text(const Item *it, char *buf, int n) {
     switch (it->kind) {
     case IT_TOGGLE: snprintf(buf, n, "%s", *it->val ? "ON" : "OFF"); break;
     case IT_STYLE:  snprintf(buf, n, "%s", *it->val ? "MODERN" : "CLASSIC"); break;
-    case IT_SPEED:  snprintf(buf, n, "%s", *it->val ? "1.5X" : "NORMAL"); break;
+    case IT_SPEED:  snprintf(buf, n, "%s", *it->val == 2 ? "1.5X" : *it->val ? "1.25X" : "NORMAL"); break;
     case IT_RANGE:  snprintf(buf, n, it->fmt, *it->val); break;
     default: break;
     }
@@ -753,7 +756,7 @@ int options_menu_open(void) {
 
 int options_cheats_active(void) {
     return g_opt.inf_lives || g_opt.invincible || g_opt.start_level > 1 ||
-           g_opt.pac_fast || g_opt.ghost_fast;
+           g_opt.pac_speed;
 }
 
 /* ---- launcher page ------------------------------------------------------
@@ -828,10 +831,9 @@ static const PageText k_page_text[] = {
     { &g_opt.rumble, IT_TOGGLE, "Controller rumble",
       "Shake the gamepad when you eat a ghost, lose a life and so on "
       "(gamepads that can rumble)." },
-    { &g_opt.pac_fast, IT_SPEED, "Pac-Man speed",
-      "Normal, or Fast: Pac-Man moves 1.5 times as fast." },
-    { &g_opt.ghost_fast, IT_SPEED, "Ghost speed",
-      "Normal, or Fast: the ghosts move 1.5 times as fast." },
+    { &g_opt.pac_speed, IT_SPEED, "Pac-Man speed",
+      "How fast Pac-Man moves: Normal, 1.25 times or 1.5 times as fast. "
+      "The ghosts keep their normal speed." },
     { &g_opt.show_level, IT_TOGGLE, "Show level number",
       "Show which level you're on, under the score." },
     { &g_opt.highscores, IT_TOGGLE, "High score table",
@@ -887,10 +889,14 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         r->value = *it->val != 0;
         break;
     case IT_STYLE:
-    case IT_SPEED:
         r->type = RECOMP_HOST_ROW_CHOICE;
         r->value = *it->val != 0;
         r->choice_count = 2;
+        break;
+    case IT_SPEED:
+        r->type = RECOMP_HOST_ROW_CHOICE;
+        r->value = *it->val;
+        r->choice_count = 3;
         break;
     case IT_RANGE:
         r->type = RECOMP_HOST_ROW_RANGE;
@@ -917,8 +923,9 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
 static int page_choice(void *ctx, int i, int c, char *out, int cap) {
     (void)ctx;
     if (i < 0 || i >= s_nrows || !s_rows[i].it) return 0;
+    static const char *const k_speed[] = { "Normal", "1.25x", "1.5x" };
     const char *lbl = s_rows[i].it->kind == IT_STYLE ? (c ? "Modern" : "Classic")
-                                                     : (c ? "Fast (1.5x)" : "Normal");
+                                                     : k_speed[c >= 0 && c < 3 ? c : 0];
     snprintf(out, (size_t)cap, "%s", lbl);
     return 1;
 }
@@ -945,7 +952,8 @@ static int page_set(void *ctx, int i, int v, const char *rom) {
         snprintf(s_page_status, sizeof(s_page_status), "High scores erased.");
         return 1;
     }
-    *it->val = it->kind == IT_RANGE ? clampi(v, it->lo, it->hi) : v != 0;
+    *it->val = it->kind == IT_RANGE ? clampi(v, it->lo, it->hi)
+             : it->kind == IT_SPEED ? clampi(v, 0, 2) : v != 0;
     if (it->runner) config_save(config_path());     /* read live each frame */
     else options_save();
     s_page_status[0] = '\0';
