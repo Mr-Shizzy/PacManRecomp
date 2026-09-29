@@ -74,6 +74,7 @@ typedef enum {
     IT_SPEED,       /* *val 0 normal / 1 1.25x / 2 1.5x */
     IT_RESET,       /* reset everything to defaults */
     IT_RESET_SCORES,/* clear the leaderboard */
+    IT_QUIT,        /* quit the program */
 } ItemKind;
 
 typedef struct {
@@ -99,6 +100,7 @@ static const Item k_title[] = {
     { "1 PLAYER",  IT_PLAY,    0, 0 },
     { "2 PLAYERS", IT_PLAY,    0, 1 },
     { "OPTIONS",   IT_SECTION, 0, SCR_OPTIONS },
+    { "QUIT TO DESKTOP", IT_QUIT },
 };
 static const Item k_options[] = {
     { "VIDEO",            IT_SECTION, 0, SCR_VIDEO },
@@ -388,6 +390,9 @@ static int activate(const Item *it) {
         hs_reset();
         go(k_screens[s_scr].parent);
         break;
+    case IT_QUIT:
+        nesrecomp_quit_to_desktop();
+        break;
     default:
         change_value(it, +1);
         break;
@@ -644,7 +649,7 @@ void options_on_frame(void) {
 }
 
 /* ---- drawing ----------------------------------------------------------- */
-#define TITLE_ROW0   14     /* 1 PLAYER; items every 2 rows */
+#define TITLE_ROW0   14     /* 1 PLAYER; items TITLE_STEP px apart */
 #define TITLE_COL    12     /* original text column; cursor 2 to the left */
 #define OPT_HEADER   14
 #define OPT_ROW0     16
@@ -652,10 +657,13 @@ void options_on_frame(void) {
 #define OPT_VAL_END  26     /* values right-aligned to this column */
 #define OPT_LAST_ROW 28     /* lowest item row (row 29 is overscan) */
 
+/* 12 px apart (not the original 16) so four items fit above the namco logo. */
+#define TITLE_STEP 12
+
 static void draw_title_items(uint32_t *fb, int y_off) {
     text_clear_rows(fb, TITLE_ROW0 - 1, TITLE_ROW0 + 5, y_off);
     for (int i = 0; i < N(k_title); i++) {
-        int y = (TITLE_ROW0 + i * 2) * 8 + y_off;
+        int y = TITLE_ROW0 * 8 + i * TITLE_STEP + y_off;
         text_draw_px(fb, TITLE_COL * 8, y, k_title[i].label, TEXT_WHITE);
         if (i == s_sel[SCR_TITLE])
             text_draw_px(fb, (TITLE_COL - 2) * 8, y, "@", TEXT_WHITE);
