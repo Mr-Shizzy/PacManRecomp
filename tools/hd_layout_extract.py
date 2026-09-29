@@ -67,18 +67,21 @@ def sprite(name, pieces, pals, mirror=None, wild=False):
 
 
 # ---- Pac-Man ------------------------------------------------------------------
+# Directions checked in the game (a picture painted per direction, watched
+# while moving): the unflipped side frames face LEFT, and for the ghosts and
+# eyes the 18/19 frames look UP and the 21-23 frames DOWN.
 PAC = {
     "closed":  P("00", "00H", "00V", "00B"),
-    "right_1": P("02", "01", "02V", "01V"),
-    "right_2": P("06", "05", "06V", "05V"),
-    "left_1":  P("01H", "02H", "01B", "02B"),
-    "left_2":  P("05H", "06H", "05B", "06B"),
+    "left_1":  P("02", "01", "02V", "01V"),
+    "left_2":  P("06", "05", "06V", "05V"),
+    "right_1": P("01H", "02H", "01B", "02B"),
+    "right_2": P("05H", "06H", "05B", "06B"),
     "down_1":  P("03", "03H", "04", "04H"),
     "down_2":  P("07", "07H", "08", "08H"),
     "up_1":    P("04V", "04B", "03V", "03B"),
     "up_2":    P("08V", "08B", "07V", "07B"),
 }
-MIRROR = {"left_1": ("right_1", "h"), "left_2": ("right_2", "h"),
+MIRROR = {"right_1": ("left_1", "h"), "right_2": ("left_2", "h"),
           "up_1": ("down_1", "v"), "up_2": ("down_2", "v")}
 for n, p in PAC.items():
     m = MIRROR.get(n)
@@ -92,16 +95,16 @@ for i, p in enumerate(DEATH):
 
 # ---- ghosts -------------------------------------------------------------------
 BODY = {
-    "down_1":  P("18", "18H", "19", "19H"),
-    "down_2":  P("18", "18H", "1A", "1AH"),
-    "right_1": P("1B", "1C", "1D", "1F"),
-    "right_2": P("1B", "1C", "1E", "20"),
-    "left_1":  P("1CH", "1BH", "1FH", "1DH"),
-    "left_2":  P("1CH", "1BH", "20H", "1EH"),
-    "up_1":    P("21", "21H", "22", "22H"),
-    "up_2":    P("21", "21H", "23", "23H"),
+    "up_1":    P("18", "18H", "19", "19H"),
+    "up_2":    P("18", "18H", "1A", "1AH"),
+    "left_1":  P("1B", "1C", "1D", "1F"),
+    "left_2":  P("1B", "1C", "1E", "20"),
+    "right_1": P("1CH", "1BH", "1FH", "1DH"),
+    "right_2": P("1CH", "1BH", "20H", "1EH"),
+    "down_1":  P("21", "21H", "22", "22H"),
+    "down_2":  P("21", "21H", "23", "23H"),
 }
-GMIRROR = {"left_1": "right_1", "left_2": "right_2"}
+GMIRROR = {"right_1": "left_1", "right_2": "left_2"}
 GHOSTS = {"blinky": "06", "pinky": "33", "inky": "21", "clyde": "17"}   # body color
 for g, body in GHOSTS.items():
     for n, p in BODY.items():
@@ -115,11 +118,11 @@ for n, p in FRIGHT.items():
     sprite(f"ghosts/frightened/blue_{n}", p, [x for x in ps if x[2:4] == "11"])
     sprite(f"ghosts/frightened/white_{n}", p, [x for x in ps if x[2:4] == "20"])
 
-EYES = {"down": P("27", "27H", "4C", "4C"), "right": P("28", "29", "2A", "2B"),
-        "left": P("29H", "28H", "2BH", "2AH"), "up": P("2C", "2CH", "2D", "2DH")}
+EYES = {"up": P("27", "27H", "4C", "4C"), "left": P("28", "29", "2A", "2B"),
+        "right": P("29H", "28H", "2BH", "2AH"), "down": P("2C", "2CH", "2D", "2DH")}
 for n, p in EYES.items():
     sprite(f"ghosts/eyes/{n}", p, pals_of(p),
-           {"of": "ghosts/eyes/right", "axis": "h"} if n == "left" else None, wild=True)
+           {"of": "ghosts/eyes/left", "axis": "h"} if n == "right" else None, wild=True)
 
 # ---- fruit and scores ---------------------------------------------------------------
 def shape_with(tile0):

@@ -19,8 +19,8 @@ pick the mod (or restart the game).
 Running it again on an existing mod only adds missing pictures (e.g. ones
 added by a game update); it never overwrites yours.
 
-Left-facing (and Pac-Man's up-facing) pictures are made automatically by
-mirroring; add e.g. pacman/left_1.png yourself only if you want it different.
+Right-facing (and Pac-Man's up-facing) pictures are made automatically by
+mirroring; add e.g. pacman/right_1.png yourself only if you want it different.
 """
 import argparse
 import json

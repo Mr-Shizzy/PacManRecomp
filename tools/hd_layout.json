@@ -758,80 +758,6 @@
    "wild": true
   },
   {
-   "name": "pacman/right_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "02",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "01",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "02",
-     "-V"
-    ],
-    [
-     8,
-     8,
-     "01",
-     "-V"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": null,
-   "wild": true
-  },
-  {
-   "name": "pacman/right_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "06",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "05",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "06",
-     "-V"
-    ],
-    [
-     8,
-     8,
-     "05",
-     "-V"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": null,
-   "wild": true
-  },
-  {
    "name": "pacman/left_1",
    "type": "sprite",
    "w": 16,
@@ -840,35 +766,32 @@
     [
      0,
      0,
-     "01",
-     "H-"
+     "02",
+     "--"
     ],
     [
      8,
      0,
-     "02",
-     "H-"
+     "01",
+     "--"
     ],
     [
      0,
      8,
-     "01",
-     "HV"
+     "02",
+     "-V"
     ],
     [
      8,
      8,
-     "02",
-     "HV"
+     "01",
+     "-V"
     ]
    ],
    "pals": [
     "FF272006"
    ],
-   "mirror": {
-    "of": "pacman/right_1",
-    "axis": "h"
-   },
+   "mirror": null,
    "wild": true
   },
   {
@@ -880,6 +803,83 @@
     [
      0,
      0,
+     "06",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "05",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "06",
+     "-V"
+    ],
+    [
+     8,
+     8,
+     "05",
+     "-V"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": true
+  },
+  {
+   "name": "pacman/right_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "01",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "02",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "01",
+     "HV"
+    ],
+    [
+     8,
+     8,
+     "02",
+     "HV"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": {
+    "of": "pacman/left_1",
+    "axis": "h"
+   },
+   "wild": true
+  },
+  {
+   "name": "pacman/right_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
      "05",
      "H-"
     ],
@@ -906,7 +906,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "pacman/right_2",
+    "of": "pacman/left_2",
     "axis": "h"
    },
    "wild": true
@@ -1399,236 +1399,6 @@
    "wild": true
   },
   {
-   "name": "ghosts/blinky/down_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "18",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "18",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "19",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "19",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/blinky/down_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "18",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "18",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "1A",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1A",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/blinky/right_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1D",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1F",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF272006",
-    "FF362006"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/blinky/right_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1E",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "20",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF272006",
-    "FF362006"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/blinky/left_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1C",
-     "H-"
-    ],
-    [
-     8,
-     0,
-     "1B",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "1F",
-     "H-"
-    ],
-    [
-     8,
-     8,
-     "1D",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": {
-    "of": "ghosts/blinky/right_1",
-    "axis": "h"
-   },
-   "wild": false
-  },
-  {
-   "name": "ghosts/blinky/left_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1C",
-     "H-"
-    ],
-    [
-     8,
-     0,
-     "1B",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "20",
-     "H-"
-    ],
-    [
-     8,
-     8,
-     "1E",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF272006"
-   ],
-   "mirror": {
-    "of": "ghosts/blinky/right_2",
-    "axis": "h"
-   },
-   "wild": false
-  },
-  {
    "name": "ghosts/blinky/up_1",
    "type": "sprite",
    "w": 16,
@@ -1637,25 +1407,25 @@
     [
      0,
      0,
-     "21",
+     "18",
      "--"
     ],
     [
      8,
      0,
-     "21",
+     "18",
      "H-"
     ],
     [
      0,
      8,
-     "22",
+     "19",
      "--"
     ],
     [
      8,
      8,
-     "22",
+     "19",
      "H-"
     ]
    ],
@@ -1674,6 +1444,236 @@
     [
      0,
      0,
+     "18",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "18",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "1A",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1A",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/left_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1D",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1F",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF272006",
+    "FF362006"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/left_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1E",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "20",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF272006",
+    "FF362006"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/right_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1C",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "1B",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "1F",
+     "H-"
+    ],
+    [
+     8,
+     8,
+     "1D",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": {
+    "of": "ghosts/blinky/left_1",
+    "axis": "h"
+   },
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/right_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1C",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "1B",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "20",
+     "H-"
+    ],
+    [
+     8,
+     8,
+     "1E",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": {
+    "of": "ghosts/blinky/left_2",
+    "axis": "h"
+   },
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/down_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "21",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "21",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "22",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "22",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/blinky/down_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
      "21",
      "--"
     ],
@@ -1703,7 +1703,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/pinky/down_1",
+   "name": "ghosts/pinky/up_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1741,7 +1741,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/pinky/down_2",
+   "name": "ghosts/pinky/up_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1769,82 +1769,6 @@
      8,
      "1A",
      "H-"
-    ]
-   ],
-   "pals": [
-    "FF112033",
-    "FF202033"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/pinky/right_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1D",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1F",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF112033",
-    "FF202033"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/pinky/right_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1E",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "20",
-     "--"
     ]
    ],
    "pals": [
@@ -1863,36 +1787,33 @@
     [
      0,
      0,
-     "1C",
-     "H-"
-    ],
-    [
-     8,
-     0,
      "1B",
-     "H-"
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
     ],
     [
      0,
-     8,
-     "1F",
-     "H-"
-    ],
-    [
-     8,
      8,
      "1D",
-     "H-"
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1F",
+     "--"
     ]
    ],
    "pals": [
     "FF112033",
     "FF202033"
    ],
-   "mirror": {
-    "of": "ghosts/pinky/right_1",
-    "axis": "h"
-   },
+   "mirror": null,
    "wild": false
   },
   {
@@ -1904,6 +1825,85 @@
     [
      0,
      0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1E",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "20",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF112033",
+    "FF202033"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/pinky/right_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1C",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "1B",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "1F",
+     "H-"
+    ],
+    [
+     8,
+     8,
+     "1D",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF112033",
+    "FF202033"
+   ],
+   "mirror": {
+    "of": "ghosts/pinky/left_1",
+    "axis": "h"
+   },
+   "wild": false
+  },
+  {
+   "name": "ghosts/pinky/right_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
      "1C",
      "H-"
     ],
@@ -1931,13 +1931,13 @@
     "FF202033"
    ],
    "mirror": {
-    "of": "ghosts/pinky/right_2",
+    "of": "ghosts/pinky/left_2",
     "axis": "h"
    },
    "wild": false
   },
   {
-   "name": "ghosts/pinky/up_1",
+   "name": "ghosts/pinky/down_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1974,7 +1974,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/pinky/up_2",
+   "name": "ghosts/pinky/down_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2008,237 +2008,6 @@
     "FF112033"
    ],
    "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/down_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "18",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "18",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "19",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "19",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF212021"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/down_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "18",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "18",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "1A",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1A",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF212021"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/right_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1D",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1F",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF202021",
-    "FF212021"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/right_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1E",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "20",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF202021",
-    "FF212021"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/left_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1C",
-     "H-"
-    ],
-    [
-     8,
-     0,
-     "1B",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "1F",
-     "H-"
-    ],
-    [
-     8,
-     8,
-     "1D",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF202021",
-    "FF212021"
-   ],
-   "mirror": {
-    "of": "ghosts/inky/right_1",
-    "axis": "h"
-   },
-   "wild": false
-  },
-  {
-   "name": "ghosts/inky/left_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1C",
-     "H-"
-    ],
-    [
-     8,
-     0,
-     "1B",
-     "H-"
-    ],
-    [
-     0,
-     8,
-     "20",
-     "H-"
-    ],
-    [
-     8,
-     8,
-     "1E",
-     "H-"
-    ]
-   ],
-   "pals": [
-    "FF212021"
-   ],
-   "mirror": {
-    "of": "ghosts/inky/right_2",
-    "axis": "h"
-   },
    "wild": false
   },
   {
@@ -2250,25 +2019,25 @@
     [
      0,
      0,
-     "21",
+     "18",
      "--"
     ],
     [
      8,
      0,
-     "21",
+     "18",
      "H-"
     ],
     [
      0,
      8,
-     "22",
+     "19",
      "--"
     ],
     [
      8,
      8,
-     "22",
+     "19",
      "H-"
     ]
    ],
@@ -2287,6 +2056,237 @@
     [
      0,
      0,
+     "18",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "18",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "1A",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1A",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF212021"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/left_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1D",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1F",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF202021",
+    "FF212021"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/left_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1E",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "20",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF202021",
+    "FF212021"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/right_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1C",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "1B",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "1F",
+     "H-"
+    ],
+    [
+     8,
+     8,
+     "1D",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF202021",
+    "FF212021"
+   ],
+   "mirror": {
+    "of": "ghosts/inky/left_1",
+    "axis": "h"
+   },
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/right_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1C",
+     "H-"
+    ],
+    [
+     8,
+     0,
+     "1B",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "20",
+     "H-"
+    ],
+    [
+     8,
+     8,
+     "1E",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF212021"
+   ],
+   "mirror": {
+    "of": "ghosts/inky/left_2",
+    "axis": "h"
+   },
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/down_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "21",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "21",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "22",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "22",
+     "H-"
+    ]
+   ],
+   "pals": [
+    "FF212021"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/inky/down_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
      "21",
      "--"
     ],
@@ -2316,7 +2316,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/clyde/down_1",
+   "name": "ghosts/clyde/up_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2358,7 +2358,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/clyde/down_2",
+   "name": "ghosts/clyde/up_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2390,92 +2390,6 @@
    ],
    "pals": [
     "FF062017",
-    "FF122017",
-    "FF162017",
-    "FF172017",
-    "FF192017",
-    "FF262017"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/clyde/right_1",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1D",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "1F",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF062017",
-    "FF092017",
-    "FF122017",
-    "FF162017",
-    "FF172017",
-    "FF192017",
-    "FF262017"
-   ],
-   "mirror": null,
-   "wild": false
-  },
-  {
-   "name": "ghosts/clyde/right_2",
-   "type": "sprite",
-   "w": 16,
-   "h": 16,
-   "pieces": [
-    [
-     0,
-     0,
-     "1B",
-     "--"
-    ],
-    [
-     8,
-     0,
-     "1C",
-     "--"
-    ],
-    [
-     0,
-     8,
-     "1E",
-     "--"
-    ],
-    [
-     8,
-     8,
-     "20",
-     "--"
-    ]
-   ],
-   "pals": [
-    "FF062017",
-    "FF092017",
     "FF122017",
     "FF162017",
     "FF172017",
@@ -2494,6 +2408,92 @@
     [
      0,
      0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1D",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "1F",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF062017",
+    "FF092017",
+    "FF122017",
+    "FF162017",
+    "FF172017",
+    "FF192017",
+    "FF262017"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/clyde/left_2",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "1B",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "1C",
+     "--"
+    ],
+    [
+     0,
+     8,
+     "1E",
+     "--"
+    ],
+    [
+     8,
+     8,
+     "20",
+     "--"
+    ]
+   ],
+   "pals": [
+    "FF062017",
+    "FF092017",
+    "FF122017",
+    "FF162017",
+    "FF172017",
+    "FF192017",
+    "FF262017"
+   ],
+   "mirror": null,
+   "wild": false
+  },
+  {
+   "name": "ghosts/clyde/right_1",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
      "1C",
      "H-"
     ],
@@ -2526,13 +2526,13 @@
     "FF262017"
    ],
    "mirror": {
-    "of": "ghosts/clyde/right_1",
+    "of": "ghosts/clyde/left_1",
     "axis": "h"
    },
    "wild": false
   },
   {
-   "name": "ghosts/clyde/left_2",
+   "name": "ghosts/clyde/right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2571,13 +2571,13 @@
     "FF262017"
    ],
    "mirror": {
-    "of": "ghosts/clyde/right_2",
+    "of": "ghosts/clyde/left_2",
     "axis": "h"
    },
    "wild": false
   },
   {
-   "name": "ghosts/clyde/up_1",
+   "name": "ghosts/clyde/down_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2619,7 +2619,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/clyde/up_2",
+   "name": "ghosts/clyde/down_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2809,7 +2809,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/eyes/down",
+   "name": "ghosts/eyes/up",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2847,7 +2847,7 @@
    "wild": true
   },
   {
-   "name": "ghosts/eyes/right",
+   "name": "ghosts/eyes/left",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2885,7 +2885,7 @@
    "wild": true
   },
   {
-   "name": "ghosts/eyes/left",
+   "name": "ghosts/eyes/right",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2920,13 +2920,13 @@
     "FF202033"
    ],
    "mirror": {
-    "of": "ghosts/eyes/right",
+    "of": "ghosts/eyes/left",
     "axis": "h"
    },
    "wild": true
   },
   {
-   "name": "ghosts/eyes/up",
+   "name": "ghosts/eyes/down",
    "type": "sprite",
    "w": 16,
    "h": 16,

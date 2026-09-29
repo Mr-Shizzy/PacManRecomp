@@ -82,14 +82,14 @@ maze and backgrounds show through.
 | Folder / file | What it is |
 |---|---|
 | `pacman/closed.png` | Pac-Man with his mouth shut (all directions) |
-| `pacman/right_1.png`, `right_2.png` | facing right: mouth half open, wide open |
+| `pacman/left_1.png`, `left_2.png` | facing left: mouth half open, wide open |
 | `pacman/down_1.png`, `down_2.png` | facing down: half open, wide open |
-| `pacman/left_*.png`, `up_*.png` | *optional*, see "Mirrored pictures" below |
+| `pacman/right_*.png`, `up_*.png` | *optional*, see "Mirrored pictures" below |
 | `pacman/death_1.png` ... `death_9.png` | the death animation, in order (9 is the final pop) |
-| `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `right_1/2`, `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
+| `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `left_1/2`, `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
 | `ghosts/frightened/blue_1.png`, `blue_2.png` | a blue (edible) ghost |
 | `ghosts/frightened/white_1.png`, `white_2.png` | the white flash when it's about to recover |
-| `ghosts/eyes/right.png`, `down.png`, `up.png` | eaten ghost's eyes going home |
+| `ghosts/eyes/left.png`, `down.png`, `up.png` | eaten ghost's eyes going home |
 | `fruit/cherry.png` ... `fruit/key.png` | the bonus fruit in the maze (cherry, strawberry, orange, apple, melon, galaxian, bell, key) |
 | `scores/100.png` ... `scores/5000.png` | the points that pop up (200-1600 for ghosts; 100, 300, 500, 700, 1000, 2000, 3000, 5000 for fruit) |
 | `hud/fruit_*.png` | the small fruit icons in the score column |
@@ -106,11 +106,11 @@ maze and backgrounds show through.
 
 ### Mirrored pictures
 
-To save work, left-facing pictures are made by **mirroring** the right-facing
+To save work, right-facing pictures are made by **mirroring** the left-facing
 ones (and Pac-Man's up-facing ones from his down-facing ones). The starter
-mod leaves them out. If you want a different left-facing look (say, a hat
-that doesn't flip), add `left_1.png` / `left_2.png` yourself and it will be
-used instead.
+mod leaves them out. If you want a different right-facing look (say, an eye
+patch that stays on one side), add `right_1.png` / `right_2.png` yourself and
+it will be used instead.
 
 ### Things to know
 

@@ -7,7 +7,7 @@
  * image present we scale it to the pack's resolution, cut it into its tiles
  * (pre-flipped where the game draws the tile flipped, since the HD engine
  * flips it back) and register one HD tile per color set. A missing file falls
- * back to its mirror partner (left_* <- right_* flipped), else stays original.
+ * back to its mirror partner (right_* <- left_* flipped), else stays original.
  *
  * maze.png / maze_flash.png become full-screen background layers shown while
  * the maze is on screen (normal / level-clear flash colors), with the maze's
