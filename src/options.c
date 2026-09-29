@@ -795,7 +795,7 @@ static void page_build(void) {
         s_rows[s_nrows++] = (PageRow){ ROW_HEADER, k_page_sections[i].header, NULL };
         if (k_page_sections[i].items == k_cheats)
             s_rows[s_nrows++] = (PageRow){ ROW_NOTE,
-                "Games played with any cheat on don't go on the high score table.", NULL };
+                "* Games played with any cheat on don't go on the high score table.", NULL };
         for (int k = 0; k < k_page_sections[i].n; k++)
             if (page_item(&k_page_sections[i].items[k]))
                 s_rows[s_nrows++] = (PageRow){ ROW_ITEM, NULL, &k_page_sections[i].items[k] };
@@ -876,6 +876,7 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
     }
     if (pr->kind == ROW_NOTE) {
         r->type = RECOMP_HOST_ROW_TEXT;
+        r->accent = 1;
         snprintf(r->label, sizeof(r->label), "%s", pr->header);
         return 1;
     }
