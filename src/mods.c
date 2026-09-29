@@ -208,7 +208,6 @@ static void active_folder(char *out, size_t n) {
 #define PREV_Y       (LIST_ROW0 * 8)
 #define PREV_W       112
 #define PREV_H       72         /* rows 16-24 */
-#define AUTHOR_ROW   26         /* "BY ..." under the preview */
 #define DESC_ROW     27         /* 2 lines, clear of the bottom overscan row */
 #define DESC_CHARS   28         /* per line; longer text ends in "..." */
 
@@ -320,7 +319,9 @@ void mods_menu_render(uint32_t *fb) {
         char by[80], line[20];
         snprintf(by, sizeof(by), "BY %s", m->author);
         label_cut(line, by, 14);
-        text_draw(fb, PREV_X / 8, AUTHOR_ROW, line, TEXT_ORANGE);
+        /* centered under the preview, just below it */
+        text_draw_px(fb, PREV_X + (PREV_W - (int)strlen(line) * 8) / 2, PREV_Y + PREV_H + 1,
+                     line, TEXT_ORANGE);
     }
     const char *desc = m ? m->desc : s_sel == 0 ? "THE ORIGINAL GAME" : "";
     char line[DESC_CHARS + 1];
@@ -331,13 +332,13 @@ void mods_menu_render(uint32_t *fb) {
         if (cut == 0) cut = DESC_CHARS;
     }
     label(line, desc, cut);
-    text_draw(fb, 2, DESC_ROW, line, TEXT_WHITE);
+    text_draw_px(fb, 16, DESC_ROW * 8 + 1, line, TEXT_WHITE);   /* 1 px lower: room under the author */
     const char *rest = desc + cut;
     while (*rest == ' ') rest++;
     if (*rest) {
         char second[DESC_CHARS + 4];
         label_cut(second, rest, DESC_CHARS);
-        text_draw(fb, 2, DESC_ROW + 1, second, TEXT_WHITE);
+        text_draw_px(fb, 16, (DESC_ROW + 1) * 8 + 1, second, TEXT_WHITE);
     }
 
     load_preview();
