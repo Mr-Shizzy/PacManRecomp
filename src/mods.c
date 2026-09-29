@@ -203,8 +203,8 @@ static void active_folder(char *out, size_t n) {
 #define LIST_ROW0    16
 #define LIST_ROWS    5          /* visible items (every 2 rows) */
 #define LIST_COL     4
-#define NAME_CHARS   12
-#define PREV_X       128        /* preview box, px */
+#define NAME_CHARS   13
+#define PREV_X       136        /* preview box, px */
 #define PREV_Y       (LIST_ROW0 * 8)
 #define PREV_W       112
 #define PREV_H       88
@@ -213,11 +213,13 @@ static void active_folder(char *out, size_t n) {
 static int s_sel, s_top;
 static int s_preview, s_preview_for = -2;
 
-/* NONE, the mods, then NEW MOD / ADD PICTURES / OPEN FOLDER, then BACK. */
-enum { ACT_NEW = 1, ACT_ADD, ACT_OPEN, ACT_COUNT = 3 };
-static int item_count(void) { return s_count + ACT_COUNT + 2; }
-static int is_back(int i) { return i == s_count + ACT_COUNT + 1; }
-static int item_action(int i) { return i > s_count && i <= s_count + ACT_COUNT ? i - s_count : 0; }
+/* NONE, the mods, then DUMP TEXTURES (and OPEN FOLDER while a mod is
+ * picked), then BACK. */
+enum { ACT_DUMP = 1, ACT_OPEN };
+static int act_count(void) { return g_opt.mod[0] ? 2 : 1; }
+static int item_count(void) { return s_count + act_count() + 2; }
+static int is_back(int i) { return i == s_count + act_count() + 1; }
+static int item_action(int i) { return i > s_count && i <= s_count + act_count() ? i - s_count : 0; }
 static const Mod *item_mod(int i) { return i >= 1 && i <= s_count ? &s_mods[i - 1] : NULL; }
 
 static int item_active(int i) {
@@ -276,25 +278,15 @@ int mods_menu_input(uint8_t pressed, int modern) {
         if (is_back(s_sel)) { mods_menu_close(); return 1; }
         char folder[128], path[1400];
         switch (item_action(s_sel)) {
-        case ACT_NEW: {
+        case ACT_DUMP: {
             int w = create_mod(g_chr_ram, folder, sizeof(folder));
             if (w < 0) { snprintf(s_msg, sizeof(s_msg), "COULD NOT MAKE THE FOLDER"); break; }
             mods_apply(folder);
             for (int i = 0; i < item_count(); i++) if (item_active(i)) s_sel = i;
             s_preview_for = -2;
-            snprintf(s_msg, sizeof(s_msg), "MADE %s - OPEN FOLDER TO PAINT", folder);
+            snprintf(s_msg, sizeof(s_msg), "SAVED AS %s. EDIT THE PICTURES ON THE PC", folder);
             break;
         }
-        case ACT_ADD:
-            if (!g_opt.mod[0]) { snprintf(s_msg, sizeof(s_msg), "PICK A MOD FIRST"); break; }
-            active_folder(path, sizeof(path));
-            snprintf(folder, sizeof(folder), "%s", g_opt.mod);
-            {
-                int w = modgen_write(g_chr_ram, path);
-                mods_apply(folder);
-                snprintf(s_msg, sizeof(s_msg), w > 0 ? "ADDED %d PICTURES" : "NOTHING WAS MISSING", w);
-            }
-            break;
         case ACT_OPEN:
             active_folder(path, sizeof(path));
             modgen_open_folder(path);
@@ -305,6 +297,7 @@ int mods_menu_input(uint8_t pressed, int modern) {
             mods_apply(m ? m->folder : "");
         }
         }
+        if (s_sel >= item_count()) s_sel = item_count() - 1;   /* OPEN FOLDER went away */
         if (s_sel < s_top) s_top = s_sel;
         if (s_sel >= s_top + LIST_ROWS) s_top = s_sel - LIST_ROWS + 1;
     }
@@ -328,7 +321,7 @@ void mods_menu_render(uint32_t *fb) {
     for (int r = 0; r < LIST_ROWS && s_top + r < item_count(); r++) {
         int i = s_top + r, row = LIST_ROW0 + r * 2;
         const Mod *m = item_mod(i);
-        static const char *const k_act[] = { "", "NEW MOD", "ADD PICTURES", "OPEN FOLDER" };
+        static const char *const k_act[] = { "", "DUMP TEXTURES", "OPEN FOLDER" };
         label(buf, i == 0 ? "NONE" : is_back(i) ? "BACK" : item_action(i) ? k_act[item_action(i)]
                                                           : m->name, NAME_CHARS);
         text_draw(fb, LIST_COL, row, buf, item_active(i) ? TEXT_ORANGE : TEXT_WHITE);
@@ -341,9 +334,8 @@ void mods_menu_render(uint32_t *fb) {
     /* Description (and author) of the highlighted mod, two lines. */
     const Mod *m = item_mod(s_sel);
     static const char *const k_act_desc[] = {
-        "", "MAKE A NEW MOD WITH EVERY PICTURE READY TO PAINT",
-        "ADD ANY MISSING PICTURES TO THE ACTIVE MOD",
-        "OPEN THE ACTIVE MOD'S FOLDER ON THE PC" };
+        "", "SAVE EVERY PICTURE AS A PNG IN A NEW MOD TO EDIT ON THE PC",
+        "OPEN THIS MOD'S FOLDER ON THE PC" };
     const char *desc = s_msg[0] ? s_msg : m ? m->desc : s_sel == 0 ? "THE ORIGINAL GAME"
                      : item_action(s_sel) ? k_act_desc[item_action(s_sel)] : "";
     /* Two lines of 28, broken at a space when possible. */
@@ -383,10 +375,10 @@ void mods_menu_render(uint32_t *fb) {
 
 /* ---- launcher page --------------------------------------------------------
  * The MODS screen as a launcher page (recomp-ui host page): pick the active
- * mod (applied when the game starts), and make, top up or open mods without
- * any tools. The launcher runs before the game, so tiles come from the ROM
- * file picked in the launcher. */
-enum { MR_H_ACTIVE, MR_PICK, MR_PREVIEW, MR_ABOUT, MR_H_MAKE, MR_NEW, MR_ADD, MR_OPEN, MR_HELP, MR_COUNT };
+ * mod (used when the game starts), dump the game's pictures into a new mod to
+ * edit, open the picked mod's folder. The launcher runs before the game, so
+ * the pictures come from the ROM file picked in the launcher. */
+enum { MR_H_ACTIVE, MR_PICK, MR_PREVIEW, MR_ABOUT, MR_OPEN, MR_H_MAKE, MR_STEPS, MR_DUMP, MR_COUNT };
 static int s_page_version;      /* bumps the preview image on every change */
 
 static void page_ready(void) {
@@ -407,21 +399,34 @@ static void set_active(const char *folder) {
     s_page_version++;
 }
 
-static int mp_count(void *ctx) { (void)ctx; page_ready(); return MR_COUNT; }
+/* Rows shown now: "Open this mod's folder" only while a mod is picked. */
+static int s_page_rows[MR_COUNT], s_page_n;
+static void page_layout(void) {
+    s_page_n = 0;
+    for (int r = 0; r < MR_COUNT; r++)
+        if (r != MR_OPEN || active_index()) s_page_rows[s_page_n++] = r;
+}
+
+static int mp_count(void *ctx) { (void)ctx; page_ready(); page_layout(); return s_page_n; }
 
 static int mp_get(void *ctx, int i, RecompLauncherCHostRow *r) {
     (void)ctx;
     page_ready();
+    if (i < 0 || i >= s_page_n) return 0;
     int a = active_index();
     const Mod *m = a ? &s_mods[a - 1] : NULL;
-    switch (i) {
-    case MR_H_ACTIVE: r->type = RECOMP_HOST_ROW_HEADER; snprintf(r->label, sizeof(r->label), "ACTIVE MOD"); break;
+    switch (s_page_rows[i]) {
+    case MR_H_ACTIVE:
+        r->type = RECOMP_HOST_ROW_HEADER;
+        snprintf(r->label, sizeof(r->label), "MOD IN USE");
+        break;
     case MR_PICK:
         r->type = RECOMP_HOST_ROW_CHOICE;
         snprintf(r->label, sizeof(r->label), "Mod");
         r->value = a;
         r->choice_count = s_count + 1;
-        snprintf(r->help, sizeof(r->help), "Used from the next time the game starts. "
+        snprintf(r->help, sizeof(r->help), "Which mod the game uses. None = the original game. "
+                 "Each mod is a folder inside the mods folder next to the game. "
                  "Also in the game under OPTIONS > MODS.");
         break;
     case MR_PREVIEW:
@@ -435,32 +440,33 @@ static int mp_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         else if (m->author[0]) snprintf(r->label, sizeof(r->label), "%s\nby %s", m->desc, m->author);
         else snprintf(r->label, sizeof(r->label), "%s", m->desc);
         break;
-    case MR_H_MAKE: r->type = RECOMP_HOST_ROW_HEADER; snprintf(r->label, sizeof(r->label), "MAKE YOUR OWN"); break;
-    case MR_NEW:
-        r->type = RECOMP_HOST_ROW_BUTTON;
-        snprintf(r->label, sizeof(r->label), "Create new mod (dump pictures)");
-        snprintf(r->help, sizeof(r->help), "Makes mods/My Mod N with every picture of the game "
-                 "as a PNG, ready to paint, picks it and opens its folder.");
-        break;
-    case MR_ADD:
-        r->type = RECOMP_HOST_ROW_BUTTON;
-        snprintf(r->label, sizeof(r->label), "Add missing pictures to this mod");
-        snprintf(r->help, sizeof(r->help), "Adds any picture the mod doesn't have yet "
-                 "(e.g. after a game update). Never touches your paintings.");
-        r->disabled = !m;
-        break;
     case MR_OPEN:
         r->type = RECOMP_HOST_ROW_BUTTON;
-        snprintf(r->label, sizeof(r->label), m ? "Open this mod's folder" : "Open the mods folder");
+        snprintf(r->label, sizeof(r->label), "Open this mod's folder");
+        snprintf(r->help, sizeof(r->help), "Opens the folder with this mod's pictures (graphics) "
+                 "and sounds, to edit them or add your own.");
         break;
-    case MR_HELP:
+    case MR_H_MAKE:
+        r->type = RECOMP_HOST_ROW_HEADER;
+        snprintf(r->label, sizeof(r->label), "MAKE YOUR OWN MOD");
+        break;
+    case MR_STEPS:
         r->type = RECOMP_HOST_ROW_TEXT;
         snprintf(r->label, sizeof(r->label),
-                 "Paint the PNGs in the mod's graphics folder with any image editor, "
-                 "keep the file names, then play. Sounds go in its sounds folder. "
-                 "Full guide: docs/MODDING.md.");
+                 "1. Dump textures: saves every picture in the game as a PNG file in a new "
+                 "mod folder (My Mod 1, My Mod 2...), picks that mod and opens the folder.\n"
+                 "2. Edit the pictures in any paint program and save them with the same names.\n"
+                 "3. Press Play. Your pictures replace the originals.");
         break;
-    default: return 0;
+    case MR_DUMP:
+        r->type = RECOMP_HOST_ROW_BUTTON;
+        snprintf(r->label, sizeof(r->label), "Dump textures");
+        snprintf(r->help, sizeof(r->help), "Saves every picture in the game as a PNG, 4x bigger "
+                 "than the original, into a new folder in mods. Nothing in the game changes "
+                 "until you edit them.");
+        break;
+    default:
+        return 0;
     }
     return 1;
 }
@@ -474,13 +480,14 @@ static int mp_choice(void *ctx, int i, int c, char *out, int cap) {
 static int mp_set(void *ctx, int i, int v, const char *rom) {
     (void)ctx;
     page_ready();
+    if (i < 0 || i >= s_page_n) return 0;
     char path[1400], folder[128];
     s_msg[0] = '\0';
-    switch (i) {
+    switch (s_page_rows[i]) {
     case MR_PICK:
         set_active(v >= 1 && v <= s_count ? s_mods[v - 1].folder : "");
         return 1;
-    case MR_NEW: {
+    case MR_DUMP: {
         uint8_t chr[0x2000];
         if (!modgen_chr_from_rom(rom, chr)) {
             snprintf(s_msg, sizeof(s_msg), "Pick your Pac-Man ROM first (the pictures come from it).");
@@ -491,21 +498,8 @@ static int mp_set(void *ctx, int i, int v, const char *rom) {
         set_active(folder);
         snprintf(path, sizeof(path), "%smods/%s/graphics", s_exe, folder);
         modgen_open_folder(path);
-        snprintf(s_msg, sizeof(s_msg), "Made mods/%s (%d pictures) and opened it. Paint away!", folder, w);
-        return 1;
-    }
-    case MR_ADD: {
-        uint8_t chr[0x2000];
-        if (!g_opt.mod[0]) return 0;
-        if (!modgen_chr_from_rom(rom, chr)) {
-            snprintf(s_msg, sizeof(s_msg), "Pick your Pac-Man ROM first (the pictures come from it).");
-            return 0;
-        }
-        active_folder(path, sizeof(path));
-        int w = modgen_write(chr, path);
-        scan();
-        s_page_version++;
-        snprintf(s_msg, sizeof(s_msg), w > 0 ? "Added %d pictures." : "Nothing was missing.", w);
+        snprintf(s_msg, sizeof(s_msg), "Saved %d pictures as the mod \"%s\" and opened its folder. "
+                 "Edit them, then press Play.", w, folder);
         return 1;
     }
     case MR_OPEN:
@@ -520,7 +514,7 @@ static const char *mp_status(void *ctx) { (void)ctx; return s_msg; }
 
 const RecompLauncherCHostPage *mods_launcher_page(void) {
     static const RecompLauncherCHostPage page = {
-        NULL, "Mods", mp_count, mp_get, mp_choice, mp_set, mp_status
+        NULL, "Mods", mp_count, mp_get, mp_choice, mp_set, mp_status, 0
     };
     return &page;
 }

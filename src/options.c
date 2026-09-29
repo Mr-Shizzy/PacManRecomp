@@ -807,6 +807,52 @@ static void title_case(char *out, size_t n, const char *in) {
     out[k] = '\0';
 }
 
+/* Launcher wording: a clearer label than the in-game menu has room for, and
+ * a tip for every row. */
+typedef struct { const int *val; int kind; const char *label, *help; } PageText;
+static const PageText k_page_text[] = {
+    { &g_nes_config.hide_overscan, IT_TOGGLE, "Hide screen edges (overscan)",
+      "Black out the top and bottom 8 rows, like an old TV did. They sometimes show "
+      "leftover bits the game never meant you to see." },
+    { &g_opt.inverse, IT_TOGGLE, "Invert colors",
+      "Show the game in negative colors (black becomes white and so on)." },
+    { &g_opt.music, IT_TOGGLE, "Music",
+      "The start tune and the cutscene tunes. Off = silence for those only." },
+    { &g_opt.sfx, IT_TOGGLE, "Sound effects",
+      "Everything else: eating dots, the siren, ghosts, dying..." },
+    { &g_opt.echo, IT_TOGGLE, "Echo effect",
+      "Add an echo to all the sound, like playing in a big hall." },
+    { &g_opt.modern, IT_STYLE, "Menu buttons",
+      "How you move through the game's menus.\nClassic: Select moves the cursor, Start "
+      "picks (like the original).\nModern: D-pad moves, A picks, B goes back." },
+    { &g_opt.rumble, IT_TOGGLE, "Controller rumble",
+      "Shake the gamepad when you eat a ghost, lose a life and so on "
+      "(gamepads that can rumble)." },
+    { &g_opt.pac_fast, IT_SPEED, "Pac-Man speed",
+      "Normal, or Fast: Pac-Man moves 1.5 times as fast." },
+    { &g_opt.ghost_fast, IT_SPEED, "Ghost speed",
+      "Normal, or Fast: the ghosts move 1.5 times as fast." },
+    { &g_opt.show_level, IT_TOGGLE, "Show level number",
+      "Show which level you're on, under the score." },
+    { &g_opt.highscores, IT_TOGGLE, "High score table",
+      "Keep the top 10 scores with your initials, saved between games." },
+    { NULL, IT_SECTION, "Erase all high scores",
+      "Clear the high score table. Needs High score table on." },
+    { &g_opt.inf_lives, IT_TOGGLE, "Infinite lives",
+      "Never run out of lives." },
+    { &g_opt.start_level, IT_RANGE, "Start on level",
+      "Begin new games on this level instead of level 1." },
+    { &g_opt.invincible, IT_TOGGLE, "Invincible",
+      "Ghosts can't catch you." },
+};
+
+static const PageText *page_text(const Item *it) {
+    for (int i = 0; i < N(k_page_text); i++)
+        if (k_page_text[i].kind == (int)it->kind && k_page_text[i].val == it->val)
+            return &k_page_text[i];
+    return NULL;
+}
+
 static int page_count(void *ctx) { (void)ctx; page_build(); return s_nrows; }
 
 static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
@@ -828,8 +874,8 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
                  ? "Click again to reset all game options"
                  : "Reset game options to default");
         snprintf(r->help, sizeof(r->help),
-                 "Pac-Man's own options, the active mod and Hide overscan. "
-                 "Display and sound settings have their own Restore defaults.");
+                 "Put every option on this page from the game back to how it came, and "
+                 "switch off the mod. Window, display and volume settings are not changed.");
         return 1;
     }
     const Item *it = pr->it;
@@ -860,11 +906,11 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         r->type = RECOMP_HOST_ROW_TEXT;
         break;
     }
-    if (it->kind == IT_STYLE)
-        snprintf(r->help, sizeof(r->help), "Classic: Select moves, Start picks. "
-                 "Modern: D-pad moves, A picks, B goes back.");
-    if (it->val == &g_nes_config.hide_overscan)
-        snprintf(r->help, sizeof(r->help), "Hide the top and bottom 8 rows, like an old TV did.");
+    const PageText *pt = page_text(it);
+    if (pt) {
+        snprintf(r->label, sizeof(r->label), "%s", pt->label);
+        snprintf(r->help, sizeof(r->help), "%s", pt->help);
+    }
     return 1;
 }
 

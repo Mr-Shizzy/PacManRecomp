@@ -3,7 +3,8 @@
  *
  * While the game is paused (ram_flag_pause odd) the stock pause loop only
  * watches Start, so Select/A/B/d-pad are free. We draw a hint under the game's
- * own PAUSE text and, on Select, a MAIN MENU / LAUNCHER / BACK menu. Escape reaches the same
+ * own PAUSE text and, on Select, a MAIN MENU / LAUNCHER / DESKTOP / BACK menu
+ * (DESKTOP quits the program). Escape reaches the same
  * prompt by pausing through the game's own Start handling. Everything is a
  * host-side overlay: game RAM and VRAM are never written, only read.
  *
@@ -32,15 +33,15 @@
 #define BTN_RIGHT   0x01
 
 /* Right-hand HUD column: PAUSE sits at nametable $2237 = row 17, col 23.
- * Rows 18-19 hold the fruit, rows 24+ the lives, so we use rows 20-22. */
+ * Rows 18-19 hold the fruit, rows 24+ the lives, so we use rows 20-23. */
 #define TEXT_COL    23
 #define TEXT_ROW    20
 
 #define COLOR_TEXT   TEXT_WHITE
 #define COLOR_CURSOR TEXT_YELLOW
 
-enum { PICK_MAIN_MENU, PICK_LAUNCHER, PICK_BACK, PICK_COUNT };
-static const char *const k_picks[PICK_COUNT] = { "MAIN MENU", "LAUNCHER", "BACK" };
+enum { PICK_MAIN_MENU, PICK_LAUNCHER, PICK_DESKTOP, PICK_BACK, PICK_COUNT };
+static const char *const k_picks[PICK_COUNT] = { "MAIN MENU", "LAUNCHER", "DESKTOP", "BACK" };
 
 static int     s_confirm;       /* menu open */
 static int     s_sel;           /* cursor: PICK_* */
@@ -124,6 +125,7 @@ void pause_menu_on_frame(void) {
         }
         if (pick) {
             if (s_sel == PICK_LAUNCHER) nesrecomp_return_to_launcher();
+            if (s_sel == PICK_DESKTOP) nesrecomp_quit_to_desktop();
             s_confirm = 0;
             if (s_sel == PICK_MAIN_MENU) {
                 options_quit_to_title();

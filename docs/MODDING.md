@@ -12,19 +12,16 @@ the original.
 
 ## 1. Make your first mod (5 minutes)
 
-1. In the launcher, click **Mods**, then **Create new mod (dump pictures)**.
-   (Or in the game: **OPTIONS > MODS > NEW MOD**.)
-   This makes a complete mod called **My Mod 1** in the `mods` folder next to
-   the game, with every picture of the game as its own PNG file, enlarged 4
-   times, in the original colors, picks it, and opens its folder.
+1. In the launcher, click **Mods**, then **Dump textures**.
+   (Or in the game: **OPTIONS > MODS > DUMP TEXTURES**.)
+   This saves every picture of the game as its own PNG file, enlarged 4
+   times, in the original colors, into a new mod folder (**My Mod 1**, then
+   **My Mod 2**...) in the `mods` folder next to the game. It picks that mod
+   and opens its folder.
 2. Open any file in its `graphics` folder in your image editor (Krita, GIMP,
    Paint.NET, Aseprite, Photoshop...), paint it, save it (same name, PNG).
 3. Play. (Already in the game? In **OPTIONS > MODS** pick **NONE** and then
    your mod again to see your changes.)
-
-**Add missing pictures** (launcher) / **ADD PICTURES** (game) tops up the
-active mod with any picture it doesn't have, for example after a game
-update. It never touches pictures you already have.
 
 For power users there is also a script that does the same, with a choice of
 size: `python tools/make_mod_template.py pacman.nes "build/mods/My Mod" --scale 8`.
