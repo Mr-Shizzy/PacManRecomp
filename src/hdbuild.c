@@ -156,8 +156,25 @@ typedef struct {
     int      tile;          /* HD tile index (sprites +256) */
     uint32_t pal;           /* color-set key, 0xFFFFFFFF = any */
     int      flags;         /* sprite flip flags the entry is for, -1 = n/a */
+    int      cond;          /* neighbor condition (index into s_conds), -1 = none */
     int      slot;          /* atlas cell */
 } Entry;
+
+/* "A sprite with tile `tile` (flip `flags`) sits (dx,dy) from this tile":
+ * the runner's oamNearby condition, used to tell apart pictures that share
+ * a tile (a ghost's top half over different feet). */
+typedef struct { int dx, dy, tile, flags; } Cond;
+static Cond s_conds[1024];
+static int  s_nconds;
+
+static int cond_id(int dx, int dy, int tile, int flags) {
+    for (int i = 0; i < s_nconds; i++)
+        if (s_conds[i].dx == dx && s_conds[i].dy == dy && s_conds[i].tile == tile && s_conds[i].flags == flags)
+            return i;
+    if (s_nconds == (int)(sizeof(s_conds) / sizeof(s_conds[0]))) return -2;
+    s_conds[s_nconds] = (Cond){ dx, dy, tile, flags };
+    return s_nconds++;
+}
 
 static Entry *s_entries;
 static int    s_nentries, s_cap_entries;
@@ -165,16 +182,17 @@ static Img    s_atlas;
 static int    s_scale;
 static int    s_maze;           /* maze.png present: maze tiles are registered */
 
-static int entry_slot(int tile, uint32_t pal, int flags) {
+static int entry_slot(int tile, uint32_t pal, int flags, int cond) {
     for (int i = 0; i < s_nentries; i++)                /* later art wins */
-        if (s_entries[i].tile == tile && s_entries[i].pal == pal && s_entries[i].flags == flags)
+        if (s_entries[i].tile == tile && s_entries[i].pal == pal && s_entries[i].flags == flags &&
+            s_entries[i].cond == cond)
             return s_entries[i].slot;
     if (s_nentries == s_cap_entries) {
         s_cap_entries = s_cap_entries ? s_cap_entries * 2 : 512;
         s_entries = (Entry *)realloc(s_entries, s_cap_entries * sizeof(Entry));
     }
     int slot = s_nentries;
-    s_entries[s_nentries++] = (Entry){ tile, pal, flags, slot };
+    s_entries[s_nentries++] = (Entry){ tile, pal, flags, cond, slot };
     int cell = 8 * s_scale, rows = (slot / ATLAS_COLS) + 1;
     if (rows * cell > s_atlas.h) {                      /* grow the atlas */
         Img bigger = img_new(ATLAS_COLS * cell, rows * cell * 2);
@@ -186,12 +204,13 @@ static int entry_slot(int tile, uint32_t pal, int flags) {
 }
 
 /* Put an 8S x 8S tile image into the atlas for (tile, pal, flags). */
-static void add_tile(int tile, uint32_t pal, int flags, const Img *t) {
-    int slot = entry_slot(tile, pal, flags), cell = 8 * s_scale;
+static void add_tile_c(int tile, uint32_t pal, int flags, int cond, const Img *t) {
+    int slot = entry_slot(tile, pal, flags, cond), cell = 8 * s_scale;
     int ax = (slot % ATLAS_COLS) * cell, ay = (slot / ATLAS_COLS) * cell;
     for (int y = 0; y < cell; y++)
         memcpy(s_atlas.px + ((ay + y) * s_atlas.w + ax) * 4, t->px + y * cell * 4, (size_t)cell * 4);
 }
+static void add_tile(int tile, uint32_t pal, int flags, const Img *t) { add_tile_c(tile, pal, flags, -1, t); }
 
 static Img crop(const Img *im, int x, int y, int w, int h) {
     Img c = img_new(w, h);
@@ -258,28 +277,96 @@ static int load_art(const char *dir, const HdGraphic *g, Img *out) {
     return 1;
 }
 
+/* ---- shared tiles -------------------------------------------------------------- */
+static int pals_overlap(const HdGraphic *a, const HdGraphic *b) {
+    if (!a->npals || !b->npals) return !a->npals && !b->npals;
+    for (int i = 0; i < a->npals; i++)
+        for (int k = 0; k < b->npals; k++) if (a->pals[i] == b->pals[k]) return 1;
+    return 0;
+}
+
+/* Does graphic h have a piece with this tile/flip at (x,y)? */
+static int has_piece(const HdGraphic *h, int x, int y, int tile, int flags) {
+    for (int k = 0; k < h->npieces; k++) {
+        const HdPiece *q = &h->pieces[k];
+        if (q->dx == x && q->dy == y && q->tile == tile && (q->flags & 3) == flags) return 1;
+    }
+    return 0;
+}
+
+/* Other uses of piece p's sprite tile (same flip, overlapping colors),
+ * excluding piece p itself. */
+static int same_tile(const HdGraphic *g, const HdPiece *pc, int hi, int k, int gi, int p) {
+    const HdGraphic *h = &hd_graphics[hi];
+    const HdPiece *hp = &h->pieces[k];
+    return !(hi == gi && k == p) && h->sprite && !(hp->flags & 4) && hp->tile == pc->tile &&
+           (hp->flags & 3) == (pc->flags & 3) && pals_overlap(g, h);
+}
+
+/* How piece p of graphic gi is registered when other pictures use the same
+ * sprite tile: -1 = unconditionally (it is the only one, or the first),
+ * >= 0 = only with that neighbor condition, -2 = not at all (nothing tells
+ * it apart; the first picture's copy is used). */
+static int piece_cond(int gi, int p) {
+    const HdGraphic *g = &hd_graphics[gi];
+    const HdPiece *pc = &g->pieces[p];
+    if (!g->sprite) return -1;
+    int first = 1, shared = 0;
+    for (int hi = 0; hi < HD_GRAPHICS_N; hi++)
+        for (int k = 0; k < hd_graphics[hi].npieces; k++)
+            if (same_tile(g, pc, hi, k, gi, p)) {
+                shared = 1;
+                if (hi < gi || (hi == gi && k < p)) first = 0;
+            }
+    if (!shared) return -1;
+    /* A neighbor piece that no other use of this tile has at the same offset. */
+    for (int q = 0; q < g->npieces; q++) {
+        if (q == p) continue;
+        const HdPiece *nb = &g->pieces[q];
+        int dx = nb->dx - pc->dx, dy = nb->dy - pc->dy, ok = 1;
+        for (int hi = 0; hi < HD_GRAPHICS_N && ok; hi++)
+            for (int k = 0; k < hd_graphics[hi].npieces && ok; k++)
+                if (same_tile(g, pc, hi, k, gi, p)) {
+                    const HdPiece *hp = &hd_graphics[hi].pieces[k];
+                    if (has_piece(&hd_graphics[hi], hp->dx + dx, hp->dy + dy, nb->tile, nb->flags & 3)) ok = 0;
+                }
+        if (ok) {
+            /* Offsets are screen space (pieces are laid out as drawn). */
+            int c = cond_id(dx, dy, nb->tile, nb->flags & 3);
+            if (c >= 0) return c;
+        }
+    }
+    return first ? -1 : -2;
+}
+
+static void add_graphic_piece(const HdGraphic *g, const HdPiece *pc, int cond, const Img *t) {
+    int tile = pc->tile + (g->sprite ? 256 : 0), fl = g->sprite ? (pc->flags & 3) : -1;
+    for (int k = 0; k < g->npals; k++) {
+        if (g->tint) { Img tt = tint(t, pc->tile, g->sprite, g->pals[k]); add_tile_c(tile, g->pals[k], fl, cond, &tt); img_free(&tt); }
+        else add_tile_c(tile, g->pals[k], fl, cond, t);
+    }
+    if (g->wild || !g->npals) add_tile_c(tile, 0xFFFFFFFFu, fl, cond, t);
+    if (s_maze && !g->sprite && !g->npals) {
+        /* Beat the maze tiles' own exact-color entries (dots, pellets). */
+        add_tile(tile, HD_MAZE_PAL_NORMAL, fl, t);
+        add_tile(tile, HD_MAZE_PAL_FLASH, fl, t);
+    }
+}
+
 static void add_graphic(const HdGraphic *g, const Img *art) {
     Img big = img_resize(art, g->w * s_scale, g->h * s_scale);
     int cell = 8 * s_scale;
     for (int p = 0; p < g->npieces; p++) {
         const HdPiece *pc = &g->pieces[p];
-        if (pc->flags & 4) continue;            /* shared: an earlier picture owns it */
+        if (pc->flags & 4) continue;            /* the blank padding tile: never replaced */
+        int cond = piece_cond((int)(g - hd_graphics), p);
+        if (cond == -2) continue;               /* the first picture's copy is used */
         Img t = crop(&big, pc->dx * s_scale, pc->dy * s_scale, cell, cell);
         /* The engine flips the HD tile the way the game flips the sprite, so
          * store it pre-flipped: what shows is then exactly this crop. */
         if (pc->flags & 1) img_flip(&t, 'h');
         if (pc->flags & 2) img_flip(&t, 'v');
-        int tile = pc->tile + (g->sprite ? 256 : 0), fl = g->sprite ? (pc->flags & 3) : -1;
-        for (int k = 0; k < g->npals; k++) {
-            if (g->tint) { Img tt = tint(&t, pc->tile, g->sprite, g->pals[k]); add_tile(tile, g->pals[k], fl, &tt); img_free(&tt); }
-            else add_tile(tile, g->pals[k], fl, &t);
-        }
-        if (g->wild || !g->npals) add_tile(tile, 0xFFFFFFFFu, fl, &t);
-        if (s_maze && !g->sprite && !g->npals) {
-            /* Beat the maze tiles' own exact-color entries (dots, pellets). */
-            add_tile(tile, HD_MAZE_PAL_NORMAL, fl, &t);
-            add_tile(tile, HD_MAZE_PAL_FLASH, fl, &t);
-        }
+        add_graphic_piece(g, pc, cond, &t);
         img_free(&t);
     }
     img_free(&big);
@@ -333,6 +420,7 @@ int hdbuild_make(const char *graphics_dir, char *out_dir, size_t out_n) {
 
     /* 2. Tiles. */
     s_nentries = 0;
+    s_nconds = 0;
     img_free(&s_atlas);
     s_atlas = img_new(ATLAS_COLS * 8 * s_scale, 8 * 8 * s_scale);
     s_maze = maze.px != NULL;
@@ -381,10 +469,18 @@ int hdbuild_make(const char *graphics_dir, char *out_dir, size_t out_n) {
     static const char *const k_flip_cond[4] = {
         "[!hmirror&!vmirror]", "[hmirror&!vmirror]", "[!hmirror&vmirror]", "[hmirror&vmirror]"
     };
+    for (int i = 0; i < s_nconds; i++)
+        fprintf(f, "<condition>nb%d,oamNearby,%d,%d,%X,%d\n", i,
+                s_conds[i].dx, s_conds[i].dy, s_conds[i].tile, s_conds[i].flags);
     for (int i = 0; i < s_nentries; i++) {
         const Entry *e = &s_entries[i];
         int any = e->pal == 0xFFFFFFFFu;
-        fprintf(f, "%s<tile>0,%X,%08X,%d,%d,1,%s\n", e->flags >= 0 ? k_flip_cond[e->flags] : "",
+        char cond[64] = "";
+        if (e->flags >= 0 && e->cond >= 0)      /* "[nbN&" + "!hmirror&!vmirror]" */
+            snprintf(cond, sizeof(cond), "[nb%d&%s", e->cond, k_flip_cond[e->flags] + 1);
+        else if (e->flags >= 0)
+            snprintf(cond, sizeof(cond), "%s", k_flip_cond[e->flags]);
+        fprintf(f, "%s<tile>0,%X,%08X,%d,%d,1,%s\n", cond,
                 e->tile, e->pal, (e->slot % ATLAS_COLS) * cell, (e->slot / ATLAS_COLS) * cell,
                 any ? "Y" : "N");
     }

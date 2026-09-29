@@ -250,22 +250,16 @@ for name, t in FONT.items():
 bg("namco_logo", 72, 8, [f"{t:02X}" for t in range(0x23, 0x2C)],
    sorted(bg_pals.get("23", ())))
 
-# ---- shared tiles ---------------------------------------------------------------------
-# Some tiles are used by more than one picture (ghost tops, the "00" of the
-# scores, Blinky in the intermissions). The first picture listed owns such a
-# tile; later ones mark it "S" (the game skips it, the starter still draws it).
-claimed = set()
+# ---- the blank tile ---------------------------------------------------------------------
+# Tiles shared by several pictures (ghost tops, the "00" of the scores,
+# Blinky in the intermissions) are told apart by the game from their
+# neighbors (src/hdbuild.c). Sprite tile 4C is the empty tile that pads many
+# frames with nothing next to it to tell them apart; it is marked "S" (skip):
+# never replaced, though the starter still draws the frame whole.
 for g in graphics:
-    if g.get("mirror") or g.get("also"):
-        continue
-    keys = ["*"] if g.get("wild") or not g["pals"] else g["pals"]
     for pc in g["pieces"]:
-        ks = {(g["type"], pc[2], pc[3], k) for k in keys}
-        # 4C is the empty tile that pads many frames; painting it would show
-        # up in all of them, so it is never replaced.
-        if ks <= claimed or (g["type"] == "sprite" and pc[2] == "4C"):
+        if g["type"] == "sprite" and pc[2] == "4C":
             pc[3] = pc[3][:2] + "S"
-        claimed |= ks
 
 NES_PALETTE = [int(x, 16) & 0xFFFFFF for x in re.findall(
     r"0x[0-9A-Fa-f]{8}", open(os.path.join(os.path.dirname(__file__), "..", "..", "nesrecomp",

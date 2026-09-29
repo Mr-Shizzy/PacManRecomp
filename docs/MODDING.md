@@ -117,17 +117,13 @@ used instead.
 
 - **Letters and numbers: paint them white.** The game colors them itself
   (white, red, blue...) wherever they appear.
-- **Shared parts:** the NES reuses the same small piece in several
-  pictures. Where that happens, the first picture wins and the copy in the
-  others is ignored:
-  - ghosts: `_1` and `_2` share their **top half**, so only the feet of
-    `_2` count;
-  - scores: 200, 300, 400, 500, 700 and 800 use the "00" of `100.png`, and
-    3000 and 5000 use the "000" of `2000.png`;
-  - cutscenes: `blinky_torn_*` only use their torn corner (the rest is
-    Blinky's normal picture), `big_pacman_open` only uses its mouth, and
-    `blinky_patched_2` only its feet;
-  - empty areas of the death, eyes and cutscene pictures stay empty.
+- **Paint every picture as a whole.** Each file shows exactly as painted, and
+  you can paint anywhere in its square, even outside the original's outline
+  (a hat, a cape...).
+- **Empty quarters stay empty:** where the original picture has a completely
+  empty 8 x 8 corner (the top of `death_3` ... `death_8`, the bottom of
+  `ghosts/eyes/down`, the empty side of the cutscene pictures), paint there
+  is ignored.
 - **The maze picture is just the walls.** Dots and power pellets are
   separate (`dot.png`, `power_pellet.png`) because they disappear when eaten.
   Keep your walls where the original walls are: the maze's paths can't move.
