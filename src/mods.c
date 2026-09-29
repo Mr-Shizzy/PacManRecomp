@@ -207,19 +207,17 @@ static void active_folder(char *out, size_t n) {
 #define PREV_X       136        /* preview box, px */
 #define PREV_Y       (LIST_ROW0 * 8)
 #define PREV_W       112
-#define PREV_H       88
+#define PREV_H       72         /* rows 16-24 */
+#define AUTHOR_ROW   26         /* "BY ..." under the preview */
 #define DESC_ROW     27         /* 2 lines, clear of the bottom overscan row */
+#define DESC_CHARS   28         /* per line; longer text ends in "..." */
 
 static int s_sel, s_top;
 static int s_preview, s_preview_for = -2;
 
-/* NONE, the mods, then DUMP TEXTURES (and OPEN FOLDER while a mod is
- * picked), then BACK. */
-enum { ACT_DUMP = 1, ACT_OPEN };
-static int act_count(void) { return g_opt.mod[0] ? 2 : 1; }
-static int item_count(void) { return s_count + act_count() + 2; }
-static int is_back(int i) { return i == s_count + act_count() + 1; }
-static int item_action(int i) { return i > s_count && i <= s_count + act_count() ? i - s_count : 0; }
+/* NONE, the mods, then BACK. (Making mods lives in the launcher.) */
+static int item_count(void) { return s_count + 2; }
+static int is_back(int i) { return i == s_count + 1; }
 static const Mod *item_mod(int i) { return i >= 1 && i <= s_count ? &s_mods[i - 1] : NULL; }
 
 static int item_active(int i) {
@@ -261,7 +259,7 @@ void mods_menu_close(void) {
 #define BTN_DOWN    0x04
 
 int mods_menu_input(uint8_t pressed, int modern) {
-    int n = item_count(), pick = 0, was = s_sel;
+    int n = item_count(), pick = 0;
     if (!modern) {
         if (pressed & BTN_SELECT) s_sel = (s_sel + 1) % n;
         pick = pressed & BTN_START;
@@ -273,33 +271,10 @@ int mods_menu_input(uint8_t pressed, int modern) {
     }
     if (s_sel < s_top) s_top = s_sel;
     if (s_sel >= s_top + LIST_ROWS) s_top = s_sel - LIST_ROWS + 1;
-    if (s_sel != was) s_msg[0] = '\0';
     if (pick) {
         if (is_back(s_sel)) { mods_menu_close(); return 1; }
-        char folder[128], path[1400];
-        switch (item_action(s_sel)) {
-        case ACT_DUMP: {
-            int w = create_mod(g_chr_ram, folder, sizeof(folder));
-            if (w < 0) { snprintf(s_msg, sizeof(s_msg), "COULD NOT MAKE THE FOLDER"); break; }
-            mods_apply(folder);
-            for (int i = 0; i < item_count(); i++) if (item_active(i)) s_sel = i;
-            s_preview_for = -2;
-            snprintf(s_msg, sizeof(s_msg), "SAVED AS %s. EDIT THE PICTURES ON THE PC", folder);
-            break;
-        }
-        case ACT_OPEN:
-            active_folder(path, sizeof(path));
-            modgen_open_folder(path);
-            snprintf(s_msg, sizeof(s_msg), "OPENED ON THE PC");
-            break;
-        default: {
-            const Mod *m = item_mod(s_sel);
-            mods_apply(m ? m->folder : "");
-        }
-        }
-        if (s_sel >= item_count()) s_sel = item_count() - 1;   /* OPEN FOLDER went away */
-        if (s_sel < s_top) s_top = s_sel;
-        if (s_sel >= s_top + LIST_ROWS) s_top = s_sel - LIST_ROWS + 1;
+        const Mod *m = item_mod(s_sel);
+        mods_apply(m ? m->folder : "");
     }
     return 0;
 }
@@ -314,6 +289,15 @@ static void label(char *out, const char *in, int n) {
     out[k] = '\0';
 }
 
+/* label(), but text longer than `n` ends in "..." (within the n). */
+static void label_cut(char *out, const char *in, int n) {
+    if ((int)strlen(in) <= n) { label(out, in, n); return; }
+    label(out, in, n - 3);
+    int k = (int)strlen(out);
+    while (k > 0 && out[k - 1] == ' ') k--;
+    strcpy(out + k, "...");
+}
+
 void mods_menu_render(uint32_t *fb) {
     char buf[64];
     text_clear_rows(fb, 13, 29, 0);
@@ -321,9 +305,7 @@ void mods_menu_render(uint32_t *fb) {
     for (int r = 0; r < LIST_ROWS && s_top + r < item_count(); r++) {
         int i = s_top + r, row = LIST_ROW0 + r * 2;
         const Mod *m = item_mod(i);
-        static const char *const k_act[] = { "", "DUMP TEXTURES", "OPEN FOLDER" };
-        label(buf, i == 0 ? "NONE" : is_back(i) ? "BACK" : item_action(i) ? k_act[item_action(i)]
-                                                          : m->name, NAME_CHARS);
+        label(buf, i == 0 ? "NONE" : is_back(i) ? "BACK" : m->name, NAME_CHARS);
         text_draw(fb, LIST_COL, row, buf, item_active(i) ? TEXT_ORANGE : TEXT_WHITE);
         if (i == s_sel) text_draw(fb, LIST_COL - 2, row, "@", TEXT_WHITE);
     }
@@ -331,34 +313,31 @@ void mods_menu_render(uint32_t *fb) {
     if (s_top + LIST_ROWS < item_count())
         text_draw(fb, LIST_COL + 6, LIST_ROW0 + LIST_ROWS * 2 - 1, "-", TEXT_WHITE);
 
-    /* Description (and author) of the highlighted mod, two lines. */
+    /* The highlighted mod's author (under the preview) and description
+     * (two lines at the bottom, "..." when it runs longer). */
     const Mod *m = item_mod(s_sel);
-    static const char *const k_act_desc[] = {
-        "", "SAVE EVERY PICTURE AS A PNG IN A NEW MOD TO EDIT ON THE PC",
-        "OPEN THIS MOD'S FOLDER ON THE PC" };
-    const char *desc = s_msg[0] ? s_msg : m ? m->desc : s_sel == 0 ? "THE ORIGINAL GAME"
-                     : item_action(s_sel) ? k_act_desc[item_action(s_sel)] : "";
-    /* Two lines of 28, broken at a space when possible. */
-    char line[29];
+    if (m && m->author[0]) {
+        char by[80], line[20];
+        snprintf(by, sizeof(by), "BY %s", m->author);
+        label_cut(line, by, 14);
+        text_draw(fb, PREV_X / 8, AUTHOR_ROW, line, TEXT_ORANGE);
+    }
+    const char *desc = m ? m->desc : s_sel == 0 ? "THE ORIGINAL GAME" : "";
+    char line[DESC_CHARS + 1];
     int cut = (int)strlen(desc);
-    if (cut > 28) {
-        cut = 28;
+    if (cut > DESC_CHARS) {                     /* break the first line at a space */
+        cut = DESC_CHARS;
         while (cut > 0 && desc[cut] != ' ') cut--;
-        if (cut == 0) cut = 28;
+        if (cut == 0) cut = DESC_CHARS;
     }
     label(line, desc, cut);
     text_draw(fb, 2, DESC_ROW, line, TEXT_WHITE);
     const char *rest = desc + cut;
     while (*rest == ' ') rest++;
-    if (m && m->author[0]) {
-        char by[40];
-        snprintf(by, sizeof(by), "BY %s", m->author);
-        label(line, by, 14);
-        text_draw(fb, PREV_X / 8, LIST_ROW0 + 11, line, TEXT_ORANGE);
-    }
     if (*rest) {
-        label(line, rest, 28);
-        text_draw(fb, 2, DESC_ROW + 1, line, TEXT_WHITE);
+        char second[DESC_CHARS + 4];
+        label_cut(second, rest, DESC_CHARS);
+        text_draw(fb, 2, DESC_ROW + 1, second, TEXT_WHITE);
     }
 
     load_preview();

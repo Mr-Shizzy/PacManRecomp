@@ -13,7 +13,6 @@ the original.
 ## 1. Make your first mod (5 minutes)
 
 1. In the launcher, click **Mods**, then **Dump textures**.
-   (Or in the game: **OPTIONS > MODS > DUMP TEXTURES**.)
    This saves every picture of the game as its own PNG file, enlarged 4
    times, in the original colors, into a new mod folder (**My Mod 1**, then
    **My Mod 2**...) in the `mods` folder next to the game. It picks that mod
@@ -44,14 +43,18 @@ mods/
     sounds/        the sounds (section 5)
 ```
 
-`mod.txt` looks like this (keep the description under about 50 letters, the
-menu shows two short lines):
+`mod.txt` looks like this (all three lines are optional):
 
 ```
 name = My Mod
 author = Your Name
 description = Pac-Man in space.
 ```
+
+The launcher's Mods page shows the whole description. The game's own MODS
+menu has room for two lines of 28 letters (about 50 letters with the line
+break); anything longer is cut off with "...". The name shows up to 13
+letters and the author up to 11 there (also cut off with "...").
 
 You can have as many mods as you like; the MODS menu lists them all. To share
 a mod, zip its folder; to install one, unzip it into `mods/`.
