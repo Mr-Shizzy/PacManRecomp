@@ -149,6 +149,77 @@ SCORES = {"100": P("2E", "2F", "30", "31"), "200": P("32", "2F", "33", "31"),
           "1600": P("42", "3F", "43", "41")}
 for n, p in SCORES.items():
     sprite("scores/" + n, p, pals_of(p), wild=True)
+# Fruit points (300-5000), never captured (the capture runs don't eat fruit):
+# pieces from the game's sprite frame table, drawn with the score colors.
+FRUIT_SCORES = {"300": P("34", "2F", "35", "31"), "500": P("38", "2F", "39", "31"),
+                "700": P("3A", "2F", "3B", "31"), "1000": P("3E", "3F", "40", "41"),
+                "2000": P("44", "45", "46", "47"), "3000": P("48", "45", "49", "47"),
+                "5000": P("4A", "45", "4B", "47")}
+score_pals = pals_of(SCORES["100"])
+for n, p in FRUIT_SCORES.items():
+    sprite("scores/" + n, p, score_pals, wild=True)
+
+# ---- intermissions -------------------------------------------------------------
+# Colors: whatever color sets the captures saw these tiles drawn with.
+tile_pals = defaultdict(set)
+for pieces, ps in sprites.items():
+    for pc in pieces:
+        tile_pals[(pc[2], pc[3])] |= ps
+
+
+def pals_seen(pieces):
+    out = set()
+    for pc in pieces:
+        if int(pc[2], 16) >= 0x4D:              # tiles only the intermissions use
+            out |= tile_pals.get((pc[2], pc[3]), set())
+    return sorted(out)
+
+
+def quads(*frames):
+    """32x32 from four 16x16 frames: top-left, top-right, bottom-left, bottom-right."""
+    out = []
+    for i, f in enumerate(frames):
+        out += [(x + 16 * (i % 2), y + 16 * (i // 2), t, fl) for x, y, t, fl in f]
+    return tuple(out)
+
+
+INTER = {
+    "big_pacman_closed": quads(P("4D", "4E", "4F", "50"), P("4EH", "4DH", "50", "4FH"),
+                               P("4FV", "50", "4DV", "4EV"), P("50", "4FB", "4EB", "4DB")),
+    "big_pacman_open":   quads(P("4D", "4E", "4F", "51"), P("4EH", "52", "53", "54"),
+                               P("4FV", "51V", "4DV", "4EV"), P("53V", "54V", "4EB", "52V")),
+    "snag_1":            P("55", "4C", "56", "4C"),
+    "snag_2":            P("56V", "4C", "55V", "4C"),
+    "tear_1":            P("4C", "57", "4C", "58"),
+    "tear_2":            P("4C", "59", "4C", "5A"),
+    "tear_3":            P("4C", "5B", "4C", "5C"),
+    "tear_4":            P("4C", "4C", "4C", "5D"),
+    "blinky_torn_down":  P("18", "18H", "19", "5E"),
+    "blinky_torn_look":  P("60", "61", "19", "5E"),
+    "blinky_torn_right_1": P("1B", "1C", "1D", "62"),
+    "blinky_torn_right_2": P("1B", "1C", "1E", "63"),
+    "blinky_patched_1":  P("64", "65", "66", "67"),
+    "blinky_patched_2":  P("64", "65", "68", "69"),
+    "cloth":             P("6A", "6B", "4C", "4C"),
+}
+for n, p in INTER.items():
+    size = 32 if n.startswith("big_") else 16
+    ps = pals_seen(p)
+    sprite("intermission/" + n, p, ps,
+           {"of": "intermission/snag_1", "axis": "v"} if n == "snag_2" else None, wild=not ps)
+    graphics[-1]["w"] = graphics[-1]["h"] = size
+
+# ---- sprite text (READY!, PLAYER ONE/TWO, GAME OVER) ------------------------------
+# Drawn with sprite letters; they reuse the font/ pictures (painted white).
+SPRITE_FONT = {"B0": "P", "B1": "L", "B2": "A", "B3": "Y", "B4": "E", "B5": "R",
+               "B6": "O", "B7": "N", "B8": "T", "B9": "W", "BA": "D", "BB": "exclamation",
+               "BC": "G", "BD": "M", "BE": "V", "C0": "G", "C1": "A", "C2": "M", "C3": "E",
+               "C4": "O", "C5": "V", "C6": "R", "C7": "Y"}
+text_pals = sorted(set().union(*(tile_pals.get((t, "--"), set()) for t in SPRITE_FONT)))
+for t, name in SPRITE_FONT.items():
+    graphics.append({"name": "font/" + name, "type": "sprite", "w": 8, "h": 8,
+                     "pieces": [[0, 0, t, "--"]], "pals": text_pals, "tint": True,
+                     "mirror": None, "wild": False, "also": name != "exclamation"})
 
 # ---- background --------------------------------------------------------------------
 def bg(name, w, h, tiles, pals, tint=False, wild=False):
@@ -175,6 +246,26 @@ FONT.update({"dash": "3A", "period": "5B", "cursor": "5C", "copyright": "5D"})
 font_pals = sorted(set().union(*(bg_pals.get(t, set()) for t in FONT.values())))
 for name, t in FONT.items():
     bg("font/" + name, 8, 8, [t], font_pals, tint=True)
+
+bg("namco_logo", 72, 8, [f"{t:02X}" for t in range(0x23, 0x2C)],
+   sorted(bg_pals.get("23", ())))
+
+# ---- shared tiles ---------------------------------------------------------------------
+# Some tiles are used by more than one picture (ghost tops, the "00" of the
+# scores, Blinky in the intermissions). The first picture listed owns such a
+# tile; later ones mark it "S" (the game skips it, the starter still draws it).
+claimed = set()
+for g in graphics:
+    if g.get("mirror") or g.get("also"):
+        continue
+    keys = ["*"] if g.get("wild") or not g["pals"] else g["pals"]
+    for pc in g["pieces"]:
+        ks = {(g["type"], pc[2], pc[3], k) for k in keys}
+        # 4C is the empty tile that pads many frames; painting it would show
+        # up in all of them, so it is never replaced.
+        if ks <= claimed or (g["type"] == "sprite" and pc[2] == "4C"):
+            pc[3] = pc[3][:2] + "S"
+        claimed |= ks
 
 NES_PALETTE = [int(x, 16) & 0xFFFFFF for x in re.findall(
     r"0x[0-9A-Fa-f]{8}", open(os.path.join(os.path.dirname(__file__), "..", "..", "nesrecomp",

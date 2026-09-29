@@ -1,95 +1,158 @@
 # Modding Pac-Man
 
-Everything here is optional and off unless the files are present. Put them
-next to `PacManRecomp.exe`.
+Make your own version of Pac-Man with new pictures, sounds and a new title
+logo. No programming and no special tools, just an image editor and (for
+sounds) any program that saves WAV files.
 
-```
-PacManRecomp.exe
-hdpack/          HD texture pack (hires.txt + PNGs)
-sounds/          replacement sound effects / music (*.wav)
-logo.png         replacement title logo
-```
+The original game is never changed: mods are switched on and off in the game
+under **OPTIONS > MODS**, and **NONE** is always the original.
 
-## HD texture packs
+---
 
-An HD texture pack swaps the game's blocky pixel art for your own
-higher-resolution drawings, while the game plays exactly the same.
+## 1. Make your first mod (5 minutes)
 
-### How it works (the 30-second version)
-
-Everything on the NES screen is built from tiny **8x8-pixel squares called
-tiles**: letters, bits of maze, pieces of the logo, frames of Pac-Man and the
-ghosts. Pac-Man has **512 tiles**. An HD pack is:
-
-- **`tiles.png`**: one big picture holding a bigger version of every tile,
-  in a fixed grid.
-- **`hires.txt`**: a "map" telling the game which square of `tiles.png`
-  replaces which tile. You normally never touch it.
-
-### Quick start
-
-1. Install Python (free, from python.org) if you don't have it.
-2. In the `PacManRecomp` folder, run:
+1. Install **Python** (free, from python.org) if you don't have it.
+2. Open a terminal in the `PacManRecomp` folder and run:
    ```bash
-   python tools/make_hd_template.py pacman.nes build/hdpack --scale 4
+   python tools/make_mod_template.py pacman.nes "build/mods/My Mod"
    ```
-   This makes a **starter pack** in `build/hdpack/` (next to
-   `PacManRecomp.exe`): every tile, 4x bigger, in gray shades.
-3. Start the game. It now looks gray: the starter pack is working.
-4. Open `build/hdpack/tiles.png` in any image editor that supports
-   transparency (Krita, GIMP, Paint.NET, Aseprite, Photoshop...).
-5. Paint over the tiles, save as PNG with the **same name**, restart the game.
+   This makes a complete mod called **My Mod** next to the game, with every
+   picture of the game as its own PNG file, enlarged 4 times, in the original
+   colors. (Use `--scale 2` or `--scale 8` for smaller or bigger pictures.)
+3. Start the game, go to **OPTIONS > MODS**, pick **My Mod**. The game looks
+   exactly the same, because nothing has been painted yet.
+4. Open any file in `build/mods/My Mod/graphics/` in your image editor (Krita,
+   GIMP, Paint.NET, Aseprite, Photoshop...), paint it, save it (same name,
+   PNG).
+5. In the game, pick **NONE** and then **My Mod** again (or restart the game)
+   to see your changes.
 
-The pack is on by default. To turn it off, or to use a pack stored somewhere
-else, open the launcher: *Settings > Display > HD texture pack*.
+That's it. Everything below is reference.
 
-### The tile sheet
+---
 
-| Scale | Each tile | Whole `tiles.png` |
+## 2. What's in a mod
+
+A mod is a folder inside `mods/` next to `PacManRecomp.exe`. Everything in it
+is optional; anything missing stays original.
+
+```
+mods/
+  My Mod/
+    mod.txt        name, author and description shown in the MODS menu
+    preview.png    small picture shown in the MODS menu
+    graphics/      the pictures (section 3), plus logo.png (section 4)
+    sounds/        the sounds (section 5)
+```
+
+`mod.txt` looks like this (keep the description under about 50 letters, the
+menu shows two short lines):
+
+```
+name = My Mod
+author = Your Name
+description = Pac-Man in space.
+```
+
+You can have as many mods as you like; the MODS menu lists them all. To share
+a mod, zip its folder; to install one, unzip it into `mods/`.
+
+---
+
+## 3. Pictures (`graphics/`)
+
+### Sizes
+
+Every picture replaces one thing in the game. Draw it **any size you like**,
+as long as it keeps the original's **shape** (most are square). The game
+scales everything to fit. Bigger = more detail. The starter pictures are 4x
+the original:
+
+| Original | Starter (4x) | What |
 |---|---|---|
-| `--scale 2` | 16 x 16 px | 256 x 512 px |
-| `--scale 4` (recommended) | 32 x 32 px | 512 x 1024 px |
-| `--scale 8` | 64 x 64 px | 1024 x 2048 px |
+| 32 x 32 | 128 x 128 | the giant Pac-Man |
+| 16 x 16 | 64 x 64 | Pac-Man, ghosts, fruit, scores, score-column icons, cutscene pictures |
+| 8 x 8 | 32 x 32 | letters, numbers, dots |
+| 168 x 216 | 672 x 864 | the maze |
 
-- Tiles sit **16 per row**, in order. Tile number *N* is in column
-  *N mod 16*, row *N / 16* (counting from 0 at the top left).
-- **Top half (tiles 0-255): the background.** Letters, numbers, the PAC-MAN
-  logo, the fruit icons, the maze walls, dots and power pellets.
-- **Bottom half (tiles 256-511): the moving things.** Pac-Man's animation
-  frames, the ghosts, their eyes, the fruit and the score pop-ups.
-- Big pictures are made of several tiles side by side (the logo is dozens).
-  Paint them as one picture across the squares, but keep every piece inside
-  its own square.
+Use **transparent** pixels (not white or black) for "nothing here", so the
+maze and backgrounds show through.
 
-### Rules
+### The files
 
-- **Don't move, resize or reorder anything** in `tiles.png`, and keep the
-  whole image the same size. The map points at exact positions.
-- **Transparent pixels show the game's background.** Keep see-through areas
-  transparent (not white) so sprites don't get boxes around them.
-- **Starter-pack gray isn't always gray in the game.** Some tiles that look
-  black in the game use a color the starter pack shows as gray; paint those
-  black (or transparent).
-- **One drawing per tile, used everywhere.** The four ghosts share the same
-  tiles and only differ in color in the original, so one ghost drawing is
-  used for all four. (Advanced: `hires.txt` can give a tile different
-  pictures per color set; see the Mesen HD pack documentation.)
-- Keep the file names `tiles.png` and `hires.txt`, in a folder of their own.
+| Folder / file | What it is |
+|---|---|
+| `pacman/closed.png` | Pac-Man with his mouth shut (all directions) |
+| `pacman/right_1.png`, `right_2.png` | facing right: mouth half open, wide open |
+| `pacman/down_1.png`, `down_2.png` | facing down: half open, wide open |
+| `pacman/left_*.png`, `up_*.png` | *optional*, see "Mirrored pictures" below |
+| `pacman/death_1.png` ... `death_9.png` | the death animation, in order (9 is the final pop) |
+| `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `right_1/2`, `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
+| `ghosts/frightened/blue_1.png`, `blue_2.png` | a blue (edible) ghost |
+| `ghosts/frightened/white_1.png`, `white_2.png` | the white flash when it's about to recover |
+| `ghosts/eyes/right.png`, `down.png`, `up.png` | eaten ghost's eyes going home |
+| `fruit/cherry.png` ... `fruit/key.png` | the bonus fruit in the maze (cherry, strawberry, orange, apple, melon, galaxian, bell, key) |
+| `scores/100.png` ... `scores/5000.png` | the points that pop up (200-1600 for ghosts; 100, 300, 500, 700, 1000, 2000, 3000, 5000 for fruit) |
+| `hud/fruit_*.png` | the small fruit icons in the score column |
+| `hud/lives.png` | the lives icon (little Pac-Man) |
+| `font/A.png` ... `font/Z.png`, `font/0.png` ... `font/9.png` | letters and numbers (plus `dash`, `period`, `cursor`, `copyright`, `exclamation`), also used for READY!, PLAYER ONE/TWO and GAME OVER |
+| `intermission/big_pacman_closed.png`, `big_pacman_open.png` | the giant Pac-Man in the first cutscene (32 x 32) |
+| `intermission/blinky_torn_*.png`, `snag_*.png`, `tear_*.png` | Blinky snagging and tearing his cloak on a nail (second cutscene) |
+| `intermission/blinky_patched_*.png`, `cloth.png` | Blinky's patched body and the dragged cloth (third cutscene) |
+| `namco_logo.png` | the red "namco" on the title screen (72 x 8) |
+| `dot.png`, `power_pellet.png` | the dots and the big flashing power pellets |
+| `maze.png` | the maze walls |
+| `maze_flash.png` | the maze when it flashes after a level (optional: made from `maze.png`) |
+| `logo.png` | the title logo (section 4) |
 
-### Existing packs
+### Mirrored pictures
 
-Packs made for the **Mesen** emulator for this game drop straight in: copy
-the pack's folder (the one with `hires.txt`) to `build/hdpack/`.
+To save work, left-facing pictures are made by **mirroring** the right-facing
+ones (and Pac-Man's up-facing ones from his down-facing ones). The starter
+mod leaves them out. If you want a different left-facing look (say, a hat
+that doesn't flip), add `left_1.png` / `left_2.png` yourself and it will be
+used instead.
 
-The port's own menus, level readout, pause menu and leaderboard are drawn on
-top of the pack and never replaced by it.
+### Things to know
 
-## Sounds and music
+- **Letters and numbers: paint them white.** The game colors them itself
+  (white, red, blue...) wherever they appear.
+- **Shared parts:** the NES reuses the same small piece in several
+  pictures. Where that happens, the first picture wins and the copy in the
+  others is ignored:
+  - ghosts: `_1` and `_2` share their **top half**, so only the feet of
+    `_2` count;
+  - scores: 200, 300, 400, 500, 700 and 800 use the "00" of `100.png`, and
+    3000 and 5000 use the "000" of `2000.png`;
+  - cutscenes: `blinky_torn_*` only use their torn corner (the rest is
+    Blinky's normal picture), `big_pacman_open` only uses its mouth, and
+    `blinky_patched_2` only its feet;
+  - empty areas of the death, eyes and cutscene pictures stay empty.
+- **The maze picture is just the walls.** Dots and power pellets are
+  separate (`dot.png`, `power_pellet.png`) because they disappear when eaten.
+  Keep your walls where the original walls are: the maze's paths can't move.
 
-Drop WAV files named after the sound into `sounds/`. Any sound without a
-file keeps the original. The original keeps running silently, so the game's
-timing never changes: keep replacements about as long as the originals
-(especially `start`, which the game waits on before play begins).
+### Existing HD packs
+
+Packs made for the **Mesen** emulator (a folder with `hires.txt`) work as a
+mod too: put the folder in `mods/` and pick it in the MODS menu.
+
+---
+
+## 4. Title logo
+
+`graphics/logo.png` (any size, transparency allowed) replaces the PAC-MAN
+logo on the title and options screens. It is fitted into the logo's space
+(about 26 wide by 6 tall) keeping its proportions, and shown at its own
+resolution, so bigger pictures stay sharp.
+
+---
+
+## 5. Sounds (`sounds/`)
+
+Put WAV files named after the sound into `sounds/`. Any sound without a file
+keeps the original. The original keeps running silently, so the game's timing
+never changes: keep your sounds about as long as the originals.
 
 | File | Replaces | Plays | Original length |
 |---|---|---|---|
@@ -106,20 +169,27 @@ timing never changes: keep replacements about as long as the originals
 | `pause.wav` | pause | once | 0.58 s |
 | `music.wav` | *(new)* music during play | loop | any |
 
-Lengths were measured from the game running at 60 frames per second.
-Matching them matters most for `start` (play begins when the original ends),
-`death` (the melt animation is about 2.2 s) and `intermission` (the cutscene
-runs on the original's timing). Dots are eaten up to ~7 times a second, so
-keep `dot` very short or it will overlap itself. Loops can be any length;
-make them loop cleanly.
+Matching the length matters most for `start` (play begins when the original
+ends), `death` (the melt animation is about 2.2 s) and `intermission` (the
+cutscene runs on the original's timing). Dots can be eaten about 7 times a
+second, so keep `dot` very short. Loops can be any length; make them loop
+cleanly.
 
 Format: uncompressed PCM WAV, 8- or 16-bit, mono or stereo, any sample rate.
-`start`, `intermission` and `music` follow *Options > Audio > Music*; the rest
-follow *Sound FX*.
+`start`, `intermission` and `music` follow *OPTIONS > AUDIO > MUSIC*; the rest
+follow *SOUND FX*.
 
-## Title logo
+---
 
-A `logo.png` (any size, transparency allowed) replaces the PAC-MAN logo on
-the title and options screens. It is fitted into the logo band (about 26:6)
-keeping its proportions, and drawn at its own resolution, so larger images
-stay sharp.
+## 6. Troubleshooting
+
+- **My change doesn't show:** pick NONE and then your mod again in the MODS
+  menu, or restart the game. The game rebuilds the mod each time it's picked.
+- **A picture looks squashed:** it doesn't have the original's shape (see
+  Sizes). Pac-Man, ghosts and fruit are square; the maze is 7 wide by 9 tall.
+- **Something has a box around it:** that area should be transparent.
+- **The `.hdcache` folder** inside `graphics/` is made by the game; you can
+  delete it any time.
+
+The older way (loose `sounds/`, `logo.png` or an `hdpack/` folder next to the
+exe) still works when the MODS menu is set to NONE.

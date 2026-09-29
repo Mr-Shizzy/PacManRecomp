@@ -16,6 +16,9 @@ Then start the game, open OPTIONS > MODS, pick "My Mod", and start painting
 the files in "build/mods/My Mod/graphics". Changes show the next time you
 pick the mod (or restart the game).
 
+Running it again on an existing mod only adds missing pictures (e.g. ones
+added by a game update); it never overwrites yours.
+
 Left-facing (and Pac-Man's up-facing) pictures are made automatically by
 mirroring; add e.g. pacman/left_1.png yourself only if you want it different.
 """
@@ -61,6 +64,8 @@ class Canvas:
         return out
 
     def save(self, path, scale):
+        if path.exists():
+            return                      # never overwrite the modder's pictures
         c = self.scaled(scale) if scale > 1 else self
         write_png(path, c.w, c.h, c.px)
 
@@ -98,8 +103,8 @@ def main():
 
     written = 0
     for g in L["graphics"]:
-        if g.get("mirror"):
-            continue                    # made from its partner (mirrored / as-is)
+        if g.get("mirror") or g.get("also"):
+            continue                    # made from its partner / another entry's file
         sprite = g["type"] == "sprite"
         if g.get("tint"):
             white = (255, 255, 255, 255)

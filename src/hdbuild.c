@@ -263,12 +263,13 @@ static void add_graphic(const HdGraphic *g, const Img *art) {
     int cell = 8 * s_scale;
     for (int p = 0; p < g->npieces; p++) {
         const HdPiece *pc = &g->pieces[p];
+        if (pc->flags & 4) continue;            /* shared: an earlier picture owns it */
         Img t = crop(&big, pc->dx * s_scale, pc->dy * s_scale, cell, cell);
         /* The engine flips the HD tile the way the game flips the sprite, so
          * store it pre-flipped: what shows is then exactly this crop. */
         if (pc->flags & 1) img_flip(&t, 'h');
         if (pc->flags & 2) img_flip(&t, 'v');
-        int tile = pc->tile + (g->sprite ? 256 : 0), fl = g->sprite ? pc->flags : -1;
+        int tile = pc->tile + (g->sprite ? 256 : 0), fl = g->sprite ? (pc->flags & 3) : -1;
         for (int k = 0; k < g->npals; k++) {
             if (g->tint) { Img tt = tint(&t, pc->tile, g->sprite, g->pals[k]); add_tile(tile, g->pals[k], fl, &tt); img_free(&tt); }
             else add_tile(tile, g->pals[k], fl, &t);
