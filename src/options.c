@@ -131,7 +131,6 @@ static const Item k_controls[] = {
     { "BACK",       IT_BACK },
 };
 static const Item k_extras[] = {
-    { "PAC-MAN SPEED", IT_SPEED,  &g_opt.pac_speed },
     { "SHOW LEVEL",    IT_TOGGLE, &g_opt.show_level },
     { "HIGH SCORES",   IT_TOGGLE, &g_opt.highscores },
     { "RESET HIGH SCORES", IT_SECTION, 0, SCR_RESET_SCORES, 0, 0, 0, 0, 1 },
@@ -140,6 +139,7 @@ static const Item k_extras[] = {
 static const Item k_cheats[] = {
     { "INFINITE LIVES", IT_TOGGLE, &g_opt.inf_lives },
     { "START LEVEL",    IT_RANGE,  &g_opt.start_level, 1, START_LEVEL_MAX, 1, "%d" },
+    { "PAC-MAN SPEED",  IT_SPEED,  &g_opt.pac_speed },
     { "INVINCIBLE",     IT_TOGGLE, &g_opt.invincible },
     { "BACK",           IT_BACK },
 };
@@ -833,7 +833,8 @@ static const PageText k_page_text[] = {
       "(gamepads that can rumble)." },
     { &g_opt.pac_speed, IT_SPEED, "Pac-Man speed",
       "How fast Pac-Man moves: Normal, 1.25 times or 1.5 times as fast. "
-      "The ghosts keep their normal speed." },
+      "The ghosts keep their normal speed. Like every cheat, games played "
+      "with it don't go on the high score table." },
     { &g_opt.show_level, IT_TOGGLE, "Show level number",
       "Show which level you're on, under the score." },
     { &g_opt.highscores, IT_TOGGLE, "High score table",
