@@ -647,6 +647,7 @@ void options_on_frame(void) {
 #define OPT_ROW0     16
 #define OPT_COL      7
 #define OPT_VAL_END  26     /* values right-aligned to this column */
+#define OPT_LAST_ROW 28     /* lowest item row (row 29 is overscan) */
 
 static void draw_title_items(uint32_t *fb, int y_off) {
     text_clear_rows(fb, TITLE_ROW0 - 1, TITLE_ROW0 + 5, y_off);
@@ -680,18 +681,25 @@ static void draw_screen(uint32_t *fb) {
     if (s_scr == SCR_RESET) text_draw(fb, 6, 17, "RESET ALL SETTINGS?", TEXT_WHITE);
     if (s_scr == SCR_RESET_SCORES) text_draw(fb, 5, 17, "ERASE ALL HIGH SCORES?", TEXT_WHITE);
     if (confirm) row0 = 20;
+    /* Two rows apart, closer together when that would run the list past
+     * OPT_LAST_ROW (the last row clear of the bottom overscan). */
+    int visible = 0;
+    for (int i = 0; i < sd->count; i++) visible += item_visible(&sd->items[i]);
+    int step = 16;
+    if (visible > 1 && row0 * 8 + (visible - 1) * step > OPT_LAST_ROW * 8)
+        step = (OPT_LAST_ROW - row0) * 8 / (visible - 1);
     int shown = 0;
     for (int i = 0; i < sd->count; i++) {
         const Item *it = &sd->items[i];
         if (!item_visible(it)) continue;
-        int row = row0 + shown++ * 2;
+        int y = row0 * 8 + shown++ * step;
         int col = confirm ? 14 : OPT_COL;
-        text_draw(fb, col, row, it->label, TEXT_WHITE);
-        if (i == s_sel[s_scr]) text_draw(fb, col - 2, row, "@", TEXT_WHITE);
+        text_draw_px(fb, col * 8, y, it->label, TEXT_WHITE);
+        if (i == s_sel[s_scr]) text_draw_px(fb, (col - 2) * 8, y, "@", TEXT_WHITE);
         char val[16];
         value_text(it, val, sizeof(val));
         if (val[0])
-            text_draw(fb, OPT_VAL_END + 1 - (int)strlen(val), row, val, TEXT_ORANGE);
+            text_draw_px(fb, (OPT_VAL_END + 1 - (int)strlen(val)) * 8, y, val, TEXT_ORANGE);
     }
 }
 
@@ -749,8 +757,9 @@ int options_cheats_active(void) {
 }
 
 /* ---- launcher page ------------------------------------------------------
- * The same settings as the in-game OPTIONS screens, as a launcher page
- * (recomp-ui host page). Built from the menu tables above so the two can
+ * The same settings as the in-game OPTIONS screens, shown on the launcher's
+ * Settings page (a recomp-ui host page with in_settings; VIDEO and AUDIO join
+ * its Display and Audio cards). Built from the menu tables above so the two can
  * never drift apart. Display scaling and volume are left out: the launcher's
  * own Settings page has them. Everything saves the moment it changes. */
 typedef struct { const char *header; const Item *items; int n; } PageSection;
@@ -808,6 +817,9 @@ static int page_get(void *ctx, int i, RecompLauncherCHostRow *r) {
     if (pr->kind == ROW_HEADER || pr->kind == ROW_RESET_HEADER) {
         r->type = RECOMP_HOST_ROW_HEADER;
         snprintf(r->label, sizeof(r->label), "%s", pr->header);
+        /* Join the launcher's own Display / Audio cards. */
+        if (!strcmp(pr->header, "VIDEO")) snprintf(r->merge, sizeof(r->merge), "display");
+        if (!strcmp(pr->header, "AUDIO")) snprintf(r->merge, sizeof(r->merge), "audio");
         return 1;
     }
     if (pr->kind == ROW_RESET) {
@@ -898,7 +910,8 @@ static const char *page_status(void *ctx) { (void)ctx; return s_page_status; }
 
 const RecompLauncherCHostPage *options_launcher_page(void) {
     static const RecompLauncherCHostPage page = {
-        NULL, "Options", page_count, page_get, page_choice, page_set, page_status
+        NULL, "Options", page_count, page_get, page_choice, page_set, page_status,
+        1                               /* in_settings: part of the Settings page */
     };
     return &page;
 }
