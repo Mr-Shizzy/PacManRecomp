@@ -299,14 +299,16 @@ static int has_piece(const HdGraphic *h, int x, int y, int tile, int flags) {
 static int same_tile(const HdGraphic *g, const HdPiece *pc, int hi, int k, int gi, int p) {
     const HdGraphic *h = &hd_graphics[hi];
     const HdPiece *hp = &h->pieces[k];
-    return !(hi == gi && k == p) && h->sprite && !(hp->flags & 4) && hp->tile == pc->tile &&
+    return !(hi == gi && k == p) && h->sprite && hp->tile == pc->tile &&
            (hp->flags & 3) == (pc->flags & 3) && pals_overlap(g, h);
 }
 
 /* How piece p of graphic gi is registered when other pictures use the same
  * sprite tile: -1 = unconditionally (it is the only one, or the first),
  * >= 0 = only with that neighbor condition, -2 = not at all (nothing tells
- * it apart; the first picture's copy is used). */
+ * it apart; the first picture's copy is used). Blank pieces (flag 4: the
+ * empty tile that pads many frames, and more places than the layout knows)
+ * are only ever registered with a condition. */
 static int piece_cond(int gi, int p) {
     const HdGraphic *g = &hd_graphics[gi];
     const HdPiece *pc = &g->pieces[p];
@@ -318,7 +320,8 @@ static int piece_cond(int gi, int p) {
                 shared = 1;
                 if (hi < gi || (hi == gi && k < p)) first = 0;
             }
-    if (!shared) return -1;
+    int blank = pc->flags & 4;
+    if (!shared && !blank) return -1;
     /* A neighbor piece that no other use of this tile has at the same offset. */
     for (int q = 0; q < g->npieces; q++) {
         if (q == p) continue;
@@ -336,7 +339,7 @@ static int piece_cond(int gi, int p) {
             if (c >= 0) return c;
         }
     }
-    return first ? -1 : -2;
+    return first && !blank ? -1 : -2;
 }
 
 static void add_graphic_piece(const HdGraphic *g, const HdPiece *pc, int cond, const Img *t) {
@@ -358,7 +361,6 @@ static void add_graphic(const HdGraphic *g, const Img *art) {
     int cell = 8 * s_scale;
     for (int p = 0; p < g->npieces; p++) {
         const HdPiece *pc = &g->pieces[p];
-        if (pc->flags & 4) continue;            /* the blank padding tile: never replaced */
         int cond = piece_cond((int)(g - hd_graphics), p);
         if (cond == -2) continue;               /* the first picture's copy is used */
         Img t = crop(&big, pc->dx * s_scale, pc->dy * s_scale, cell, cell);

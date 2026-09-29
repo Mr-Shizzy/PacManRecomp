@@ -254,8 +254,8 @@ bg("namco_logo", 72, 8, [f"{t:02X}" for t in range(0x23, 0x2C)],
 # Tiles shared by several pictures (ghost tops, the "00" of the scores,
 # Blinky in the intermissions) are told apart by the game from their
 # neighbors (src/hdbuild.c). Sprite tile 4C is the empty tile that pads many
-# frames with nothing next to it to tell them apart; it is marked "S" (skip):
-# never replaced, though the starter still draws the frame whole.
+# frames (and is used where this layout doesn't know); it is marked "S" so
+# the game only ever replaces it next to the picture's other pieces.
 for g in graphics:
     for pc in g["pieces"]:
         if g["type"] == "sprite" and pc[2] == "4C":

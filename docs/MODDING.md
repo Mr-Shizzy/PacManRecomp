@@ -119,11 +119,8 @@ used instead.
   (white, red, blue...) wherever they appear.
 - **Paint every picture as a whole.** Each file shows exactly as painted, and
   you can paint anywhere in its square, even outside the original's outline
-  (a hat, a cape...).
-- **Empty quarters stay empty:** where the original picture has a completely
-  empty 8 x 8 corner (the top of `death_3` ... `death_8`, the bottom of
-  `ghosts/eyes/down`, the empty side of the cutscene pictures), paint there
-  is ignored.
+  (a hat, a cape...), including parts that are empty in the original (like
+  the top of the later death pictures).
 - **The maze picture is just the walls.** Dots and power pellets are
   separate (`dot.png`, `power_pellet.png`) because they disappear when eaten.
   Keep your walls where the original walls are: the maze's paths can't move.

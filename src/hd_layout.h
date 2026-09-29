@@ -3,7 +3,7 @@
 #pragma once
 #include <stdint.h>
 
-typedef struct { uint8_t dx, dy, tile, flags; } HdPiece;   /* flags: 1 = H, 2 = V, 4 = skip (the blank padding tile) */
+typedef struct { uint8_t dx, dy, tile, flags; } HdPiece;   /* flags: 1 = H, 2 = V, 4 = blank tile (only with a neighbor condition) */
 typedef struct {
     const char     *name;       /* file name under graphics/, no .png */
     uint8_t         sprite;     /* 1 = sprite tile (+256), 0 = background */
