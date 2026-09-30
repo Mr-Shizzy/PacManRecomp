@@ -42,13 +42,18 @@ void game_on_frame(uint64_t frame_count) {
 /* Which way Pac-Man is drawn facing, for the optional closed_<dir> pictures
  * (HD pack memory check at $5F00: 0 up, 1 left, 2 down, 3 right). Taken
  * from his open-mouth frames in OAM, so it is right in the cutscenes too,
- * where the game doesn't update his heading byte $51. The closed frame
+ * where the game doesn't update his heading byte $51. Only Pac-Man uses
+ * tiles 01-08. The closed frame
  * looks the same every way, so it keeps the last open frame's direction. */
 static void track_pac_facing(void) {
-    static uint8_t facing = 1;
+    static uint8_t facing = 1, scene = 0xFF;
+    if (g_ram[0x3F] != scene) {     /* he enters every cutscene ($3F = 10) going left */
+        scene = g_ram[0x3F];
+        if (scene == 0x10) facing = 1;
+    }
     for (int i = 0; i < 64; i++) {
         const uint8_t *e = &g_ppu_oam[i * 4];
-        if (e[0] >= 0xEF || (e[2] & 3) != (g_ram[0x38] & 3)) continue;
+        if (e[0] >= 0xEF) continue;     /* any palette: the cutscenes use another */
         switch (e[1]) {
             case 0x01: case 0x02: case 0x05: case 0x06:     /* side frames */
                 facing = (e[2] & 0x40) ? 3 : 1; break;
