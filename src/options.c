@@ -35,6 +35,7 @@
 
 #define SCRIPT_SCROLL   0x00
 #define SCRIPT_MENU     0x02
+#define SCRIPT_SETTLE   0x06    /* ~2 s between the scroll-in and the menu */
 #define DEMO_TITLE      0xFF    /* also FF in the attract-demo game, so */
 #define NT_TITLE_PLAY   0x20E   /* ...check the title's own "1 PLAYER" text */
 
@@ -738,7 +739,7 @@ void options_render(uint32_t *fb) {
          * pixels lower than at rest, so our lines ride along with it. */
         s_sel[SCR_TITLE] = g_ram[RAM_GAME_MODE] & 1;
         draw_title_items(fb, 240 - g_ram[RAM_SCROLL_Y]);
-    } else if (g_ram[RAM_SCRIPT] == SCRIPT_MENU) {
+    } else if (g_ram[RAM_SCRIPT] == SCRIPT_MENU || g_ram[RAM_SCRIPT] == SCRIPT_SETTLE) {
         if (s_scr == SCR_TITLE) draw_title_items(fb, 0);
         else if (s_scr == SCR_MODS) mods_menu_render(fb);
         else draw_screen(fb);
@@ -754,7 +755,7 @@ void options_post_process(uint32_t *fb) {
 int options_title_y(int *y_off) {
     if (!title_showing()) return 0;
     if (g_ram[RAM_SCRIPT] == SCRIPT_SCROLL) { *y_off = 240 - g_ram[RAM_SCROLL_Y]; return 1; }
-    if (g_ram[RAM_SCRIPT] == SCRIPT_MENU)   { *y_off = 0; return 1; }
+    if (g_ram[RAM_SCRIPT] == SCRIPT_MENU || g_ram[RAM_SCRIPT] == SCRIPT_SETTLE) { *y_off = 0; return 1; }
     return 0;
 }
 
