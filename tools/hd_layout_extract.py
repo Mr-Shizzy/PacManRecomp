@@ -97,7 +97,7 @@ for d, v in (("left", 0x40), ("right", 0x80), ("up", 0x10), ("down", 0x20)):
     graphics[-1]["optional"] = True
 
 DEATH = [P("09", "09H", "0A", "0AH"), P("0B", "0BH", "0C", "0CH")] + \
-        [P("4C", "4C", t, t + "H") for t in ("0D", "0E", "0F", "10", "11", "12")] + \
+        [P("4C", "4C", t, t + "H") for t in ("0D", "0E", "0F", "10", "11", "12", "13")] + \
         [P("14", "15", "16", "17")]
 for i, p in enumerate(DEATH):
     sprite(f"pacman/death_{i + 1}", p, pals_of(p), wild=True)
