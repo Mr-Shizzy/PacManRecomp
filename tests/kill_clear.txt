@@ -1,0 +1,19 @@
+WAIT 420
+HOLD START
+WAIT 4
+RELEASE START
+WAIT 260
+WRITE_RAM8 6A 01
+HOLD LEFT
+WAIT 60
+RELEASE LEFT
+WAIT 300
+DUMP_RAM 068 1
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/kc_1.png
+WAIT 300
+DUMP_RAM 068 1
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/kc_2.png
+WAIT 300
+DUMP_RAM 068 1
+SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/kc_3.png
+EXIT 0

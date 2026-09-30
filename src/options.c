@@ -49,7 +49,7 @@
 #define BTN_LEFT    0x02
 #define BTN_RIGHT   0x01
 
-#define START_LEVEL_MAX 20
+#define START_LEVEL_MAX 256
 
 PacOptions g_opt;
 
@@ -180,6 +180,7 @@ static int     s_sel[SCR_COUNT];
 static int     s_was_menu;
 static int     s_injected;      /* synthesized Start last frame */
 static uint8_t s_prev;
+static int     s_hold;          /* frames Left/Right held: auto-repeat, then x10 */
 
 /* ---- persistence ------------------------------------------------------- */
 static const char *options_path(void) {
@@ -356,9 +357,11 @@ static void change_value(const Item *it, int dir) {
         *it->val = (*it->val + (dir < 0 ? 2 : 1)) % 3;
         break;
     case IT_RANGE: {
-        int v = *it->val + dir * it->step;
-        if (v > it->hi) v = it->lo;
-        if (v < it->lo) v = it->hi;
+        int held = s_hold >= 20;                    /* auto-repeat: stop at the ends */
+        int big = s_hold >= 90 && it->hi - it->lo > 50;     /* long lists: x10 */
+        int v = *it->val + dir * it->step * (big ? 10 : 1);
+        if (v > it->hi) v = held ? it->hi : it->lo;
+        if (v < it->lo) v = held ? it->lo : it->hi;
         *it->val = v;
         break;
     }
@@ -638,6 +641,9 @@ void options_on_frame(void) {
     uint8_t btn = g_controller1_buttons;
     uint8_t pressed = (uint8_t)(btn & ~s_prev);
     s_prev = btn;
+    /* Holding Left/Right repeats (for long ranges such as the start level). */
+    s_hold = (btn & (BTN_LEFT | BTN_RIGHT)) ? s_hold + 1 : 0;
+    if (s_hold >= 20 && s_hold % 4 == 0) pressed |= btn & (BTN_LEFT | BTN_RIGHT);
 
     int menu = title_showing() && g_ram[RAM_SCRIPT] == SCRIPT_MENU;
     if (menu && !s_was_menu) {
