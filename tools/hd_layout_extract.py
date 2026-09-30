@@ -89,11 +89,12 @@ for n, p in PAC.items():
 
 # The closed-mouth frame is shared by all four directions. A mod may add
 # closed_left/right/up/down.png to draw it differently per direction (say, a
-# hat on the back of the head going up): picked by Pac-Man's heading at $4D
-# (40 left, 80 right, 10 up, 20 down). Optional: not in the starter dump.
-for d, v in (("left", 0x40), ("right", 0x80), ("up", 0x10), ("down", 0x20)):
+# hat on the back of the head going up): picked by Pac-Man's heading at $51
+# (0 up, 1 left, 2 down, 3 right; it keeps its value when the stick is
+# released, unlike the joystick bytes $4D/$4F). Optional: not in the dump.
+for d, v in (("left", 1), ("right", 3), ("up", 0), ("down", 2)):
     sprite("pacman/closed_" + d, PAC["closed"], pals_of(PAC["closed"]), wild=True)
-    graphics[-1]["ram"] = [0x4D, v]
+    graphics[-1]["ram"] = [0x51, v]
     graphics[-1]["optional"] = True
 
 DEATH = [P("09", "09H", "0A", "0AH"), P("0B", "0BH", "0C", "0CH")] + \

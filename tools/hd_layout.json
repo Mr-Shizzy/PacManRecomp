@@ -1102,8 +1102,8 @@
    "mirror": null,
    "wild": true,
    "ram": [
-    77,
-    64
+    81,
+    1
    ],
    "optional": true
   },
@@ -1144,8 +1144,8 @@
    "mirror": null,
    "wild": true,
    "ram": [
-    77,
-    128
+    81,
+    3
    ],
    "optional": true
   },
@@ -1186,8 +1186,8 @@
    "mirror": null,
    "wild": true,
    "ram": [
-    77,
-    16
+    81,
+    0
    ],
    "optional": true
   },
@@ -1228,8 +1228,8 @@
    "mirror": null,
    "wild": true,
    "ram": [
-    77,
-    32
+    81,
+    2
    ],
    "optional": true
   },
