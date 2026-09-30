@@ -169,8 +169,21 @@ static void capture_nametable(void) {
     fprintf(s_out, "\n");
 }
 
+/* The title screen's nametable once (for the logo in the starter dump). */
+static void capture_title(void) {
+    static int done;
+    if (done || g_ram[0x48] != 0xFF || g_ram[0x3F] != 0x02 || g_frame_count < 300) return;
+    done = 1;
+    fprintf(s_out, "T");
+    for (int i = 0; i < 0x400; i++) fprintf(s_out, " %02X", g_ppu_nt[i]);
+    fprintf(s_out, " | bgpal=");
+    for (int i = 0; i < 16; i++) fprintf(s_out, "%02X", g_ppu_pal[i] & 0x3F);
+    fprintf(s_out, "\n");
+}
+
 void capture_frame(void) {
     if (!s_out) return;
+    capture_title();
     capture_nametable();
     capture_palettes();
     capture_sprites();

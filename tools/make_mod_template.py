@@ -133,6 +133,17 @@ def main():
         if name == "maze":
             cv.save(out / "preview.png", 1)
 
+    # The title logo (the PAC-MAN box and TM) as graphics/logo.png.
+    lg = L.get("logo")
+    if lg:
+        cv = Canvas(len(lg["tiles"][0]) * 8, len(lg["tiles"]) * 8)
+        for r, row in enumerate(lg["tiles"]):
+            for c, t in enumerate(row):
+                colors = [None] + [color(lg["pals"][r][c], v) for v in (1, 2, 3)]
+                draw_tile(cv, c * 8, r * 8, int(t, 16), False, "--", colors)
+        cv.save(gfx / "logo.png", s)
+        written += 1
+
     (out / "sounds").mkdir(parents=True, exist_ok=True)
     (out / "sounds" / "README.txt").write_text(
         "Put replacement sounds here as WAV files named:\n"

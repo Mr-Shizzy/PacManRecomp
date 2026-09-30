@@ -138,7 +138,7 @@ mod too: put the folder in `mods/` and pick it in the MODS menu.
 
 ## 4. Title logo
 
-`graphics/logo.png` (any size, transparency allowed) replaces the PAC-MAN
+`graphics/logo.png` (in the dump; any size, transparency allowed) replaces the PAC-MAN
 logo on the title and options screens. It is fitted into the logo's space
 (about 26 wide by 6 tall) keeping its proportions, and shown at its own
 resolution, so bigger pictures stay sharp.

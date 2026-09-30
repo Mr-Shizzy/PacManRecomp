@@ -21,6 +21,7 @@ from collections import defaultdict
 cap_dir, out = sys.argv[1], sys.argv[2]
 
 # ---- read captures ----------------------------------------------------------
+title = None                     # (nametable, bg palette) of the title screen
 sprites = defaultdict(set)       # pieces tuple -> {palette keys}
 bg_pals = defaultdict(set)       # bg tile -> {palette keys}
 nametable = None
@@ -34,6 +35,9 @@ for fn in sorted(glob.glob(os.path.join(cap_dir, "*.txt"))):
         elif line.startswith("B "):
             m = re.match(r"B tile=(\w+) pal=(\w+)", line)
             bg_pals[m[1]].add(m[2])
+        elif line.startswith("T ") and title is None:
+            head, pal = line.split(" | bgpal=")
+            title = (head.split()[1:], pal.strip())
         elif line.startswith("N ") and nametable is None:
             nametable = line.split(" | ")[0].split()[1:]
 
@@ -279,8 +283,22 @@ NES_PALETTE = [int(x, 16) & 0xFFFFFF for x in re.findall(
                                            "runner", "src", "ppu_renderer.c")).read().split(
     "g_nes_palette[64] = {")[1].split("};")[0])]
 
+# Title logo (PAC-MAN box + TM): tile rows 7-12, columns 3-29 (src/logo.c).
+LOGO_ROWS, LOGO_COLS = range(7, 13), range(3, 30)
+logo = None
+if title:
+    nt, bp = title
+    def cell_pal(r, c):
+        at = int(nt[0x3C0 + (r // 4) * 8 + c // 4], 16)
+        p = (at >> (((r & 2) << 1) | (c & 2))) & 3
+        return bp[0:2] + bp[p * 8 + 2:p * 8 + 8]
+    logo = {"row": LOGO_ROWS[0], "col": LOGO_COLS[0],
+            "tiles": [[nt[r * 32 + c] for c in LOGO_COLS] for r in LOGO_ROWS],
+            "pals": [[cell_pal(r, c) for c in LOGO_COLS] for r in LOGO_ROWS]}
+
 layout = {
     "scale": 4,
+    "logo": logo,
     "nes_palette": ["%06X" % c for c in NES_PALETTE],
     "maze": {
         "x": 8, "y": 16, "cols": 21, "rows": 27,

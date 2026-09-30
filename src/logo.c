@@ -18,7 +18,7 @@
 #define LOGO_ROW0   7           /* logo box + TM: tile rows 7-12 */
 #define LOGO_ROW1   12
 #define LOGO_X      24          /* the band the image is fitted into (px) */
-#define LOGO_W      208
+#define LOGO_W      216         /* columns 3-29: the box and the TM */
 #define LOGO_Y      (LOGO_ROW0 * 8)
 #define LOGO_H      ((LOGO_ROW1 - LOGO_ROW0 + 1) * 8)
 

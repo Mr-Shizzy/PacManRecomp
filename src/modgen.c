@@ -145,6 +145,22 @@ int modgen_write(const uint8_t chr[0x2000], const char *mod_dir) {
         free(c.px);
     }
 
+    /* The title logo (the PAC-MAN box and TM), as graphics/logo.png. */
+    {
+        Canvas c = canvas(HD_LOGO_COLS * 8, HD_LOGO_ROWS * 8, 0);
+        if (c.px) {
+            for (int r = 0; r < HD_LOGO_ROWS; r++)
+                for (int col = 0; col < HD_LOGO_COLS; col++) {
+                    uint32_t colors[4];
+                    pal_colors(hd_logo_pals[r][col], colors);
+                    draw_tile(&c, chr, col * 8, r * 8, hd_logo_tiles[r][col], 0, colors);
+                }
+            snprintf(path, sizeof(path), "%s/graphics/logo.png", mod_dir);
+            written += save_scaled(&c, path, MODGEN_SCALE);
+            free(c.px);
+        }
+    }
+
     snprintf(path, sizeof(path), "%s/sounds/README.txt", mod_dir);
     write_text(path,
         "Put replacement sounds here as WAV files named:\n"
