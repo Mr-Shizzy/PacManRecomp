@@ -735,7 +735,12 @@ static void draw_level_hud(uint32_t *fb) {
 }
 
 void options_render(uint32_t *fb) {
-    if (g_ram[RAM_FLAG_DEMO] == 0x00 && g_opt.show_level && g_ram[RAM_STAGE] != 0xFF)
+    /* The stage reads FF before a new game's first level is set up, and also
+     * on level 256: show it once the game has had a real stage. */
+    static int stage_seen;
+    if (g_ram[RAM_FLAG_DEMO] != 0x00) stage_seen = 0;
+    else if (g_ram[RAM_STAGE] != 0xFF) stage_seen = 1;
+    if (g_ram[RAM_FLAG_DEMO] == 0x00 && g_opt.show_level && stage_seen)
         draw_level_hud(fb);
     if (s_quitting)     /* unpaused behind the game's back: hide its PAUSE text */
         text_draw(fb, 23, 17, "     ", TEXT_WHITE);
