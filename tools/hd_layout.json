@@ -1066,6 +1066,174 @@
    "wild": true
   },
   {
+   "name": "pacman/closed_left",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "00",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "00",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "00",
+     "-V"
+    ],
+    [
+     8,
+     8,
+     "00",
+     "HV"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": true,
+   "ram": [
+    77,
+    64
+   ],
+   "optional": true
+  },
+  {
+   "name": "pacman/closed_right",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "00",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "00",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "00",
+     "-V"
+    ],
+    [
+     8,
+     8,
+     "00",
+     "HV"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": true,
+   "ram": [
+    77,
+    128
+   ],
+   "optional": true
+  },
+  {
+   "name": "pacman/closed_up",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "00",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "00",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "00",
+     "-V"
+    ],
+    [
+     8,
+     8,
+     "00",
+     "HV"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": true,
+   "ram": [
+    77,
+    16
+   ],
+   "optional": true
+  },
+  {
+   "name": "pacman/closed_down",
+   "type": "sprite",
+   "w": 16,
+   "h": 16,
+   "pieces": [
+    [
+     0,
+     0,
+     "00",
+     "--"
+    ],
+    [
+     8,
+     0,
+     "00",
+     "H-"
+    ],
+    [
+     0,
+     8,
+     "00",
+     "-V"
+    ],
+    [
+     8,
+     8,
+     "00",
+     "HV"
+    ]
+   ],
+   "pals": [
+    "FF272006"
+   ],
+   "mirror": null,
+   "wild": true,
+   "ram": [
+    77,
+    32
+   ],
+   "optional": true
+  },
+  {
    "name": "pacman/death_1",
    "type": "sprite",
    "w": 16,

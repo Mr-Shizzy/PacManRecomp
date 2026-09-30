@@ -107,7 +107,7 @@ int modgen_write(const uint8_t chr[0x2000], const char *mod_dir) {
     int written = 0;
     for (int i = 0; i < HD_GRAPHICS_N; i++) {
         const HdGraphic *g = &hd_graphics[i];
-        if (g->mirror_of) continue;                 /* made from its partner */
+        if (g->mirror_of || g->optional) continue;  /* made from its partner / extra */
         int dup = 0;                                /* one file per name */
         for (int k = 0; k < i && !dup; k++) dup = !strcmp(hd_graphics[k].name, g->name);
         if (dup) continue;

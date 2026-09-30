@@ -87,6 +87,15 @@ for n, p in PAC.items():
     m = MIRROR.get(n)
     sprite("pacman/" + n, p, pals_of(p), {"of": "pacman/" + m[0], "axis": m[1]} if m else None, wild=True)
 
+# The closed-mouth frame is shared by all four directions. A mod may add
+# closed_left/right/up/down.png to draw it differently per direction (say, a
+# hat on the back of the head going up): picked by Pac-Man's heading at $4D
+# (40 left, 80 right, 10 up, 20 down). Optional: not in the starter dump.
+for d, v in (("left", 0x40), ("right", 0x80), ("up", 0x10), ("down", 0x20)):
+    sprite("pacman/closed_" + d, PAC["closed"], pals_of(PAC["closed"]), wild=True)
+    graphics[-1]["ram"] = [0x4D, v]
+    graphics[-1]["optional"] = True
+
 DEATH = [P("09", "09H", "0A", "0AH"), P("0B", "0BH", "0C", "0CH")] + \
         [P("4C", "4C", t, t + "H") for t in ("0D", "0E", "0F", "10", "11", "12")] + \
         [P("14", "15", "16", "17")]

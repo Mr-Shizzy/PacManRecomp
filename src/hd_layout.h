@@ -17,6 +17,9 @@ typedef struct {
     uint8_t         wild;       /* also register for any color set */
     uint8_t         tint;       /* white art tinted to each color set */
     uint32_t        preview;    /* colors for the starter picture when pals is empty */
+    uint16_t        ram_addr;   /* non-zero: used only while RAM[ram_addr] == ram_val */
+    uint8_t         ram_val;
+    uint8_t         optional;   /* not written by the starter dump */
 } HdGraphic;
 
 #define HD_DEFAULT_SCALE 4
@@ -78,484 +81,496 @@ static const HdPiece hd_p7[] = { {0, 0, 0x04, 2}, {8, 0, 0x04, 3}, {0, 8, 0x03, 
 static const uint32_t hd_c7[] = { 0xFF272006u };
 static const HdPiece hd_p8[] = { {0, 0, 0x08, 2}, {8, 0, 0x08, 3}, {0, 8, 0x07, 2}, {8, 8, 0x07, 3} };
 static const uint32_t hd_c8[] = { 0xFF272006u };
-static const HdPiece hd_p9[] = { {0, 0, 0x09, 0}, {8, 0, 0x09, 1}, {0, 8, 0x0A, 0}, {8, 8, 0x0A, 1} };
+static const HdPiece hd_p9[] = { {0, 0, 0x00, 0}, {8, 0, 0x00, 1}, {0, 8, 0x00, 2}, {8, 8, 0x00, 3} };
 static const uint32_t hd_c9[] = { 0xFF272006u };
-static const HdPiece hd_p10[] = { {0, 0, 0x0B, 0}, {8, 0, 0x0B, 1}, {0, 8, 0x0C, 0}, {8, 8, 0x0C, 1} };
+static const HdPiece hd_p10[] = { {0, 0, 0x00, 0}, {8, 0, 0x00, 1}, {0, 8, 0x00, 2}, {8, 8, 0x00, 3} };
 static const uint32_t hd_c10[] = { 0xFF272006u };
-static const HdPiece hd_p11[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0D, 0}, {8, 8, 0x0D, 1} };
+static const HdPiece hd_p11[] = { {0, 0, 0x00, 0}, {8, 0, 0x00, 1}, {0, 8, 0x00, 2}, {8, 8, 0x00, 3} };
 static const uint32_t hd_c11[] = { 0xFF272006u };
-static const HdPiece hd_p12[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0E, 0}, {8, 8, 0x0E, 1} };
+static const HdPiece hd_p12[] = { {0, 0, 0x00, 0}, {8, 0, 0x00, 1}, {0, 8, 0x00, 2}, {8, 8, 0x00, 3} };
 static const uint32_t hd_c12[] = { 0xFF272006u };
-static const HdPiece hd_p13[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0F, 0}, {8, 8, 0x0F, 1} };
+static const HdPiece hd_p13[] = { {0, 0, 0x09, 0}, {8, 0, 0x09, 1}, {0, 8, 0x0A, 0}, {8, 8, 0x0A, 1} };
 static const uint32_t hd_c13[] = { 0xFF272006u };
-static const HdPiece hd_p14[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x10, 0}, {8, 8, 0x10, 1} };
+static const HdPiece hd_p14[] = { {0, 0, 0x0B, 0}, {8, 0, 0x0B, 1}, {0, 8, 0x0C, 0}, {8, 8, 0x0C, 1} };
 static const uint32_t hd_c14[] = { 0xFF272006u };
-static const HdPiece hd_p15[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x11, 0}, {8, 8, 0x11, 1} };
+static const HdPiece hd_p15[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0D, 0}, {8, 8, 0x0D, 1} };
 static const uint32_t hd_c15[] = { 0xFF272006u };
-static const HdPiece hd_p16[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x12, 0}, {8, 8, 0x12, 1} };
+static const HdPiece hd_p16[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0E, 0}, {8, 8, 0x0E, 1} };
 static const uint32_t hd_c16[] = { 0xFF272006u };
-static const HdPiece hd_p17[] = { {0, 0, 0x14, 0}, {8, 0, 0x15, 0}, {0, 8, 0x16, 0}, {8, 8, 0x17, 0} };
+static const HdPiece hd_p17[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x0F, 0}, {8, 8, 0x0F, 1} };
 static const uint32_t hd_c17[] = { 0xFF272006u };
-static const HdPiece hd_p18[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
+static const HdPiece hd_p18[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x10, 0}, {8, 8, 0x10, 1} };
 static const uint32_t hd_c18[] = { 0xFF272006u };
-static const HdPiece hd_p19[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
+static const HdPiece hd_p19[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x11, 0}, {8, 8, 0x11, 1} };
 static const uint32_t hd_c19[] = { 0xFF272006u };
-static const HdPiece hd_p20[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
-static const uint32_t hd_c20[] = { 0xFF272006u, 0xFF362006u };
-static const HdPiece hd_p21[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
-static const uint32_t hd_c21[] = { 0xFF272006u, 0xFF362006u };
-static const HdPiece hd_p22[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const HdPiece hd_p20[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x12, 0}, {8, 8, 0x12, 1} };
+static const uint32_t hd_c20[] = { 0xFF272006u };
+static const HdPiece hd_p21[] = { {0, 0, 0x14, 0}, {8, 0, 0x15, 0}, {0, 8, 0x16, 0}, {8, 8, 0x17, 0} };
+static const uint32_t hd_c21[] = { 0xFF272006u };
+static const HdPiece hd_p22[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
 static const uint32_t hd_c22[] = { 0xFF272006u };
-static const HdPiece hd_p23[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const HdPiece hd_p23[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
 static const uint32_t hd_c23[] = { 0xFF272006u };
-static const HdPiece hd_p24[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
-static const uint32_t hd_c24[] = { 0xFF272006u };
-static const HdPiece hd_p25[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
-static const uint32_t hd_c25[] = { 0xFF272006u };
-static const HdPiece hd_p26[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
-static const uint32_t hd_c26[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p27[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
-static const uint32_t hd_c27[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p28[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
-static const uint32_t hd_c28[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p29[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
-static const uint32_t hd_c29[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p30[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const HdPiece hd_p24[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
+static const uint32_t hd_c24[] = { 0xFF272006u, 0xFF362006u };
+static const HdPiece hd_p25[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
+static const uint32_t hd_c25[] = { 0xFF272006u, 0xFF362006u };
+static const HdPiece hd_p26[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const uint32_t hd_c26[] = { 0xFF272006u };
+static const HdPiece hd_p27[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const uint32_t hd_c27[] = { 0xFF272006u };
+static const HdPiece hd_p28[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
+static const uint32_t hd_c28[] = { 0xFF272006u };
+static const HdPiece hd_p29[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
+static const uint32_t hd_c29[] = { 0xFF272006u };
+static const HdPiece hd_p30[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
 static const uint32_t hd_c30[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p31[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const HdPiece hd_p31[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
 static const uint32_t hd_c31[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p32[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
-static const uint32_t hd_c32[] = { 0xFF112033u };
-static const HdPiece hd_p33[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
-static const uint32_t hd_c33[] = { 0xFF112033u };
-static const HdPiece hd_p34[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
-static const uint32_t hd_c34[] = { 0xFF212021u };
-static const HdPiece hd_p35[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
-static const uint32_t hd_c35[] = { 0xFF212021u };
-static const HdPiece hd_p36[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
-static const uint32_t hd_c36[] = { 0xFF202021u, 0xFF212021u };
-static const HdPiece hd_p37[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
-static const uint32_t hd_c37[] = { 0xFF202021u, 0xFF212021u };
-static const HdPiece hd_p38[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
-static const uint32_t hd_c38[] = { 0xFF202021u, 0xFF212021u };
-static const HdPiece hd_p39[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const HdPiece hd_p32[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
+static const uint32_t hd_c32[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p33[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
+static const uint32_t hd_c33[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p34[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const uint32_t hd_c34[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p35[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const uint32_t hd_c35[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p36[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
+static const uint32_t hd_c36[] = { 0xFF112033u };
+static const HdPiece hd_p37[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
+static const uint32_t hd_c37[] = { 0xFF112033u };
+static const HdPiece hd_p38[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
+static const uint32_t hd_c38[] = { 0xFF212021u };
+static const HdPiece hd_p39[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
 static const uint32_t hd_c39[] = { 0xFF212021u };
-static const HdPiece hd_p40[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
-static const uint32_t hd_c40[] = { 0xFF212021u };
-static const HdPiece hd_p41[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
-static const uint32_t hd_c41[] = { 0xFF212021u };
-static const HdPiece hd_p42[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
-static const uint32_t hd_c42[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p43[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
-static const uint32_t hd_c43[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p44[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
-static const uint32_t hd_c44[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p45[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
-static const uint32_t hd_c45[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p46[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
-static const uint32_t hd_c46[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p47[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const HdPiece hd_p40[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
+static const uint32_t hd_c40[] = { 0xFF202021u, 0xFF212021u };
+static const HdPiece hd_p41[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
+static const uint32_t hd_c41[] = { 0xFF202021u, 0xFF212021u };
+static const HdPiece hd_p42[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const uint32_t hd_c42[] = { 0xFF202021u, 0xFF212021u };
+static const HdPiece hd_p43[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const uint32_t hd_c43[] = { 0xFF212021u };
+static const HdPiece hd_p44[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
+static const uint32_t hd_c44[] = { 0xFF212021u };
+static const HdPiece hd_p45[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
+static const uint32_t hd_c45[] = { 0xFF212021u };
+static const HdPiece hd_p46[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x19, 1} };
+static const uint32_t hd_c46[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p47[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x1A, 0}, {8, 8, 0x1A, 1} };
 static const uint32_t hd_c47[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p48[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
-static const uint32_t hd_c48[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p49[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
-static const uint32_t hd_c49[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
-static const HdPiece hd_p50[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x25, 0}, {8, 8, 0x25, 1} };
-static const uint32_t hd_c50[] = { 0xFF112033u };
-static const HdPiece hd_p51[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x25, 0}, {8, 8, 0x25, 1} };
-static const uint32_t hd_c51[] = { 0xFF202033u };
-static const HdPiece hd_p52[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x26, 0}, {8, 8, 0x26, 1} };
-static const uint32_t hd_c52[] = { 0xFF112033u };
-static const HdPiece hd_p53[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x26, 0}, {8, 8, 0x26, 1} };
-static const uint32_t hd_c53[] = { 0xFF202033u };
-static const HdPiece hd_p54[] = { {0, 0, 0x27, 0}, {8, 0, 0x27, 1}, {0, 8, 0x4C, 4}, {8, 8, 0x4C, 4} };
-static const uint32_t hd_c54[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p55[] = { {0, 0, 0x28, 0}, {8, 0, 0x29, 0}, {0, 8, 0x2A, 0}, {8, 8, 0x2B, 0} };
-static const uint32_t hd_c55[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p56[] = { {0, 0, 0x29, 1}, {8, 0, 0x28, 1}, {0, 8, 0x2B, 1}, {8, 8, 0x2A, 1} };
-static const uint32_t hd_c56[] = { 0xFF112033u, 0xFF202033u };
-static const HdPiece hd_p57[] = { {0, 0, 0x2C, 0}, {8, 0, 0x2C, 1}, {0, 8, 0x2D, 0}, {8, 8, 0x2D, 1} };
-static const uint32_t hd_c57[] = { 0xFF112033u, 0xFF202033u, 0xFF272006u };
-static const HdPiece hd_p58[] = { {0, 0, 0x90, 0}, {8, 0, 0x91, 0}, {0, 8, 0x92, 0}, {8, 8, 0x93, 0} };
-static const uint32_t hd_c58[] = { 0xFF162017u };
-static const HdPiece hd_p59[] = { {0, 0, 0x94, 0}, {8, 0, 0x95, 0}, {0, 8, 0x96, 0}, {8, 8, 0x97, 0} };
-static const uint32_t hd_c59[] = { 0xFF162017u };
-static const HdPiece hd_p60[] = { {0, 0, 0x98, 0}, {8, 0, 0x99, 0}, {0, 8, 0x9A, 0}, {8, 8, 0x9B, 0} };
-static const uint32_t hd_c60[] = { 0xFF262017u };
-static const HdPiece hd_p61[] = { {0, 0, 0x9C, 0}, {8, 0, 0x9D, 0}, {0, 8, 0x9E, 0}, {8, 8, 0x9F, 0} };
-static const uint32_t hd_c61[] = { 0xFF062017u };
-static const HdPiece hd_p62[] = { {0, 0, 0xA0, 0}, {8, 0, 0xA1, 0}, {0, 8, 0xA2, 0}, {8, 8, 0xA3, 0} };
-static const uint32_t hd_c62[] = { 0xFF192017u };
-static const HdPiece hd_p63[] = { {0, 0, 0xA4, 0}, {8, 0, 0xA5, 0}, {0, 8, 0xA6, 0}, {8, 8, 0xA7, 0} };
-static const uint32_t hd_c63[] = { 0xFF172017u };
-static const HdPiece hd_p64[] = { {0, 0, 0xA8, 0}, {8, 0, 0xA9, 0}, {0, 8, 0xAA, 0}, {8, 8, 0xAB, 0} };
-static const uint32_t hd_c64[] = { 0xFF172017u };
-static const HdPiece hd_p65[] = { {0, 0, 0xAC, 0}, {8, 0, 0xAD, 0}, {0, 8, 0xAE, 0}, {8, 8, 0xAF, 0} };
-static const uint32_t hd_c65[] = { 0xFF122017u };
-static const HdPiece hd_p66[] = { {0, 0, 0x2E, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x30, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c66[] = { 0xFF162017u };
-static const HdPiece hd_p67[] = { {0, 0, 0x32, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x33, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c67[] = { 0xFF112033u, 0xFF272006u };
-static const HdPiece hd_p68[] = { {0, 0, 0x36, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x37, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c68[] = { 0xFF112033u, 0xFF272006u };
-static const HdPiece hd_p69[] = { {0, 0, 0x3C, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x3D, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c69[] = { 0xFF272006u };
-static const HdPiece hd_p70[] = { {0, 0, 0x42, 0}, {8, 0, 0x3F, 0}, {0, 8, 0x43, 0}, {8, 8, 0x41, 0} };
-static const uint32_t hd_c70[] = { 0xFF272006u };
-static const HdPiece hd_p71[] = { {0, 0, 0x34, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x35, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c71[] = { 0xFF162017u };
-static const HdPiece hd_p72[] = { {0, 0, 0x38, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x39, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c72[] = { 0xFF162017u };
-static const HdPiece hd_p73[] = { {0, 0, 0x3A, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x3B, 0}, {8, 8, 0x31, 0} };
-static const uint32_t hd_c73[] = { 0xFF162017u };
-static const HdPiece hd_p74[] = { {0, 0, 0x3E, 0}, {8, 0, 0x3F, 0}, {0, 8, 0x40, 0}, {8, 8, 0x41, 0} };
-static const uint32_t hd_c74[] = { 0xFF162017u };
-static const HdPiece hd_p75[] = { {0, 0, 0x44, 0}, {8, 0, 0x45, 0}, {0, 8, 0x46, 0}, {8, 8, 0x47, 0} };
+static const HdPiece hd_p48[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x1F, 0} };
+static const uint32_t hd_c48[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p49[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x20, 0} };
+static const uint32_t hd_c49[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p50[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x1F, 1}, {8, 8, 0x1D, 1} };
+static const uint32_t hd_c50[] = { 0xFF062017u, 0xFF092017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p51[] = { {0, 0, 0x1C, 1}, {8, 0, 0x1B, 1}, {0, 8, 0x20, 1}, {8, 8, 0x1E, 1} };
+static const uint32_t hd_c51[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p52[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x22, 0}, {8, 8, 0x22, 1} };
+static const uint32_t hd_c52[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p53[] = { {0, 0, 0x21, 0}, {8, 0, 0x21, 1}, {0, 8, 0x23, 0}, {8, 8, 0x23, 1} };
+static const uint32_t hd_c53[] = { 0xFF062017u, 0xFF122017u, 0xFF162017u, 0xFF172017u, 0xFF192017u, 0xFF262017u };
+static const HdPiece hd_p54[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x25, 0}, {8, 8, 0x25, 1} };
+static const uint32_t hd_c54[] = { 0xFF112033u };
+static const HdPiece hd_p55[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x25, 0}, {8, 8, 0x25, 1} };
+static const uint32_t hd_c55[] = { 0xFF202033u };
+static const HdPiece hd_p56[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x26, 0}, {8, 8, 0x26, 1} };
+static const uint32_t hd_c56[] = { 0xFF112033u };
+static const HdPiece hd_p57[] = { {0, 0, 0x24, 0}, {8, 0, 0x24, 1}, {0, 8, 0x26, 0}, {8, 8, 0x26, 1} };
+static const uint32_t hd_c57[] = { 0xFF202033u };
+static const HdPiece hd_p58[] = { {0, 0, 0x27, 0}, {8, 0, 0x27, 1}, {0, 8, 0x4C, 4}, {8, 8, 0x4C, 4} };
+static const uint32_t hd_c58[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p59[] = { {0, 0, 0x28, 0}, {8, 0, 0x29, 0}, {0, 8, 0x2A, 0}, {8, 8, 0x2B, 0} };
+static const uint32_t hd_c59[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p60[] = { {0, 0, 0x29, 1}, {8, 0, 0x28, 1}, {0, 8, 0x2B, 1}, {8, 8, 0x2A, 1} };
+static const uint32_t hd_c60[] = { 0xFF112033u, 0xFF202033u };
+static const HdPiece hd_p61[] = { {0, 0, 0x2C, 0}, {8, 0, 0x2C, 1}, {0, 8, 0x2D, 0}, {8, 8, 0x2D, 1} };
+static const uint32_t hd_c61[] = { 0xFF112033u, 0xFF202033u, 0xFF272006u };
+static const HdPiece hd_p62[] = { {0, 0, 0x90, 0}, {8, 0, 0x91, 0}, {0, 8, 0x92, 0}, {8, 8, 0x93, 0} };
+static const uint32_t hd_c62[] = { 0xFF162017u };
+static const HdPiece hd_p63[] = { {0, 0, 0x94, 0}, {8, 0, 0x95, 0}, {0, 8, 0x96, 0}, {8, 8, 0x97, 0} };
+static const uint32_t hd_c63[] = { 0xFF162017u };
+static const HdPiece hd_p64[] = { {0, 0, 0x98, 0}, {8, 0, 0x99, 0}, {0, 8, 0x9A, 0}, {8, 8, 0x9B, 0} };
+static const uint32_t hd_c64[] = { 0xFF262017u };
+static const HdPiece hd_p65[] = { {0, 0, 0x9C, 0}, {8, 0, 0x9D, 0}, {0, 8, 0x9E, 0}, {8, 8, 0x9F, 0} };
+static const uint32_t hd_c65[] = { 0xFF062017u };
+static const HdPiece hd_p66[] = { {0, 0, 0xA0, 0}, {8, 0, 0xA1, 0}, {0, 8, 0xA2, 0}, {8, 8, 0xA3, 0} };
+static const uint32_t hd_c66[] = { 0xFF192017u };
+static const HdPiece hd_p67[] = { {0, 0, 0xA4, 0}, {8, 0, 0xA5, 0}, {0, 8, 0xA6, 0}, {8, 8, 0xA7, 0} };
+static const uint32_t hd_c67[] = { 0xFF172017u };
+static const HdPiece hd_p68[] = { {0, 0, 0xA8, 0}, {8, 0, 0xA9, 0}, {0, 8, 0xAA, 0}, {8, 8, 0xAB, 0} };
+static const uint32_t hd_c68[] = { 0xFF172017u };
+static const HdPiece hd_p69[] = { {0, 0, 0xAC, 0}, {8, 0, 0xAD, 0}, {0, 8, 0xAE, 0}, {8, 8, 0xAF, 0} };
+static const uint32_t hd_c69[] = { 0xFF122017u };
+static const HdPiece hd_p70[] = { {0, 0, 0x2E, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x30, 0}, {8, 8, 0x31, 0} };
+static const uint32_t hd_c70[] = { 0xFF162017u };
+static const HdPiece hd_p71[] = { {0, 0, 0x32, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x33, 0}, {8, 8, 0x31, 0} };
+static const uint32_t hd_c71[] = { 0xFF112033u, 0xFF272006u };
+static const HdPiece hd_p72[] = { {0, 0, 0x36, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x37, 0}, {8, 8, 0x31, 0} };
+static const uint32_t hd_c72[] = { 0xFF112033u, 0xFF272006u };
+static const HdPiece hd_p73[] = { {0, 0, 0x3C, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x3D, 0}, {8, 8, 0x31, 0} };
+static const uint32_t hd_c73[] = { 0xFF272006u };
+static const HdPiece hd_p74[] = { {0, 0, 0x42, 0}, {8, 0, 0x3F, 0}, {0, 8, 0x43, 0}, {8, 8, 0x41, 0} };
+static const uint32_t hd_c74[] = { 0xFF272006u };
+static const HdPiece hd_p75[] = { {0, 0, 0x34, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x35, 0}, {8, 8, 0x31, 0} };
 static const uint32_t hd_c75[] = { 0xFF162017u };
-static const HdPiece hd_p76[] = { {0, 0, 0x48, 0}, {8, 0, 0x45, 0}, {0, 8, 0x49, 0}, {8, 8, 0x47, 0} };
+static const HdPiece hd_p76[] = { {0, 0, 0x38, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x39, 0}, {8, 8, 0x31, 0} };
 static const uint32_t hd_c76[] = { 0xFF162017u };
-static const HdPiece hd_p77[] = { {0, 0, 0x4A, 0}, {8, 0, 0x45, 0}, {0, 8, 0x4B, 0}, {8, 8, 0x47, 0} };
+static const HdPiece hd_p77[] = { {0, 0, 0x3A, 0}, {8, 0, 0x2F, 0}, {0, 8, 0x3B, 0}, {8, 8, 0x31, 0} };
 static const uint32_t hd_c77[] = { 0xFF162017u };
-static const HdPiece hd_p78[] = { {0, 0, 0x4D, 0}, {8, 0, 0x4E, 0}, {0, 8, 0x4F, 0}, {8, 8, 0x50, 0}, {16, 0, 0x4E, 1}, {24, 0, 0x4D, 1}, {16, 8, 0x50, 0}, {24, 8, 0x4F, 1}, {0, 16, 0x4F, 2}, {8, 16, 0x50, 0}, {0, 24, 0x4D, 2}, {8, 24, 0x4E, 2}, {16, 16, 0x50, 0}, {24, 16, 0x4F, 3}, {16, 24, 0x4E, 3}, {24, 24, 0x4D, 3} };
-static const uint32_t hd_c78[] = { 0xFF272006u };
-static const HdPiece hd_p79[] = { {0, 0, 0x4D, 0}, {8, 0, 0x4E, 0}, {0, 8, 0x4F, 0}, {8, 8, 0x51, 0}, {16, 0, 0x4E, 1}, {24, 0, 0x52, 0}, {16, 8, 0x53, 0}, {24, 8, 0x54, 0}, {0, 16, 0x4F, 2}, {8, 16, 0x51, 2}, {0, 24, 0x4D, 2}, {8, 24, 0x4E, 2}, {16, 16, 0x53, 2}, {24, 16, 0x54, 2}, {16, 24, 0x4E, 3}, {24, 24, 0x52, 2} };
-static const uint32_t hd_c79[] = { 0xFF272006u };
-static const HdPiece hd_p80[] = { {0, 0, 0x55, 0}, {8, 0, 0x4C, 4}, {0, 8, 0x56, 0}, {8, 8, 0x4C, 4} };
-static const uint32_t hd_c80[] = { 0xFF272006u };
-static const HdPiece hd_p81[] = { {0, 0, 0x56, 2}, {8, 0, 0x4C, 4}, {0, 8, 0x55, 2}, {8, 8, 0x4C, 4} };
-static const uint32_t hd_c81[] = { 0xFF272006u };
-static const HdPiece hd_p82[] = { {0, 0, 0x4C, 4}, {8, 0, 0x57, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x58, 0} };
-static const uint32_t hd_c82[] = { 0xFF362006u };
-static const HdPiece hd_p83[] = { {0, 0, 0x4C, 4}, {8, 0, 0x59, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x5A, 0} };
-static const uint32_t hd_c83[] = { 0xFF362006u };
-static const HdPiece hd_p84[] = { {0, 0, 0x4C, 4}, {8, 0, 0x5B, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x5C, 0} };
-static const uint32_t hd_c84[] = { 0xFF362006u };
-static const HdPiece hd_p85[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x4C, 4}, {8, 8, 0x5D, 0} };
-static const uint32_t hd_c85[] = { 0xFF362006u };
-static const HdPiece hd_p86[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x5E, 0} };
+static const HdPiece hd_p78[] = { {0, 0, 0x3E, 0}, {8, 0, 0x3F, 0}, {0, 8, 0x40, 0}, {8, 8, 0x41, 0} };
+static const uint32_t hd_c78[] = { 0xFF162017u };
+static const HdPiece hd_p79[] = { {0, 0, 0x44, 0}, {8, 0, 0x45, 0}, {0, 8, 0x46, 0}, {8, 8, 0x47, 0} };
+static const uint32_t hd_c79[] = { 0xFF162017u };
+static const HdPiece hd_p80[] = { {0, 0, 0x48, 0}, {8, 0, 0x45, 0}, {0, 8, 0x49, 0}, {8, 8, 0x47, 0} };
+static const uint32_t hd_c80[] = { 0xFF162017u };
+static const HdPiece hd_p81[] = { {0, 0, 0x4A, 0}, {8, 0, 0x45, 0}, {0, 8, 0x4B, 0}, {8, 8, 0x47, 0} };
+static const uint32_t hd_c81[] = { 0xFF162017u };
+static const HdPiece hd_p82[] = { {0, 0, 0x4D, 0}, {8, 0, 0x4E, 0}, {0, 8, 0x4F, 0}, {8, 8, 0x50, 0}, {16, 0, 0x4E, 1}, {24, 0, 0x4D, 1}, {16, 8, 0x50, 0}, {24, 8, 0x4F, 1}, {0, 16, 0x4F, 2}, {8, 16, 0x50, 0}, {0, 24, 0x4D, 2}, {8, 24, 0x4E, 2}, {16, 16, 0x50, 0}, {24, 16, 0x4F, 3}, {16, 24, 0x4E, 3}, {24, 24, 0x4D, 3} };
+static const uint32_t hd_c82[] = { 0xFF272006u };
+static const HdPiece hd_p83[] = { {0, 0, 0x4D, 0}, {8, 0, 0x4E, 0}, {0, 8, 0x4F, 0}, {8, 8, 0x51, 0}, {16, 0, 0x4E, 1}, {24, 0, 0x52, 0}, {16, 8, 0x53, 0}, {24, 8, 0x54, 0}, {0, 16, 0x4F, 2}, {8, 16, 0x51, 2}, {0, 24, 0x4D, 2}, {8, 24, 0x4E, 2}, {16, 16, 0x53, 2}, {24, 16, 0x54, 2}, {16, 24, 0x4E, 3}, {24, 24, 0x52, 2} };
+static const uint32_t hd_c83[] = { 0xFF272006u };
+static const HdPiece hd_p84[] = { {0, 0, 0x55, 0}, {8, 0, 0x4C, 4}, {0, 8, 0x56, 0}, {8, 8, 0x4C, 4} };
+static const uint32_t hd_c84[] = { 0xFF272006u };
+static const HdPiece hd_p85[] = { {0, 0, 0x56, 2}, {8, 0, 0x4C, 4}, {0, 8, 0x55, 2}, {8, 8, 0x4C, 4} };
+static const uint32_t hd_c85[] = { 0xFF272006u };
+static const HdPiece hd_p86[] = { {0, 0, 0x4C, 4}, {8, 0, 0x57, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x58, 0} };
 static const uint32_t hd_c86[] = { 0xFF362006u };
-static const HdPiece hd_p87[] = { {0, 0, 0x60, 0}, {8, 0, 0x61, 0}, {0, 8, 0x19, 0}, {8, 8, 0x5E, 0} };
+static const HdPiece hd_p87[] = { {0, 0, 0x4C, 4}, {8, 0, 0x59, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x5A, 0} };
 static const uint32_t hd_c87[] = { 0xFF362006u };
-static const HdPiece hd_p88[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x62, 0} };
+static const HdPiece hd_p88[] = { {0, 0, 0x4C, 4}, {8, 0, 0x5B, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x5C, 0} };
 static const uint32_t hd_c88[] = { 0xFF362006u };
-static const HdPiece hd_p89[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x63, 0} };
+static const HdPiece hd_p89[] = { {0, 0, 0x4C, 4}, {8, 0, 0x4C, 4}, {0, 8, 0x4C, 4}, {8, 8, 0x5D, 0} };
 static const uint32_t hd_c89[] = { 0xFF362006u };
-static const HdPiece hd_p90[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x66, 0}, {8, 8, 0x67, 0} };
-static const uint32_t hd_c90[] = { 0xFF362011u };
-static const HdPiece hd_p91[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x68, 0}, {8, 8, 0x69, 0} };
-static const uint32_t hd_c91[] = { 0xFF362011u };
-static const HdPiece hd_p92[] = { {0, 0, 0x6A, 0}, {8, 0, 0x6B, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x4C, 4} };
-static const uint32_t hd_c92[] = { 0xFF272006u, 0xFF362006u };
-static const HdPiece hd_p93[] = { {0, 0, 0xB0, 0} };
-static const uint32_t hd_c93[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p94[] = { {0, 0, 0xB1, 0} };
-static const uint32_t hd_c94[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p95[] = { {0, 0, 0xB2, 0} };
-static const uint32_t hd_c95[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p96[] = { {0, 0, 0xB3, 0} };
-static const uint32_t hd_c96[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p97[] = { {0, 0, 0xB4, 0} };
+static const HdPiece hd_p90[] = { {0, 0, 0x18, 0}, {8, 0, 0x18, 1}, {0, 8, 0x19, 0}, {8, 8, 0x5E, 0} };
+static const uint32_t hd_c90[] = { 0xFF362006u };
+static const HdPiece hd_p91[] = { {0, 0, 0x60, 0}, {8, 0, 0x61, 0}, {0, 8, 0x19, 0}, {8, 8, 0x5E, 0} };
+static const uint32_t hd_c91[] = { 0xFF362006u };
+static const HdPiece hd_p92[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1D, 0}, {8, 8, 0x62, 0} };
+static const uint32_t hd_c92[] = { 0xFF362006u };
+static const HdPiece hd_p93[] = { {0, 0, 0x1B, 0}, {8, 0, 0x1C, 0}, {0, 8, 0x1E, 0}, {8, 8, 0x63, 0} };
+static const uint32_t hd_c93[] = { 0xFF362006u };
+static const HdPiece hd_p94[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x66, 0}, {8, 8, 0x67, 0} };
+static const uint32_t hd_c94[] = { 0xFF362011u };
+static const HdPiece hd_p95[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x68, 0}, {8, 8, 0x69, 0} };
+static const uint32_t hd_c95[] = { 0xFF362011u };
+static const HdPiece hd_p96[] = { {0, 0, 0x6A, 0}, {8, 0, 0x6B, 0}, {0, 8, 0x4C, 4}, {8, 8, 0x4C, 4} };
+static const uint32_t hd_c96[] = { 0xFF272006u, 0xFF362006u };
+static const HdPiece hd_p97[] = { {0, 0, 0xB0, 0} };
 static const uint32_t hd_c97[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p98[] = { {0, 0, 0xB5, 0} };
+static const HdPiece hd_p98[] = { {0, 0, 0xB1, 0} };
 static const uint32_t hd_c98[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p99[] = { {0, 0, 0xB6, 0} };
+static const HdPiece hd_p99[] = { {0, 0, 0xB2, 0} };
 static const uint32_t hd_c99[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p100[] = { {0, 0, 0xB7, 0} };
+static const HdPiece hd_p100[] = { {0, 0, 0xB3, 0} };
 static const uint32_t hd_c100[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p101[] = { {0, 0, 0xB8, 0} };
+static const HdPiece hd_p101[] = { {0, 0, 0xB4, 0} };
 static const uint32_t hd_c101[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p102[] = { {0, 0, 0xB9, 0} };
+static const HdPiece hd_p102[] = { {0, 0, 0xB5, 0} };
 static const uint32_t hd_c102[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p103[] = { {0, 0, 0xBA, 0} };
+static const HdPiece hd_p103[] = { {0, 0, 0xB6, 0} };
 static const uint32_t hd_c103[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p104[] = { {0, 0, 0xBB, 0} };
+static const HdPiece hd_p104[] = { {0, 0, 0xB7, 0} };
 static const uint32_t hd_c104[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p105[] = { {0, 0, 0xBC, 0} };
+static const HdPiece hd_p105[] = { {0, 0, 0xB8, 0} };
 static const uint32_t hd_c105[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p106[] = { {0, 0, 0xBD, 0} };
+static const HdPiece hd_p106[] = { {0, 0, 0xB9, 0} };
 static const uint32_t hd_c106[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p107[] = { {0, 0, 0xBE, 0} };
+static const HdPiece hd_p107[] = { {0, 0, 0xBA, 0} };
 static const uint32_t hd_c107[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p108[] = { {0, 0, 0xC0, 0} };
+static const HdPiece hd_p108[] = { {0, 0, 0xBB, 0} };
 static const uint32_t hd_c108[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p109[] = { {0, 0, 0xC1, 0} };
+static const HdPiece hd_p109[] = { {0, 0, 0xBC, 0} };
 static const uint32_t hd_c109[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p110[] = { {0, 0, 0xC2, 0} };
+static const HdPiece hd_p110[] = { {0, 0, 0xBD, 0} };
 static const uint32_t hd_c110[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p111[] = { {0, 0, 0xC3, 0} };
+static const HdPiece hd_p111[] = { {0, 0, 0xBE, 0} };
 static const uint32_t hd_c111[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p112[] = { {0, 0, 0xC4, 0} };
+static const HdPiece hd_p112[] = { {0, 0, 0xC0, 0} };
 static const uint32_t hd_c112[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p113[] = { {0, 0, 0xC5, 0} };
+static const HdPiece hd_p113[] = { {0, 0, 0xC1, 0} };
 static const uint32_t hd_c113[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p114[] = { {0, 0, 0xC6, 0} };
+static const HdPiece hd_p114[] = { {0, 0, 0xC2, 0} };
 static const uint32_t hd_c114[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p115[] = { {0, 0, 0xC7, 0} };
+static const HdPiece hd_p115[] = { {0, 0, 0xC3, 0} };
 static const uint32_t hd_c115[] = { 0xFF212021u, 0xFF272006u };
-static const HdPiece hd_p116[] = { {0, 0, 0x60, 0}, {8, 0, 0x61, 0}, {0, 8, 0x62, 0}, {8, 8, 0x63, 0} };
-static const HdPiece hd_p117[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x66, 0}, {8, 8, 0x67, 0} };
-static const HdPiece hd_p118[] = { {0, 0, 0x68, 0}, {8, 0, 0x69, 0}, {0, 8, 0x6A, 0}, {8, 8, 0x6B, 0} };
-static const HdPiece hd_p119[] = { {0, 0, 0x6C, 0}, {8, 0, 0x6D, 0}, {0, 8, 0x6E, 0}, {8, 8, 0x6F, 0} };
-static const HdPiece hd_p120[] = { {0, 0, 0x70, 0}, {8, 0, 0x71, 0}, {0, 8, 0x72, 0}, {8, 8, 0x73, 0} };
-static const HdPiece hd_p121[] = { {0, 0, 0x74, 0}, {8, 0, 0x75, 0}, {0, 8, 0x76, 0}, {8, 8, 0x77, 0} };
-static const HdPiece hd_p122[] = { {0, 0, 0x78, 0}, {8, 0, 0x79, 0}, {0, 8, 0x7A, 0}, {8, 8, 0x7B, 0} };
-static const HdPiece hd_p123[] = { {0, 0, 0x7C, 0}, {8, 0, 0x7D, 0}, {0, 8, 0x7E, 0}, {8, 8, 0x7F, 0} };
-static const HdPiece hd_p124[] = { {0, 0, 0x3C, 0}, {8, 0, 0x3D, 0}, {0, 8, 0x3E, 0}, {8, 8, 0x3F, 0} };
-static const HdPiece hd_p125[] = { {0, 0, 0x03, 0} };
-static const HdPiece hd_p126[] = { {0, 0, 0x09, 0} };
-static const HdPiece hd_p127[] = { {0, 0, 0x01, 0} };
-static const HdPiece hd_p128[] = { {0, 0, 0x41, 0} };
-static const uint32_t hd_c128[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p129[] = { {0, 0, 0x42, 0} };
-static const uint32_t hd_c129[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p130[] = { {0, 0, 0x43, 0} };
-static const uint32_t hd_c130[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p131[] = { {0, 0, 0x44, 0} };
-static const uint32_t hd_c131[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p132[] = { {0, 0, 0x45, 0} };
+static const HdPiece hd_p116[] = { {0, 0, 0xC4, 0} };
+static const uint32_t hd_c116[] = { 0xFF212021u, 0xFF272006u };
+static const HdPiece hd_p117[] = { {0, 0, 0xC5, 0} };
+static const uint32_t hd_c117[] = { 0xFF212021u, 0xFF272006u };
+static const HdPiece hd_p118[] = { {0, 0, 0xC6, 0} };
+static const uint32_t hd_c118[] = { 0xFF212021u, 0xFF272006u };
+static const HdPiece hd_p119[] = { {0, 0, 0xC7, 0} };
+static const uint32_t hd_c119[] = { 0xFF212021u, 0xFF272006u };
+static const HdPiece hd_p120[] = { {0, 0, 0x60, 0}, {8, 0, 0x61, 0}, {0, 8, 0x62, 0}, {8, 8, 0x63, 0} };
+static const HdPiece hd_p121[] = { {0, 0, 0x64, 0}, {8, 0, 0x65, 0}, {0, 8, 0x66, 0}, {8, 8, 0x67, 0} };
+static const HdPiece hd_p122[] = { {0, 0, 0x68, 0}, {8, 0, 0x69, 0}, {0, 8, 0x6A, 0}, {8, 8, 0x6B, 0} };
+static const HdPiece hd_p123[] = { {0, 0, 0x6C, 0}, {8, 0, 0x6D, 0}, {0, 8, 0x6E, 0}, {8, 8, 0x6F, 0} };
+static const HdPiece hd_p124[] = { {0, 0, 0x70, 0}, {8, 0, 0x71, 0}, {0, 8, 0x72, 0}, {8, 8, 0x73, 0} };
+static const HdPiece hd_p125[] = { {0, 0, 0x74, 0}, {8, 0, 0x75, 0}, {0, 8, 0x76, 0}, {8, 8, 0x77, 0} };
+static const HdPiece hd_p126[] = { {0, 0, 0x78, 0}, {8, 0, 0x79, 0}, {0, 8, 0x7A, 0}, {8, 8, 0x7B, 0} };
+static const HdPiece hd_p127[] = { {0, 0, 0x7C, 0}, {8, 0, 0x7D, 0}, {0, 8, 0x7E, 0}, {8, 8, 0x7F, 0} };
+static const HdPiece hd_p128[] = { {0, 0, 0x3C, 0}, {8, 0, 0x3D, 0}, {0, 8, 0x3E, 0}, {8, 8, 0x3F, 0} };
+static const HdPiece hd_p129[] = { {0, 0, 0x03, 0} };
+static const HdPiece hd_p130[] = { {0, 0, 0x09, 0} };
+static const HdPiece hd_p131[] = { {0, 0, 0x01, 0} };
+static const HdPiece hd_p132[] = { {0, 0, 0x41, 0} };
 static const uint32_t hd_c132[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p133[] = { {0, 0, 0x46, 0} };
+static const HdPiece hd_p133[] = { {0, 0, 0x42, 0} };
 static const uint32_t hd_c133[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p134[] = { {0, 0, 0x47, 0} };
+static const HdPiece hd_p134[] = { {0, 0, 0x43, 0} };
 static const uint32_t hd_c134[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p135[] = { {0, 0, 0x48, 0} };
+static const HdPiece hd_p135[] = { {0, 0, 0x44, 0} };
 static const uint32_t hd_c135[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p136[] = { {0, 0, 0x49, 0} };
+static const HdPiece hd_p136[] = { {0, 0, 0x45, 0} };
 static const uint32_t hd_c136[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p137[] = { {0, 0, 0x4A, 0} };
+static const HdPiece hd_p137[] = { {0, 0, 0x46, 0} };
 static const uint32_t hd_c137[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p138[] = { {0, 0, 0x4B, 0} };
+static const HdPiece hd_p138[] = { {0, 0, 0x47, 0} };
 static const uint32_t hd_c138[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p139[] = { {0, 0, 0x4C, 0} };
+static const HdPiece hd_p139[] = { {0, 0, 0x48, 0} };
 static const uint32_t hd_c139[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p140[] = { {0, 0, 0x4D, 0} };
+static const HdPiece hd_p140[] = { {0, 0, 0x49, 0} };
 static const uint32_t hd_c140[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p141[] = { {0, 0, 0x4E, 0} };
+static const HdPiece hd_p141[] = { {0, 0, 0x4A, 0} };
 static const uint32_t hd_c141[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p142[] = { {0, 0, 0x4F, 0} };
+static const HdPiece hd_p142[] = { {0, 0, 0x4B, 0} };
 static const uint32_t hd_c142[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p143[] = { {0, 0, 0x50, 0} };
+static const HdPiece hd_p143[] = { {0, 0, 0x4C, 0} };
 static const uint32_t hd_c143[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p144[] = { {0, 0, 0x51, 0} };
+static const HdPiece hd_p144[] = { {0, 0, 0x4D, 0} };
 static const uint32_t hd_c144[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p145[] = { {0, 0, 0x52, 0} };
+static const HdPiece hd_p145[] = { {0, 0, 0x4E, 0} };
 static const uint32_t hd_c145[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p146[] = { {0, 0, 0x53, 0} };
+static const HdPiece hd_p146[] = { {0, 0, 0x4F, 0} };
 static const uint32_t hd_c146[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p147[] = { {0, 0, 0x54, 0} };
+static const HdPiece hd_p147[] = { {0, 0, 0x50, 0} };
 static const uint32_t hd_c147[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p148[] = { {0, 0, 0x55, 0} };
+static const HdPiece hd_p148[] = { {0, 0, 0x51, 0} };
 static const uint32_t hd_c148[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p149[] = { {0, 0, 0x56, 0} };
+static const HdPiece hd_p149[] = { {0, 0, 0x52, 0} };
 static const uint32_t hd_c149[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p150[] = { {0, 0, 0x57, 0} };
+static const HdPiece hd_p150[] = { {0, 0, 0x53, 0} };
 static const uint32_t hd_c150[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p151[] = { {0, 0, 0x58, 0} };
+static const HdPiece hd_p151[] = { {0, 0, 0x54, 0} };
 static const uint32_t hd_c151[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p152[] = { {0, 0, 0x59, 0} };
+static const HdPiece hd_p152[] = { {0, 0, 0x55, 0} };
 static const uint32_t hd_c152[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p153[] = { {0, 0, 0x5A, 0} };
+static const HdPiece hd_p153[] = { {0, 0, 0x56, 0} };
 static const uint32_t hd_c153[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p154[] = { {0, 0, 0x30, 0} };
+static const HdPiece hd_p154[] = { {0, 0, 0x57, 0} };
 static const uint32_t hd_c154[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p155[] = { {0, 0, 0x31, 0} };
+static const HdPiece hd_p155[] = { {0, 0, 0x58, 0} };
 static const uint32_t hd_c155[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p156[] = { {0, 0, 0x32, 0} };
+static const HdPiece hd_p156[] = { {0, 0, 0x59, 0} };
 static const uint32_t hd_c156[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p157[] = { {0, 0, 0x33, 0} };
+static const HdPiece hd_p157[] = { {0, 0, 0x5A, 0} };
 static const uint32_t hd_c157[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p158[] = { {0, 0, 0x34, 0} };
+static const HdPiece hd_p158[] = { {0, 0, 0x30, 0} };
 static const uint32_t hd_c158[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p159[] = { {0, 0, 0x35, 0} };
+static const HdPiece hd_p159[] = { {0, 0, 0x31, 0} };
 static const uint32_t hd_c159[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p160[] = { {0, 0, 0x36, 0} };
+static const HdPiece hd_p160[] = { {0, 0, 0x32, 0} };
 static const uint32_t hd_c160[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p161[] = { {0, 0, 0x37, 0} };
+static const HdPiece hd_p161[] = { {0, 0, 0x33, 0} };
 static const uint32_t hd_c161[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p162[] = { {0, 0, 0x38, 0} };
+static const HdPiece hd_p162[] = { {0, 0, 0x34, 0} };
 static const uint32_t hd_c162[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p163[] = { {0, 0, 0x39, 0} };
+static const HdPiece hd_p163[] = { {0, 0, 0x35, 0} };
 static const uint32_t hd_c163[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p164[] = { {0, 0, 0x3A, 0} };
+static const HdPiece hd_p164[] = { {0, 0, 0x36, 0} };
 static const uint32_t hd_c164[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p165[] = { {0, 0, 0x5B, 0} };
+static const HdPiece hd_p165[] = { {0, 0, 0x37, 0} };
 static const uint32_t hd_c165[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p166[] = { {0, 0, 0x5C, 0} };
+static const HdPiece hd_p166[] = { {0, 0, 0x38, 0} };
 static const uint32_t hd_c166[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p167[] = { {0, 0, 0x5D, 0} };
+static const HdPiece hd_p167[] = { {0, 0, 0x39, 0} };
 static const uint32_t hd_c167[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
-static const HdPiece hd_p168[] = { {0, 0, 0x23, 0}, {8, 0, 0x24, 0}, {16, 0, 0x25, 0}, {24, 0, 0x26, 0}, {32, 0, 0x27, 0}, {40, 0, 0x28, 0}, {48, 0, 0x29, 0}, {56, 0, 0x2A, 0}, {64, 0, 0x2B, 0} };
-static const uint32_t hd_c168[] = { 0x0F200F06u };
+static const HdPiece hd_p168[] = { {0, 0, 0x3A, 0} };
+static const uint32_t hd_c168[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p169[] = { {0, 0, 0x5B, 0} };
+static const uint32_t hd_c169[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p170[] = { {0, 0, 0x5C, 0} };
+static const uint32_t hd_c170[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p171[] = { {0, 0, 0x5D, 0} };
+static const uint32_t hd_c171[] = { 0x0F060F33u, 0x0F170F21u, 0x0F200F06u, 0x0F330F27u };
+static const HdPiece hd_p172[] = { {0, 0, 0x23, 0}, {8, 0, 0x24, 0}, {16, 0, 0x25, 0}, {24, 0, 0x26, 0}, {32, 0, 0x27, 0}, {40, 0, 0x28, 0}, {48, 0, 0x29, 0}, {56, 0, 0x2A, 0}, {64, 0, 0x2B, 0} };
+static const uint32_t hd_c172[] = { 0x0F200F06u };
 
 static const HdGraphic hd_graphics[] = {
-    { "pacman/closed", 1, 16, 16, 4, hd_p0, 1, hd_c0, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/left-right_1", 1, 16, 16, 4, hd_p1, 1, hd_c1, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/left-right_2", 1, 16, 16, 4, hd_p2, 1, hd_c2, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/right_1", 1, 16, 16, 4, hd_p3, 1, hd_c3, "pacman/left-right_1", 'h', 1, 0, 0x0F162606u },
-    { "pacman/right_2", 1, 16, 16, 4, hd_p4, 1, hd_c4, "pacman/left-right_2", 'h', 1, 0, 0x0F162606u },
-    { "pacman/down-up_1", 1, 16, 16, 4, hd_p5, 1, hd_c5, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/down-up_2", 1, 16, 16, 4, hd_p6, 1, hd_c6, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/up_1", 1, 16, 16, 4, hd_p7, 1, hd_c7, "pacman/down-up_1", 'v', 1, 0, 0x0F162606u },
-    { "pacman/up_2", 1, 16, 16, 4, hd_p8, 1, hd_c8, "pacman/down-up_2", 'v', 1, 0, 0x0F162606u },
-    { "pacman/death_1", 1, 16, 16, 4, hd_p9, 1, hd_c9, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_2", 1, 16, 16, 4, hd_p10, 1, hd_c10, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_3", 1, 16, 16, 4, hd_p11, 1, hd_c11, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_4", 1, 16, 16, 4, hd_p12, 1, hd_c12, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_5", 1, 16, 16, 4, hd_p13, 1, hd_c13, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_6", 1, 16, 16, 4, hd_p14, 1, hd_c14, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_7", 1, 16, 16, 4, hd_p15, 1, hd_c15, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_8", 1, 16, 16, 4, hd_p16, 1, hd_c16, 0, 0, 1, 0, 0x0F162606u },
-    { "pacman/death_9", 1, 16, 16, 4, hd_p17, 1, hd_c17, 0, 0, 1, 0, 0x0F162606u },
-    { "ghosts/blinky/up_1", 1, 16, 16, 4, hd_p18, 1, hd_c18, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/blinky/up_2", 1, 16, 16, 4, hd_p19, 1, hd_c19, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/blinky/left-right_1", 1, 16, 16, 4, hd_p20, 2, hd_c20, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/blinky/left-right_2", 1, 16, 16, 4, hd_p21, 2, hd_c21, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/blinky/right_1", 1, 16, 16, 4, hd_p22, 1, hd_c22, "ghosts/blinky/left-right_1", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/blinky/right_2", 1, 16, 16, 4, hd_p23, 1, hd_c23, "ghosts/blinky/left-right_2", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/blinky/down_1", 1, 16, 16, 4, hd_p24, 1, hd_c24, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/blinky/down_2", 1, 16, 16, 4, hd_p25, 1, hd_c25, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/up_1", 1, 16, 16, 4, hd_p26, 2, hd_c26, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/up_2", 1, 16, 16, 4, hd_p27, 2, hd_c27, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/left-right_1", 1, 16, 16, 4, hd_p28, 2, hd_c28, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/left-right_2", 1, 16, 16, 4, hd_p29, 2, hd_c29, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/right_1", 1, 16, 16, 4, hd_p30, 2, hd_c30, "ghosts/pinky/left-right_1", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/pinky/right_2", 1, 16, 16, 4, hd_p31, 2, hd_c31, "ghosts/pinky/left-right_2", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/pinky/down_1", 1, 16, 16, 4, hd_p32, 1, hd_c32, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/pinky/down_2", 1, 16, 16, 4, hd_p33, 1, hd_c33, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/up_1", 1, 16, 16, 4, hd_p34, 1, hd_c34, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/up_2", 1, 16, 16, 4, hd_p35, 1, hd_c35, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/left-right_1", 1, 16, 16, 4, hd_p36, 2, hd_c36, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/left-right_2", 1, 16, 16, 4, hd_p37, 2, hd_c37, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/right_1", 1, 16, 16, 4, hd_p38, 2, hd_c38, "ghosts/inky/left-right_1", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/inky/right_2", 1, 16, 16, 4, hd_p39, 1, hd_c39, "ghosts/inky/left-right_2", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/inky/down_1", 1, 16, 16, 4, hd_p40, 1, hd_c40, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/inky/down_2", 1, 16, 16, 4, hd_p41, 1, hd_c41, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/up_1", 1, 16, 16, 4, hd_p42, 6, hd_c42, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/up_2", 1, 16, 16, 4, hd_p43, 6, hd_c43, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/left-right_1", 1, 16, 16, 4, hd_p44, 7, hd_c44, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/left-right_2", 1, 16, 16, 4, hd_p45, 7, hd_c45, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/right_1", 1, 16, 16, 4, hd_p46, 7, hd_c46, "ghosts/clyde/left-right_1", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/clyde/right_2", 1, 16, 16, 4, hd_p47, 6, hd_c47, "ghosts/clyde/left-right_2", 'h', 0, 0, 0x0F162606u },
-    { "ghosts/clyde/down_1", 1, 16, 16, 4, hd_p48, 6, hd_c48, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/clyde/down_2", 1, 16, 16, 4, hd_p49, 6, hd_c49, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/frightened/blue_1", 1, 16, 16, 4, hd_p50, 1, hd_c50, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/frightened/white_1", 1, 16, 16, 4, hd_p51, 1, hd_c51, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/frightened/blue_2", 1, 16, 16, 4, hd_p52, 1, hd_c52, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/frightened/white_2", 1, 16, 16, 4, hd_p53, 1, hd_c53, 0, 0, 0, 0, 0x0F162606u },
-    { "ghosts/eyes/up", 1, 16, 16, 4, hd_p54, 2, hd_c54, 0, 0, 1, 0, 0x0F162606u },
-    { "ghosts/eyes/left-right", 1, 16, 16, 4, hd_p55, 2, hd_c55, 0, 0, 1, 0, 0x0F162606u },
-    { "ghosts/eyes/right", 1, 16, 16, 4, hd_p56, 2, hd_c56, "ghosts/eyes/left-right", 'h', 1, 0, 0x0F162606u },
-    { "ghosts/eyes/down", 1, 16, 16, 4, hd_p57, 3, hd_c57, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/cherry", 1, 16, 16, 4, hd_p58, 1, hd_c58, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/strawberry", 1, 16, 16, 4, hd_p59, 1, hd_c59, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/orange", 1, 16, 16, 4, hd_p60, 1, hd_c60, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/apple", 1, 16, 16, 4, hd_p61, 1, hd_c61, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/melon", 1, 16, 16, 4, hd_p62, 1, hd_c62, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/galaxian", 1, 16, 16, 4, hd_p63, 1, hd_c63, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/bell", 1, 16, 16, 4, hd_p64, 1, hd_c64, 0, 0, 1, 0, 0x0F162606u },
-    { "fruit/key", 1, 16, 16, 4, hd_p65, 1, hd_c65, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/100", 1, 16, 16, 4, hd_p66, 1, hd_c66, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/200", 1, 16, 16, 4, hd_p67, 2, hd_c67, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/400", 1, 16, 16, 4, hd_p68, 2, hd_c68, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/800", 1, 16, 16, 4, hd_p69, 1, hd_c69, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/1600", 1, 16, 16, 4, hd_p70, 1, hd_c70, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/300", 1, 16, 16, 4, hd_p71, 1, hd_c71, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/500", 1, 16, 16, 4, hd_p72, 1, hd_c72, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/700", 1, 16, 16, 4, hd_p73, 1, hd_c73, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/1000", 1, 16, 16, 4, hd_p74, 1, hd_c74, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/2000", 1, 16, 16, 4, hd_p75, 1, hd_c75, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/3000", 1, 16, 16, 4, hd_p76, 1, hd_c76, 0, 0, 1, 0, 0x0F162606u },
-    { "scores/5000", 1, 16, 16, 4, hd_p77, 1, hd_c77, 0, 0, 1, 0, 0x0F162606u },
-    { "intermission/big_pacman_closed", 1, 32, 32, 16, hd_p78, 1, hd_c78, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/big_pacman_open", 1, 32, 32, 16, hd_p79, 1, hd_c79, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/snag_1", 1, 16, 16, 4, hd_p80, 1, hd_c80, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/snag_2", 1, 16, 16, 4, hd_p81, 1, hd_c81, "intermission/snag_1", 'v', 0, 0, 0x0F162606u },
-    { "intermission/tear_1", 1, 16, 16, 4, hd_p82, 1, hd_c82, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/tear_2", 1, 16, 16, 4, hd_p83, 1, hd_c83, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/tear_3", 1, 16, 16, 4, hd_p84, 1, hd_c84, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/tear_4", 1, 16, 16, 4, hd_p85, 1, hd_c85, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_torn_down", 1, 16, 16, 4, hd_p86, 1, hd_c86, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_torn_look", 1, 16, 16, 4, hd_p87, 1, hd_c87, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_torn_right_1", 1, 16, 16, 4, hd_p88, 1, hd_c88, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_torn_right_2", 1, 16, 16, 4, hd_p89, 1, hd_c89, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_patched_1", 1, 16, 16, 4, hd_p90, 1, hd_c90, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/blinky_patched_2", 1, 16, 16, 4, hd_p91, 1, hd_c91, 0, 0, 0, 0, 0x0F162606u },
-    { "intermission/cloth", 1, 16, 16, 4, hd_p92, 2, hd_c92, 0, 0, 0, 0, 0x0F162606u },
-    { "font/P", 1, 8, 8, 1, hd_p93, 2, hd_c93, 0, 0, 0, 1, 0x0F162606u },
-    { "font/L", 1, 8, 8, 1, hd_p94, 2, hd_c94, 0, 0, 0, 1, 0x0F162606u },
-    { "font/A", 1, 8, 8, 1, hd_p95, 2, hd_c95, 0, 0, 0, 1, 0x0F162606u },
-    { "font/Y", 1, 8, 8, 1, hd_p96, 2, hd_c96, 0, 0, 0, 1, 0x0F162606u },
-    { "font/E", 1, 8, 8, 1, hd_p97, 2, hd_c97, 0, 0, 0, 1, 0x0F162606u },
-    { "font/R", 1, 8, 8, 1, hd_p98, 2, hd_c98, 0, 0, 0, 1, 0x0F162606u },
-    { "font/O", 1, 8, 8, 1, hd_p99, 2, hd_c99, 0, 0, 0, 1, 0x0F162606u },
-    { "font/N", 1, 8, 8, 1, hd_p100, 2, hd_c100, 0, 0, 0, 1, 0x0F162606u },
-    { "font/T", 1, 8, 8, 1, hd_p101, 2, hd_c101, 0, 0, 0, 1, 0x0F162606u },
-    { "font/W", 1, 8, 8, 1, hd_p102, 2, hd_c102, 0, 0, 0, 1, 0x0F162606u },
-    { "font/D", 1, 8, 8, 1, hd_p103, 2, hd_c103, 0, 0, 0, 1, 0x0F162606u },
-    { "font/exclamation", 1, 8, 8, 1, hd_p104, 2, hd_c104, 0, 0, 0, 1, 0x0F162606u },
-    { "font/G", 1, 8, 8, 1, hd_p105, 2, hd_c105, 0, 0, 0, 1, 0x0F162606u },
-    { "font/M", 1, 8, 8, 1, hd_p106, 2, hd_c106, 0, 0, 0, 1, 0x0F162606u },
-    { "font/V", 1, 8, 8, 1, hd_p107, 2, hd_c107, 0, 0, 0, 1, 0x0F162606u },
-    { "font/G", 1, 8, 8, 1, hd_p108, 2, hd_c108, 0, 0, 0, 1, 0x0F162606u },
-    { "font/A", 1, 8, 8, 1, hd_p109, 2, hd_c109, 0, 0, 0, 1, 0x0F162606u },
-    { "font/M", 1, 8, 8, 1, hd_p110, 2, hd_c110, 0, 0, 0, 1, 0x0F162606u },
-    { "font/E", 1, 8, 8, 1, hd_p111, 2, hd_c111, 0, 0, 0, 1, 0x0F162606u },
-    { "font/O", 1, 8, 8, 1, hd_p112, 2, hd_c112, 0, 0, 0, 1, 0x0F162606u },
-    { "font/V", 1, 8, 8, 1, hd_p113, 2, hd_c113, 0, 0, 0, 1, 0x0F162606u },
-    { "font/R", 1, 8, 8, 1, hd_p114, 2, hd_c114, 0, 0, 0, 1, 0x0F162606u },
-    { "font/Y", 1, 8, 8, 1, hd_p115, 2, hd_c115, 0, 0, 0, 1, 0x0F162606u },
-    { "hud/fruit_cherry", 0, 16, 16, 4, hd_p116, 0, 0, 0, 0, 1, 0, 0x0F162606u },
-    { "hud/fruit_strawberry", 0, 16, 16, 4, hd_p117, 0, 0, 0, 0, 1, 0, 0x0F162606u },
-    { "hud/fruit_orange", 0, 16, 16, 4, hd_p118, 0, 0, 0, 0, 1, 0, 0x0F162606u },
-    { "hud/fruit_apple", 0, 16, 16, 4, hd_p119, 0, 0, 0, 0, 1, 0, 0x0F162606u },
-    { "hud/fruit_melon", 0, 16, 16, 4, hd_p120, 0, 0, 0, 0, 1, 0, 0x0F191712u },
-    { "hud/fruit_galaxian", 0, 16, 16, 4, hd_p121, 0, 0, 0, 0, 1, 0, 0x0F191712u },
-    { "hud/fruit_bell", 0, 16, 16, 4, hd_p122, 0, 0, 0, 0, 1, 0, 0x0F191712u },
-    { "hud/fruit_key", 0, 16, 16, 4, hd_p123, 0, 0, 0, 0, 1, 0, 0x0F191712u },
-    { "hud/lives", 0, 16, 16, 4, hd_p124, 0, 0, 0, 0, 1, 0, 0x0F110F27u },
-    { "dot", 0, 8, 8, 1, hd_p125, 0, 0, 0, 0, 1, 0, 0x0F110F27u },
-    { "dot_alt", 0, 8, 8, 1, hd_p126, 0, 0, "dot", 'n', 1, 0, 0x0F110F27u },
-    { "power_pellet", 0, 8, 8, 1, hd_p127, 0, 0, 0, 0, 1, 0, 0x0F110F27u },
-    { "font/A", 0, 8, 8, 1, hd_p128, 4, hd_c128, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/B", 0, 8, 8, 1, hd_p129, 4, hd_c129, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/C", 0, 8, 8, 1, hd_p130, 4, hd_c130, 0, 0, 0, 1, 0x0F170F21u },
-    { "font/D", 0, 8, 8, 1, hd_p131, 4, hd_c131, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/E", 0, 8, 8, 1, hd_p132, 4, hd_c132, 0, 0, 0, 1, 0x0F170F21u },
-    { "font/F", 0, 8, 8, 1, hd_p133, 4, hd_c133, 0, 0, 0, 1, 0x0F162606u },
-    { "font/G", 0, 8, 8, 1, hd_p134, 4, hd_c134, 0, 0, 0, 1, 0x0F162606u },
-    { "font/H", 0, 8, 8, 1, hd_p135, 4, hd_c135, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/I", 0, 8, 8, 1, hd_p136, 4, hd_c136, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/J", 0, 8, 8, 1, hd_p137, 4, hd_c137, 0, 0, 0, 1, 0x0F162606u },
-    { "font/K", 0, 8, 8, 1, hd_p138, 4, hd_c138, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/L", 0, 8, 8, 1, hd_p139, 4, hd_c139, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/M", 0, 8, 8, 1, hd_p140, 4, hd_c140, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/N", 0, 8, 8, 1, hd_p141, 4, hd_c141, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/O", 0, 8, 8, 1, hd_p142, 4, hd_c142, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/P", 0, 8, 8, 1, hd_p143, 4, hd_c143, 0, 0, 0, 1, 0x0F170F21u },
-    { "font/Q", 0, 8, 8, 1, hd_p144, 4, hd_c144, 0, 0, 0, 1, 0x0F162606u },
-    { "font/R", 0, 8, 8, 1, hd_p145, 4, hd_c145, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/S", 0, 8, 8, 1, hd_p146, 4, hd_c146, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/T", 0, 8, 8, 1, hd_p147, 4, hd_c147, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/U", 0, 8, 8, 1, hd_p148, 4, hd_c148, 0, 0, 0, 1, 0x0F162606u },
-    { "font/V", 0, 8, 8, 1, hd_p149, 4, hd_c149, 0, 0, 0, 1, 0x0F162606u },
-    { "font/W", 0, 8, 8, 1, hd_p150, 4, hd_c150, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/X", 0, 8, 8, 1, hd_p151, 4, hd_c151, 0, 0, 0, 1, 0x0F162606u },
-    { "font/Y", 0, 8, 8, 1, hd_p152, 4, hd_c152, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/Z", 0, 8, 8, 1, hd_p153, 4, hd_c153, 0, 0, 0, 1, 0x0F162606u },
-    { "font/0", 0, 8, 8, 1, hd_p154, 4, hd_c154, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/1", 0, 8, 8, 1, hd_p155, 4, hd_c155, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/2", 0, 8, 8, 1, hd_p156, 4, hd_c156, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/3", 0, 8, 8, 1, hd_p157, 4, hd_c157, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/4", 0, 8, 8, 1, hd_p158, 4, hd_c158, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/5", 0, 8, 8, 1, hd_p159, 4, hd_c159, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/6", 0, 8, 8, 1, hd_p160, 4, hd_c160, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/7", 0, 8, 8, 1, hd_p161, 4, hd_c161, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/8", 0, 8, 8, 1, hd_p162, 4, hd_c162, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/9", 0, 8, 8, 1, hd_p163, 4, hd_c163, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/dash", 0, 8, 8, 1, hd_p164, 4, hd_c164, 0, 0, 0, 1, 0x0F060F33u },
-    { "font/period", 0, 8, 8, 1, hd_p165, 4, hd_c165, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/cursor", 0, 8, 8, 1, hd_p166, 4, hd_c166, 0, 0, 0, 1, 0x0F200F06u },
-    { "font/copyright", 0, 8, 8, 1, hd_p167, 4, hd_c167, 0, 0, 0, 1, 0x0F200F06u },
-    { "namco_logo", 0, 72, 8, 9, hd_p168, 1, hd_c168, 0, 0, 0, 0, 0x0F200F06u },
+    { "pacman/closed", 1, 16, 16, 4, hd_p0, 1, hd_c0, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/left-right_1", 1, 16, 16, 4, hd_p1, 1, hd_c1, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/left-right_2", 1, 16, 16, 4, hd_p2, 1, hd_c2, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/right_1", 1, 16, 16, 4, hd_p3, 1, hd_c3, "pacman/left-right_1", 'h', 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/right_2", 1, 16, 16, 4, hd_p4, 1, hd_c4, "pacman/left-right_2", 'h', 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/down-up_1", 1, 16, 16, 4, hd_p5, 1, hd_c5, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/down-up_2", 1, 16, 16, 4, hd_p6, 1, hd_c6, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/up_1", 1, 16, 16, 4, hd_p7, 1, hd_c7, "pacman/down-up_1", 'v', 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/up_2", 1, 16, 16, 4, hd_p8, 1, hd_c8, "pacman/down-up_2", 'v', 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/closed_left", 1, 16, 16, 4, hd_p9, 1, hd_c9, 0, 0, 1, 0, 0x0F162606u, 0x4D, 0x40, 1 },
+    { "pacman/closed_right", 1, 16, 16, 4, hd_p10, 1, hd_c10, 0, 0, 1, 0, 0x0F162606u, 0x4D, 0x80, 1 },
+    { "pacman/closed_up", 1, 16, 16, 4, hd_p11, 1, hd_c11, 0, 0, 1, 0, 0x0F162606u, 0x4D, 0x10, 1 },
+    { "pacman/closed_down", 1, 16, 16, 4, hd_p12, 1, hd_c12, 0, 0, 1, 0, 0x0F162606u, 0x4D, 0x20, 1 },
+    { "pacman/death_1", 1, 16, 16, 4, hd_p13, 1, hd_c13, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_2", 1, 16, 16, 4, hd_p14, 1, hd_c14, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_3", 1, 16, 16, 4, hd_p15, 1, hd_c15, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_4", 1, 16, 16, 4, hd_p16, 1, hd_c16, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_5", 1, 16, 16, 4, hd_p17, 1, hd_c17, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_6", 1, 16, 16, 4, hd_p18, 1, hd_c18, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_7", 1, 16, 16, 4, hd_p19, 1, hd_c19, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_8", 1, 16, 16, 4, hd_p20, 1, hd_c20, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "pacman/death_9", 1, 16, 16, 4, hd_p21, 1, hd_c21, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/up_1", 1, 16, 16, 4, hd_p22, 1, hd_c22, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/up_2", 1, 16, 16, 4, hd_p23, 1, hd_c23, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/left-right_1", 1, 16, 16, 4, hd_p24, 2, hd_c24, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/left-right_2", 1, 16, 16, 4, hd_p25, 2, hd_c25, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/right_1", 1, 16, 16, 4, hd_p26, 1, hd_c26, "ghosts/blinky/left-right_1", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/right_2", 1, 16, 16, 4, hd_p27, 1, hd_c27, "ghosts/blinky/left-right_2", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/down_1", 1, 16, 16, 4, hd_p28, 1, hd_c28, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/blinky/down_2", 1, 16, 16, 4, hd_p29, 1, hd_c29, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/up_1", 1, 16, 16, 4, hd_p30, 2, hd_c30, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/up_2", 1, 16, 16, 4, hd_p31, 2, hd_c31, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/left-right_1", 1, 16, 16, 4, hd_p32, 2, hd_c32, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/left-right_2", 1, 16, 16, 4, hd_p33, 2, hd_c33, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/right_1", 1, 16, 16, 4, hd_p34, 2, hd_c34, "ghosts/pinky/left-right_1", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/right_2", 1, 16, 16, 4, hd_p35, 2, hd_c35, "ghosts/pinky/left-right_2", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/down_1", 1, 16, 16, 4, hd_p36, 1, hd_c36, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/pinky/down_2", 1, 16, 16, 4, hd_p37, 1, hd_c37, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/up_1", 1, 16, 16, 4, hd_p38, 1, hd_c38, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/up_2", 1, 16, 16, 4, hd_p39, 1, hd_c39, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/left-right_1", 1, 16, 16, 4, hd_p40, 2, hd_c40, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/left-right_2", 1, 16, 16, 4, hd_p41, 2, hd_c41, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/right_1", 1, 16, 16, 4, hd_p42, 2, hd_c42, "ghosts/inky/left-right_1", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/right_2", 1, 16, 16, 4, hd_p43, 1, hd_c43, "ghosts/inky/left-right_2", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/down_1", 1, 16, 16, 4, hd_p44, 1, hd_c44, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/inky/down_2", 1, 16, 16, 4, hd_p45, 1, hd_c45, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/up_1", 1, 16, 16, 4, hd_p46, 6, hd_c46, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/up_2", 1, 16, 16, 4, hd_p47, 6, hd_c47, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/left-right_1", 1, 16, 16, 4, hd_p48, 7, hd_c48, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/left-right_2", 1, 16, 16, 4, hd_p49, 7, hd_c49, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/right_1", 1, 16, 16, 4, hd_p50, 7, hd_c50, "ghosts/clyde/left-right_1", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/right_2", 1, 16, 16, 4, hd_p51, 6, hd_c51, "ghosts/clyde/left-right_2", 'h', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/down_1", 1, 16, 16, 4, hd_p52, 6, hd_c52, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/clyde/down_2", 1, 16, 16, 4, hd_p53, 6, hd_c53, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/frightened/blue_1", 1, 16, 16, 4, hd_p54, 1, hd_c54, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/frightened/white_1", 1, 16, 16, 4, hd_p55, 1, hd_c55, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/frightened/blue_2", 1, 16, 16, 4, hd_p56, 1, hd_c56, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/frightened/white_2", 1, 16, 16, 4, hd_p57, 1, hd_c57, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/eyes/up", 1, 16, 16, 4, hd_p58, 2, hd_c58, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/eyes/left-right", 1, 16, 16, 4, hd_p59, 2, hd_c59, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/eyes/right", 1, 16, 16, 4, hd_p60, 2, hd_c60, "ghosts/eyes/left-right", 'h', 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "ghosts/eyes/down", 1, 16, 16, 4, hd_p61, 3, hd_c61, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/cherry", 1, 16, 16, 4, hd_p62, 1, hd_c62, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/strawberry", 1, 16, 16, 4, hd_p63, 1, hd_c63, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/orange", 1, 16, 16, 4, hd_p64, 1, hd_c64, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/apple", 1, 16, 16, 4, hd_p65, 1, hd_c65, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/melon", 1, 16, 16, 4, hd_p66, 1, hd_c66, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/galaxian", 1, 16, 16, 4, hd_p67, 1, hd_c67, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/bell", 1, 16, 16, 4, hd_p68, 1, hd_c68, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "fruit/key", 1, 16, 16, 4, hd_p69, 1, hd_c69, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/100", 1, 16, 16, 4, hd_p70, 1, hd_c70, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/200", 1, 16, 16, 4, hd_p71, 2, hd_c71, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/400", 1, 16, 16, 4, hd_p72, 2, hd_c72, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/800", 1, 16, 16, 4, hd_p73, 1, hd_c73, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/1600", 1, 16, 16, 4, hd_p74, 1, hd_c74, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/300", 1, 16, 16, 4, hd_p75, 1, hd_c75, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/500", 1, 16, 16, 4, hd_p76, 1, hd_c76, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/700", 1, 16, 16, 4, hd_p77, 1, hd_c77, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/1000", 1, 16, 16, 4, hd_p78, 1, hd_c78, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/2000", 1, 16, 16, 4, hd_p79, 1, hd_c79, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/3000", 1, 16, 16, 4, hd_p80, 1, hd_c80, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "scores/5000", 1, 16, 16, 4, hd_p81, 1, hd_c81, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/big_pacman_closed", 1, 32, 32, 16, hd_p82, 1, hd_c82, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/big_pacman_open", 1, 32, 32, 16, hd_p83, 1, hd_c83, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/snag_1", 1, 16, 16, 4, hd_p84, 1, hd_c84, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/snag_2", 1, 16, 16, 4, hd_p85, 1, hd_c85, "intermission/snag_1", 'v', 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/tear_1", 1, 16, 16, 4, hd_p86, 1, hd_c86, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/tear_2", 1, 16, 16, 4, hd_p87, 1, hd_c87, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/tear_3", 1, 16, 16, 4, hd_p88, 1, hd_c88, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/tear_4", 1, 16, 16, 4, hd_p89, 1, hd_c89, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_torn_down", 1, 16, 16, 4, hd_p90, 1, hd_c90, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_torn_look", 1, 16, 16, 4, hd_p91, 1, hd_c91, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_torn_right_1", 1, 16, 16, 4, hd_p92, 1, hd_c92, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_torn_right_2", 1, 16, 16, 4, hd_p93, 1, hd_c93, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_patched_1", 1, 16, 16, 4, hd_p94, 1, hd_c94, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/blinky_patched_2", 1, 16, 16, 4, hd_p95, 1, hd_c95, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "intermission/cloth", 1, 16, 16, 4, hd_p96, 2, hd_c96, 0, 0, 0, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/P", 1, 8, 8, 1, hd_p97, 2, hd_c97, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/L", 1, 8, 8, 1, hd_p98, 2, hd_c98, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/A", 1, 8, 8, 1, hd_p99, 2, hd_c99, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/Y", 1, 8, 8, 1, hd_p100, 2, hd_c100, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/E", 1, 8, 8, 1, hd_p101, 2, hd_c101, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/R", 1, 8, 8, 1, hd_p102, 2, hd_c102, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/O", 1, 8, 8, 1, hd_p103, 2, hd_c103, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/N", 1, 8, 8, 1, hd_p104, 2, hd_c104, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/T", 1, 8, 8, 1, hd_p105, 2, hd_c105, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/W", 1, 8, 8, 1, hd_p106, 2, hd_c106, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/D", 1, 8, 8, 1, hd_p107, 2, hd_c107, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/exclamation", 1, 8, 8, 1, hd_p108, 2, hd_c108, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/G", 1, 8, 8, 1, hd_p109, 2, hd_c109, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/M", 1, 8, 8, 1, hd_p110, 2, hd_c110, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/V", 1, 8, 8, 1, hd_p111, 2, hd_c111, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/G", 1, 8, 8, 1, hd_p112, 2, hd_c112, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/A", 1, 8, 8, 1, hd_p113, 2, hd_c113, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/M", 1, 8, 8, 1, hd_p114, 2, hd_c114, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/E", 1, 8, 8, 1, hd_p115, 2, hd_c115, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/O", 1, 8, 8, 1, hd_p116, 2, hd_c116, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/V", 1, 8, 8, 1, hd_p117, 2, hd_c117, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/R", 1, 8, 8, 1, hd_p118, 2, hd_c118, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/Y", 1, 8, 8, 1, hd_p119, 2, hd_c119, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "hud/fruit_cherry", 0, 16, 16, 4, hd_p120, 0, 0, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "hud/fruit_strawberry", 0, 16, 16, 4, hd_p121, 0, 0, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "hud/fruit_orange", 0, 16, 16, 4, hd_p122, 0, 0, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "hud/fruit_apple", 0, 16, 16, 4, hd_p123, 0, 0, 0, 0, 1, 0, 0x0F162606u, 0x0, 0x0, 0 },
+    { "hud/fruit_melon", 0, 16, 16, 4, hd_p124, 0, 0, 0, 0, 1, 0, 0x0F191712u, 0x0, 0x0, 0 },
+    { "hud/fruit_galaxian", 0, 16, 16, 4, hd_p125, 0, 0, 0, 0, 1, 0, 0x0F191712u, 0x0, 0x0, 0 },
+    { "hud/fruit_bell", 0, 16, 16, 4, hd_p126, 0, 0, 0, 0, 1, 0, 0x0F191712u, 0x0, 0x0, 0 },
+    { "hud/fruit_key", 0, 16, 16, 4, hd_p127, 0, 0, 0, 0, 1, 0, 0x0F191712u, 0x0, 0x0, 0 },
+    { "hud/lives", 0, 16, 16, 4, hd_p128, 0, 0, 0, 0, 1, 0, 0x0F110F27u, 0x0, 0x0, 0 },
+    { "dot", 0, 8, 8, 1, hd_p129, 0, 0, 0, 0, 1, 0, 0x0F110F27u, 0x0, 0x0, 0 },
+    { "dot_alt", 0, 8, 8, 1, hd_p130, 0, 0, "dot", 'n', 1, 0, 0x0F110F27u, 0x0, 0x0, 0 },
+    { "power_pellet", 0, 8, 8, 1, hd_p131, 0, 0, 0, 0, 1, 0, 0x0F110F27u, 0x0, 0x0, 0 },
+    { "font/A", 0, 8, 8, 1, hd_p132, 4, hd_c132, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/B", 0, 8, 8, 1, hd_p133, 4, hd_c133, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/C", 0, 8, 8, 1, hd_p134, 4, hd_c134, 0, 0, 0, 1, 0x0F170F21u, 0x0, 0x0, 0 },
+    { "font/D", 0, 8, 8, 1, hd_p135, 4, hd_c135, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/E", 0, 8, 8, 1, hd_p136, 4, hd_c136, 0, 0, 0, 1, 0x0F170F21u, 0x0, 0x0, 0 },
+    { "font/F", 0, 8, 8, 1, hd_p137, 4, hd_c137, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/G", 0, 8, 8, 1, hd_p138, 4, hd_c138, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/H", 0, 8, 8, 1, hd_p139, 4, hd_c139, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/I", 0, 8, 8, 1, hd_p140, 4, hd_c140, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/J", 0, 8, 8, 1, hd_p141, 4, hd_c141, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/K", 0, 8, 8, 1, hd_p142, 4, hd_c142, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/L", 0, 8, 8, 1, hd_p143, 4, hd_c143, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/M", 0, 8, 8, 1, hd_p144, 4, hd_c144, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/N", 0, 8, 8, 1, hd_p145, 4, hd_c145, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/O", 0, 8, 8, 1, hd_p146, 4, hd_c146, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/P", 0, 8, 8, 1, hd_p147, 4, hd_c147, 0, 0, 0, 1, 0x0F170F21u, 0x0, 0x0, 0 },
+    { "font/Q", 0, 8, 8, 1, hd_p148, 4, hd_c148, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/R", 0, 8, 8, 1, hd_p149, 4, hd_c149, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/S", 0, 8, 8, 1, hd_p150, 4, hd_c150, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/T", 0, 8, 8, 1, hd_p151, 4, hd_c151, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/U", 0, 8, 8, 1, hd_p152, 4, hd_c152, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/V", 0, 8, 8, 1, hd_p153, 4, hd_c153, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/W", 0, 8, 8, 1, hd_p154, 4, hd_c154, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/X", 0, 8, 8, 1, hd_p155, 4, hd_c155, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/Y", 0, 8, 8, 1, hd_p156, 4, hd_c156, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/Z", 0, 8, 8, 1, hd_p157, 4, hd_c157, 0, 0, 0, 1, 0x0F162606u, 0x0, 0x0, 0 },
+    { "font/0", 0, 8, 8, 1, hd_p158, 4, hd_c158, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/1", 0, 8, 8, 1, hd_p159, 4, hd_c159, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/2", 0, 8, 8, 1, hd_p160, 4, hd_c160, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/3", 0, 8, 8, 1, hd_p161, 4, hd_c161, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/4", 0, 8, 8, 1, hd_p162, 4, hd_c162, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/5", 0, 8, 8, 1, hd_p163, 4, hd_c163, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/6", 0, 8, 8, 1, hd_p164, 4, hd_c164, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/7", 0, 8, 8, 1, hd_p165, 4, hd_c165, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/8", 0, 8, 8, 1, hd_p166, 4, hd_c166, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/9", 0, 8, 8, 1, hd_p167, 4, hd_c167, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/dash", 0, 8, 8, 1, hd_p168, 4, hd_c168, 0, 0, 0, 1, 0x0F060F33u, 0x0, 0x0, 0 },
+    { "font/period", 0, 8, 8, 1, hd_p169, 4, hd_c169, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/cursor", 0, 8, 8, 1, hd_p170, 4, hd_c170, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "font/copyright", 0, 8, 8, 1, hd_p171, 4, hd_c171, 0, 0, 0, 1, 0x0F200F06u, 0x0, 0x0, 0 },
+    { "namco_logo", 0, 72, 8, 9, hd_p172, 1, hd_c172, 0, 0, 0, 0, 0x0F200F06u, 0x0, 0x0, 0 },
 };
 #define HD_GRAPHICS_N ((int)(sizeof(hd_graphics) / sizeof(hd_graphics[0])))

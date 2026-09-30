@@ -88,6 +88,7 @@ maze and backgrounds show through.
 | `pacman/left-right_1.png`, `left-right_2.png` | moving left **and** right (drawn facing left; flipped for right): mouth half open, wide open |
 | `pacman/down-up_1.png`, `down-up_2.png` | moving down **and** up (drawn facing down; flipped for up) |
 | `pacman/right_*.png`, `up_*.png` | *optional*, see "Mirrored pictures" below |
+| `pacman/closed_left.png`, `closed_right.png`, `closed_up.png`, `closed_down.png` | *optional*: the closed mouth when heading that way (otherwise `closed.png` is used for all four) |
 | `pacman/death_1.png` ... `death_9.png` | the death animation, in order (9 is the final pop) |
 | `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `left-right_1/2` (drawn looking left; flipped for right), `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
 | `ghosts/frightened/blue_1.png`, `blue_2.png` | a blue (edible) ghost |

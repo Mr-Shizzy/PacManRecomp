@@ -247,17 +247,19 @@ typedef struct {
 /* "A sprite with tile `tile` (flip `flags`) sits (dx,dy) from this tile":
  * the runner's oamNearby condition, used to tell apart pictures that share
  * a tile (a ghost's top half over different feet). */
-typedef struct { int dx, dy, tile, flags; } Cond;
+typedef struct { int dx, dy, tile, flags, ram_addr, ram_val; } Cond;   /* ram_addr: memory check */
 static Cond s_conds[1024];
 static int  s_nconds;
 
-static int cond_id(int dx, int dy, int tile, int flags) {
+static int cond_add(Cond c) {
     for (int i = 0; i < s_nconds; i++)
-        if (s_conds[i].dx == dx && s_conds[i].dy == dy && s_conds[i].tile == tile && s_conds[i].flags == flags)
-            return i;
+        if (!memcmp(&s_conds[i], &c, sizeof(c))) return i;
     if (s_nconds == (int)(sizeof(s_conds) / sizeof(s_conds[0]))) return -2;
-    s_conds[s_nconds] = (Cond){ dx, dy, tile, flags };
+    s_conds[s_nconds] = c;
     return s_nconds++;
+}
+static int cond_id(int dx, int dy, int tile, int flags) {
+    return cond_add((Cond){ dx, dy, tile, flags, 0, 0 });
 }
 
 static Entry *s_entries;
@@ -383,7 +385,7 @@ static int has_piece(const HdGraphic *h, int x, int y, int tile, int flags) {
 static int same_tile(const HdGraphic *g, const HdPiece *pc, int hi, int k, int gi, int p) {
     const HdGraphic *h = &hd_graphics[hi];
     const HdPiece *hp = &h->pieces[k];
-    return !(hi == gi && k == p) && h->sprite && hp->tile == pc->tile &&
+    return !(hi == gi && k == p) && h->sprite && !h->ram_addr && hp->tile == pc->tile &&
            (hp->flags & 3) == (pc->flags & 3) && pals_overlap(g, h);
 }
 
@@ -396,6 +398,7 @@ static int same_tile(const HdGraphic *g, const HdPiece *pc, int hi, int k, int g
 static int piece_cond(int gi, int p) {
     const HdGraphic *g = &hd_graphics[gi];
     const HdPiece *pc = &g->pieces[p];
+    if (g->ram_addr) return cond_add((Cond){ 0, 0, 0, 0, g->ram_addr, g->ram_val });
     if (!g->sprite) return -1;
     int first = 1, shared = 0;
     for (int hi = 0; hi < HD_GRAPHICS_N; hi++)
@@ -555,9 +558,14 @@ int hdbuild_make(const char *graphics_dir, char *out_dir, size_t out_n) {
     static const char *const k_flip_cond[4] = {
         "[!hmirror&!vmirror]", "[hmirror&!vmirror]", "[!hmirror&vmirror]", "[hmirror&vmirror]"
     };
-    for (int i = 0; i < s_nconds; i++)
-        fprintf(f, "<condition>nb%d,oamNearby,%d,%d,%X,%d\n", i,
-                s_conds[i].dx, s_conds[i].dy, s_conds[i].tile, s_conds[i].flags);
+    for (int i = 0; i < s_nconds; i++) {
+        if (s_conds[i].ram_addr)
+            fprintf(f, "<condition>nb%d,memoryCheckConstant,%X,==,%X\n", i,
+                    s_conds[i].ram_addr, s_conds[i].ram_val);
+        else
+            fprintf(f, "<condition>nb%d,oamNearby,%d,%d,%X,%d\n", i,
+                    s_conds[i].dx, s_conds[i].dy, s_conds[i].tile, s_conds[i].flags);
+    }
     for (int i = 0; i < s_nentries; i++) {
         const Entry *e = &s_entries[i];
         int any = e->pal == 0xFFFFFFFFu;

@@ -103,7 +103,7 @@ def main():
 
     written = 0
     for g in L["graphics"]:
-        if g.get("mirror") or g.get("also"):
+        if g.get("mirror") or g.get("also") or g.get("optional"):
             continue                    # made from its partner / another entry's file
         sprite = g["type"] == "sprite"
         if g.get("tint"):
