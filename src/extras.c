@@ -5,6 +5,7 @@
  * no overrides); additions are the title-screen OPTIONS menu (options.c) and
  * the pause-screen exit prompt (pause_menu.c).
  */
+#include "hdpack.h"
 #include "game_extras.h"
 #include "nes_runtime.h"
 #include "pacman_full_decls.h"
@@ -38,8 +39,31 @@ void game_on_frame(uint64_t frame_count) {
     options_on_frame();
     pause_menu_on_frame();
 }
+/* Which way Pac-Man is drawn facing, for the optional closed_<dir> pictures
+ * (HD pack memory check at $5F00: 0 up, 1 left, 2 down, 3 right). Taken
+ * from his open-mouth frames in OAM, so it is right in the cutscenes too,
+ * where the game doesn't update his heading byte $51. The closed frame
+ * looks the same every way, so it keeps the last open frame's direction. */
+static void track_pac_facing(void) {
+    static uint8_t facing = 1;
+    for (int i = 0; i < 64; i++) {
+        const uint8_t *e = &g_ppu_oam[i * 4];
+        if (e[0] >= 0xEF || (e[2] & 3) != (g_ram[0x38] & 3)) continue;
+        switch (e[1]) {
+            case 0x01: case 0x02: case 0x05: case 0x06:     /* side frames */
+                facing = (e[2] & 0x40) ? 3 : 1; break;
+            case 0x03: case 0x04: case 0x07: case 0x08:     /* up/down frames */
+                facing = (e[2] & 0x80) ? 0 : 2; break;
+            default: continue;
+        }
+        break;
+    }
+    hdpack_set_var(0, facing);
+}
+
 void game_post_nmi(uint64_t frame_count) {
     (void)frame_count;
+    track_pac_facing();
     options_post_nmi();
     hs_post_nmi();
     soundpack_frame();
