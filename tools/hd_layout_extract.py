@@ -206,8 +206,8 @@ INTER = {
                                P("4FV", "50", "4DV", "4EV"), P("50", "4FB", "4EB", "4DB")),
     "big_pacman_open":   quads(P("4D", "4E", "4F", "51"), P("4EH", "52", "53", "54"),
                                P("4FV", "51V", "4DV", "4EV"), P("53V", "54V", "4EB", "52V")),
-    "snag_1":            P("55", "4C", "56", "4C"),
-    "snag_2":            P("56V", "4C", "55V", "4C"),
+    "big_pacman_wide":   quads(P("4D", "4E", "4F", "51"), P("55", "4C", "56", "4C"),
+                               P("4FV", "51V", "4DV", "4EV"), P("56V", "4C", "55V", "4C")),
     "tear_1":            P("4C", "57", "4C", "58"),
     "tear_2":            P("4C", "59", "4C", "5A"),
     "tear_3":            P("4C", "5B", "4C", "5C"),
@@ -224,7 +224,7 @@ for n, p in INTER.items():
     size = 32 if n.startswith("big_") else 16
     ps = pals_seen(p)
     sprite("intermission/" + n, p, ps,
-           {"of": "intermission/snag_1", "axis": "v"} if n == "snag_2" else None, wild=not ps)
+           None, wild=not ps)
     graphics[-1]["w"] = graphics[-1]["h"] = size
 
 # ---- sprite text (READY!, PLAYER ONE/TWO, GAME OVER) ------------------------------
