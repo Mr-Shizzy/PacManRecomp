@@ -1,5 +1,5 @@
 /*
- * src/soundpack.c — user sound effects / music (the active mod's sounds/*.wav).
+ * src/soundpack.c — user sound effects / music (the active mod's sounds/<name>.wav).
  *
  * A WAV named after a sound in the active mod's sounds/ folder replaces
  * the game's own: the original keeps running silently (so the game's timing

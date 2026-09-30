@@ -165,7 +165,13 @@ int modgen_write(const uint8_t chr[0x2000], const char *mod_dir) {
     write_text(path,
         "Put replacement sounds here as WAV files named:\n"
         "start extra_life death dot fruit eat_ghost eyes fright siren\n"
-        "intermission pause music (e.g. start.wav). See docs/MODDING.md.\n");
+        "intermission pause music (e.g. start.wav). See docs/MODDING.md.\n"
+        "\n"
+        "The originals folder has the game's own sounds, recorded, with the\n"
+        "same names: play one to hear which sound a name is, and how long it\n"
+        "lasts. The game ignores that folder. To replace a sound, put your\n"
+        "WAV here (not in originals); you can start from a copy of the original.\n"
+        "music has no original: it's an extra, a loop during play.\n");
     snprintf(path, sizeof(path), "%s/mod.txt", mod_dir);
     if (!exists(path)) {
         const char *name = mod_dir + strlen(mod_dir);

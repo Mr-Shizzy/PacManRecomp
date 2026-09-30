@@ -12,18 +12,19 @@ the original.
 
 ## 1. Make your first mod (5 minutes)
 
-1. In the launcher, click **Mods**, then **Dump textures**.
+1. In the launcher, click **Mods**, then **Dump textures & sounds**.
    This saves every picture of the game as its own PNG file, enlarged 4
    times, in the original colors, into a new mod folder (**My Mod 1**, then
-   **My Mod 2**...) in the `mods` folder next to the game. It picks that mod
-   and opens its folder.
+   **My Mod 2**...) in the `mods` folder next to the game. It also records
+   every sound of the game into `sounds/originals`, so you can hear which
+   sound is which. It picks that mod and opens its folder.
 2. Open any file in its `graphics` folder in your image editor (Krita, GIMP,
    Paint.NET, Aseprite, Photoshop...), paint it, save it (same name, PNG).
 3. Play. (Already in the game? In **OPTIONS > MODS** pick **NONE** and then
    your mod again to see your changes.)
 
-For power users there is also a script that does the same, with a choice of
-size: `python tools/make_mod_template.py pacman.nes "build/mods/My Mod" --scale 8`.
+For power users there is also a script that saves the pictures (not the
+sounds), with a choice of size: `python tools/make_mod_template.py pacman.nes "build/mods/My Mod" --scale 8`.
 
 That's it. Everything below is reference.
 
@@ -41,6 +42,7 @@ mods/
     preview.png    small picture shown in the MODS menu
     graphics/      the pictures (section 3), plus logo.png (section 4)
     sounds/        the sounds (section 5)
+      originals/   the game's own sounds, recorded (to listen to; ignored)
 ```
 
 `mod.txt` looks like this (all three lines are optional):
@@ -148,7 +150,12 @@ resolution, so bigger pictures stay sharp.
 ## 5. Sounds (`sounds/`)
 
 Put WAV files named after the sound into `sounds/`. Any sound without a file
-keeps the original. The original keeps running silently, so the game's timing
+keeps the original.
+
+**Not sure which sound is which?** Play the files in `sounds/originals/`:
+**Dump textures & sounds** records every sound of the game there, under the
+same names as below. The game ignores that folder. To change a sound, put
+your file in `sounds/` itself (you can start from a copy of the original). The original keeps running silently, so the game's timing
 never changes: keep your sounds about as long as the originals.
 
 | File | Replaces | Plays | Original length |

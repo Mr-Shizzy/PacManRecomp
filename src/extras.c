@@ -15,6 +15,7 @@
 #include "soundpack.h"
 #include "logo.h"
 #include "mods.h"
+#include "sounddump.h"
 #include "capture.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -29,7 +30,7 @@ const char *game_get_name(void) { return "Pac-Man"; }
 void game_on_init(void) {
     options_init();
     hs_init();
-    mods_init();                /* sounds, logo, HD graphics */
+    if (!sounddump_active()) mods_init();   /* sounds, logo, HD graphics */
     capture_init();             /* dev tool, off unless PACMAN_HD_CAPTURE */
     nesrecomp_set_escape_handler(pause_menu_escape);
 }
@@ -38,13 +39,14 @@ void game_on_frame(uint64_t frame_count) {
     if (hs_on_frame()) return;      /* leaderboard screens own the frame */
     options_on_frame();
     pause_menu_on_frame();
+    sounddump_pre_nmi();            /* the hidden sound recorder, if running */
 }
 /* Which way Pac-Man is drawn facing, for the optional closed_<dir> pictures
  * (HD pack memory check at $5F00: 0 up, 1 left, 2 down, 3 right). Taken
  * from his open-mouth frames in OAM, so it is right in the cutscenes too,
  * where the game doesn't update his heading byte $51. Only Pac-Man uses
- * tiles 01-08. The closed frame
- * looks the same every way, so it keeps the last open frame's direction. */
+ * tiles 01-08. The closed frame looks the same every way, so it keeps the
+ * last open frame's direction. */
 static void track_pac_facing(void) {
     static uint8_t facing = 1, scene = 0xFF;
     if (g_ram[0x3F] != scene) {     /* he enters every cutscene ($3F = 10) going left */
@@ -71,10 +73,11 @@ void game_post_nmi(uint64_t frame_count) {
     track_pac_facing();
     options_post_nmi();
     hs_post_nmi();
-    soundpack_frame();
+    if (sounddump_active()) sounddump_post_nmi();
+    else soundpack_frame();
 }
 
-int game_handle_arg(const char *key, const char *val) { (void)key; (void)val; return 0; }
+int game_handle_arg(const char *key, const char *val) { return sounddump_arg(key, val); }
 const char *game_arg_usage(void) { return NULL; }
 
 void game_run_nmi(void) { func_NMI(); }

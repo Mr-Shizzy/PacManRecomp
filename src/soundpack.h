@@ -1,5 +1,5 @@
 /*
- * src/soundpack.h — user sound effects / music (the active mod's sounds/*.wav).
+ * src/soundpack.h — user sound effects / music (the active mod's sounds/<name>.wav).
  */
 #pragma once
 

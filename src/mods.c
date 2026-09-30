@@ -18,6 +18,7 @@
 #include "logo.h"
 #include "hdbuild.h"
 #include "modgen.h"
+#include "sounddump.h"
 #include "nes_text.h"
 #include "nes_runtime.h"
 #include "config.h"
@@ -177,7 +178,7 @@ void mods_init(void) {
 }
 
 /* ---- making mods --------------------------------------------------------- */
-static char s_msg[96];          /* result of the last action, shown once */
+static char s_msg[256];          /* result of the last action, shown once */
 
 /* A new starter mod from `chr`, made the active choice (not applied). */
 static int create_mod(const uint8_t *chr, char *folder, size_t n) {
@@ -433,17 +434,20 @@ static int mp_get(void *ctx, int i, RecompLauncherCHostRow *r) {
     case MR_STEPS:
         r->type = RECOMP_HOST_ROW_TEXT;
         snprintf(r->label, sizeof(r->label),
-                 "1. Dump textures: saves every picture in the game as a PNG file in a new "
-                 "mod folder (My Mod 1, My Mod 2...), picks that mod and opens the folder.\n"
-                 "2. Edit the pictures in any paint program and save them with the same names.\n"
-                 "3. Press Play. Your pictures replace the originals.");
+                 "1. Dump textures & sounds: saves every picture in the game as a PNG file, "
+                 "and a recording of every sound, in a new mod folder (My Mod 1, My Mod 2...), "
+                 "picks that mod and opens the folder.\n"
+                 "2. Edit the pictures in any paint program and save them with the same names. "
+                 "For sounds, put your own WAV files in sounds (see the README there).\n"
+                 "3. Press Play. Your pictures and sounds replace the originals.");
         break;
     case MR_DUMP:
         r->type = RECOMP_HOST_ROW_BUTTON;
-        snprintf(r->label, sizeof(r->label), "Dump textures");
+        snprintf(r->label, sizeof(r->label), "Dump textures & sounds");
         snprintf(r->help, sizeof(r->help), "Saves every picture in the game as a PNG, 4x bigger "
-                 "than the original, into a new folder in mods. Nothing in the game changes "
-                 "until you edit them.");
+                 "than the original, and records every sound as a WAV (in sounds/originals, to "
+                 "listen to), into a new folder in mods. Nothing in the game changes until you "
+                 "edit or add files.");
         break;
     default:
         return 0;
@@ -476,10 +480,12 @@ static int mp_set(void *ctx, int i, int v, const char *rom) {
         int w = create_mod(chr, folder, sizeof(folder));
         if (w < 0) { snprintf(s_msg, sizeof(s_msg), "Couldn't create the mods folder."); return 0; }
         set_active(folder);
-        snprintf(path, sizeof(path), "%smods/%s/graphics", s_exe, folder);
+        snprintf(path, sizeof(path), "%smods/%s/sounds/originals", s_exe, folder);
+        int snd = sounddump_run(rom, path);         /* the game's own sounds, recorded */
+        snprintf(path, sizeof(path), "%smods/%s", s_exe, folder);
         modgen_open_folder(path);
-        snprintf(s_msg, sizeof(s_msg), "Saved %d pictures as the mod \"%s\" and opened its folder. "
-                 "Edit them, then press Play.", w, folder);
+        snprintf(s_msg, sizeof(s_msg), "Saved %d pictures%s as the mod \"%s\" and opened its "
+                 "folder. Edit them, then press Play.", w, snd ? " and the sounds" : "", folder);
         return 1;
     }
     case MR_OPEN:
