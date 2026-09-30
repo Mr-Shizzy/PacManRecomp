@@ -85,15 +85,15 @@ maze and backgrounds show through.
 | Folder / file | What it is |
 |---|---|
 | `pacman/closed.png` | Pac-Man with his mouth shut (all directions) |
-| `pacman/left-right_1.png`, `left-right_2.png` | moving left **and** right (drawn facing left; flipped for right): mouth half open, wide open |
-| `pacman/down-up_1.png`, `down-up_2.png` | moving down **and** up (drawn facing down; flipped for up) |
+| `pacman/left+right_1.png`, `left+right_2.png` | moving left **and** right (drawn facing left; flipped for right): mouth half open, wide open |
+| `pacman/down+up_1.png`, `down+up_2.png` | moving down **and** up (drawn facing down; flipped for up) |
 | `pacman/right_*.png`, `up_*.png` | *optional*, see "Mirrored pictures" below |
 | `pacman/closed_left.png`, `closed_right.png`, `closed_up.png`, `closed_down.png` | *optional*: the closed mouth when heading that way (otherwise `closed.png` is used for all four) |
 | `pacman/death_1.png` ... `death_9.png` | the death animation, in order (9 is the final pop) |
-| `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `left-right_1/2` (drawn looking left; flipped for right), `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
+| `ghosts/blinky/`, `pinky/`, `inky/`, `clyde/` | each ghost: `left+right_1/2` (drawn looking left; flipped for right), `down_1/2`, `up_1/2` (the eyes show where it's going; 1 and 2 are the wiggling feet) |
 | `ghosts/frightened/blue_1.png`, `blue_2.png` | a blue (edible) ghost |
 | `ghosts/frightened/white_1.png`, `white_2.png` | the white flash when it's about to recover |
-| `ghosts/eyes/left-right.png`, `down.png`, `up.png` | eaten ghost's eyes going home |
+| `ghosts/eyes/left+right.png`, `down.png`, `up.png` | eaten ghost's eyes going home |
 | `fruit/cherry.png` ... `fruit/key.png` | the bonus fruit in the maze (cherry, strawberry, orange, apple, melon, galaxian, bell, key) |
 | `scores/100.png` ... `scores/5000.png` | the points that pop up (200-1600 for ghosts; 100, 300, 500, 700, 1000, 2000, 3000, 5000 for fruit) |
 | `hud/fruit_*.png` | the small fruit icons in the score column |
@@ -110,7 +110,7 @@ maze and backgrounds show through.
 
 ### Mirrored pictures
 
-Pictures named `left-right` or `down-up` are used for **both** directions: the
+Pictures named `left+right` or `down+up` are used for **both** directions: the
 game flips them for the other one. So a hat painted once shows whichever way
 Pac-Man faces. Want a side to look different (say, an eye patch that stays on
 one eye)? Add your own `right_1.png` / `right_2.png` (or `up_1.png` /

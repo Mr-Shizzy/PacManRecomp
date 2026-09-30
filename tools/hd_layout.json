@@ -758,7 +758,7 @@
    "wild": true
   },
   {
-   "name": "pacman/left-right_1",
+   "name": "pacman/left+right_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -795,7 +795,7 @@
    "wild": true
   },
   {
-   "name": "pacman/left-right_2",
+   "name": "pacman/left+right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -866,7 +866,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "pacman/left-right_1",
+    "of": "pacman/left+right_1",
     "axis": "h"
    },
    "wild": true
@@ -906,13 +906,13 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "pacman/left-right_2",
+    "of": "pacman/left+right_2",
     "axis": "h"
    },
    "wild": true
   },
   {
-   "name": "pacman/down-up_1",
+   "name": "pacman/down+up_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -949,7 +949,7 @@
    "wild": true
   },
   {
-   "name": "pacman/down-up_2",
+   "name": "pacman/down+up_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1020,7 +1020,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "pacman/down-up_1",
+    "of": "pacman/down+up_1",
     "axis": "v"
    },
    "wild": true
@@ -1060,7 +1060,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "pacman/down-up_2",
+    "of": "pacman/down+up_2",
     "axis": "v"
    },
    "wild": true
@@ -1641,7 +1641,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/blinky/left-right_1",
+   "name": "ghosts/blinky/left+right_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1679,7 +1679,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/blinky/left-right_2",
+   "name": "ghosts/blinky/left+right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1751,7 +1751,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "ghosts/blinky/left-right_1",
+    "of": "ghosts/blinky/left+right_1",
     "axis": "h"
    },
    "wild": false
@@ -1791,7 +1791,7 @@
     "FF272006"
    ],
    "mirror": {
-    "of": "ghosts/blinky/left-right_2",
+    "of": "ghosts/blinky/left+right_2",
     "axis": "h"
    },
    "wild": false
@@ -1947,7 +1947,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/pinky/left-right_1",
+   "name": "ghosts/pinky/left+right_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -1985,7 +1985,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/pinky/left-right_2",
+   "name": "ghosts/pinky/left+right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2058,7 +2058,7 @@
     "FF202033"
    ],
    "mirror": {
-    "of": "ghosts/pinky/left-right_1",
+    "of": "ghosts/pinky/left+right_1",
     "axis": "h"
    },
    "wild": false
@@ -2099,7 +2099,7 @@
     "FF202033"
    ],
    "mirror": {
-    "of": "ghosts/pinky/left-right_2",
+    "of": "ghosts/pinky/left+right_2",
     "axis": "h"
    },
    "wild": false
@@ -2253,7 +2253,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/inky/left-right_1",
+   "name": "ghosts/inky/left+right_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2291,7 +2291,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/inky/left-right_2",
+   "name": "ghosts/inky/left+right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2364,7 +2364,7 @@
     "FF212021"
    ],
    "mirror": {
-    "of": "ghosts/inky/left-right_1",
+    "of": "ghosts/inky/left+right_1",
     "axis": "h"
    },
    "wild": false
@@ -2404,7 +2404,7 @@
     "FF212021"
    ],
    "mirror": {
-    "of": "ghosts/inky/left-right_2",
+    "of": "ghosts/inky/left+right_2",
     "axis": "h"
    },
    "wild": false
@@ -2568,7 +2568,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/clyde/left-right_1",
+   "name": "ghosts/clyde/left+right_1",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2611,7 +2611,7 @@
    "wild": false
   },
   {
-   "name": "ghosts/clyde/left-right_2",
+   "name": "ghosts/clyde/left+right_2",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -2694,7 +2694,7 @@
     "FF262017"
    ],
    "mirror": {
-    "of": "ghosts/clyde/left-right_1",
+    "of": "ghosts/clyde/left+right_1",
     "axis": "h"
    },
    "wild": false
@@ -2739,7 +2739,7 @@
     "FF262017"
    ],
    "mirror": {
-    "of": "ghosts/clyde/left-right_2",
+    "of": "ghosts/clyde/left+right_2",
     "axis": "h"
    },
    "wild": false
@@ -3015,7 +3015,7 @@
    "wild": true
   },
   {
-   "name": "ghosts/eyes/left-right",
+   "name": "ghosts/eyes/left+right",
    "type": "sprite",
    "w": 16,
    "h": 16,
@@ -3088,7 +3088,7 @@
     "FF202033"
    ],
    "mirror": {
-    "of": "ghosts/eyes/left-right",
+    "of": "ghosts/eyes/left+right",
     "axis": "h"
    },
    "wild": true
