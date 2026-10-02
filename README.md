@@ -13,8 +13,7 @@ cartridge, with a set of modern extras on top.
 | ![Title screen with the added menu](docs/images/title.png) | ![In-game options](docs/images/options.png) |
 | ![Gameplay with the level number](docs/images/gameplay.png) | ![A Christmas mod made with the dump](docs/images/mod_christmas.png) |
 
-*Title screen, in-game options, gameplay, and an example Christmas mod made
-with the modding tools (not included).*
+*Christmas mod made with the modding tools (not included).*
 
 ![The launcher](docs/images/launcher.png)
 
