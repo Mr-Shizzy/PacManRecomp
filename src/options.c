@@ -725,13 +725,15 @@ static void draw_screen(uint32_t *fb) {
  * score row 9, scores ending at column 28. LEVEL follows the same rhythm. */
 #define HUD_LABEL_COL  23
 #define HUD_VALUE_END  28
-#define HUD_LEVEL_ROW  11
+#define HUD_LEVEL_ROW  11     /* under the score; 2 players: 2UP is there, */
+#define HUD_LEVEL_ROW_2P 15   /* so under 2UP's score instead */
 
 static void draw_level_hud(uint32_t *fb) {
     char num[8];
+    int row = (g_ram[RAM_GAME_MODE] & 1) ? HUD_LEVEL_ROW_2P : HUD_LEVEL_ROW;
     snprintf(num, sizeof(num), "%d", g_ram[RAM_STAGE] + 1);
-    text_draw(fb, HUD_LABEL_COL, HUD_LEVEL_ROW, "LEVEL", TEXT_RED);
-    text_draw(fb, HUD_VALUE_END + 1 - (int)strlen(num), HUD_LEVEL_ROW + 2, num, TEXT_WHITE);
+    text_draw(fb, HUD_LABEL_COL, row, "LEVEL", TEXT_RED);
+    text_draw(fb, HUD_VALUE_END + 1 - (int)strlen(num), row + 2, num, TEXT_WHITE);
 }
 
 void options_render(uint32_t *fb) {
