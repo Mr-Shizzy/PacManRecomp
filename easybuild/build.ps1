@@ -55,11 +55,14 @@ foreach ($d in $downloads) {
     Say "  Downloading $($d.Name)..."
     try { Invoke-WebRequest -Uri $d.Url -OutFile $zip -UseBasicParsing }
     catch { Fail "Couldn't download $($d.Name). Check your internet connection and try again.`n$($_.Exception.Message)" }
-    $hash = (Get-FileHash $zip -Algorithm SHA256).Hash
+    $sha = [Security.Cryptography.SHA256]::Create()
+    $fs = [IO.File]::OpenRead($zip)
+    try { $hash = -join ($sha.ComputeHash($fs) | ForEach-Object { $_.ToString('X2') }) } finally { $fs.Dispose() }
     if ($hash -ne $d.Sha) { Remove-Item $zip -Force; Fail "The $($d.Name) download didn't match its expected fingerprint; it was deleted. Try again later." }
     Say "  Unpacking $($d.Name)..."
     if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
-    Expand-Archive $zip -DestinationPath $dir -Force
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [IO.Compression.ZipFile]::ExtractToDirectory($zip, $dir)
     Remove-Item $zip -Force
     New-Item -ItemType File (Join-Path $dir '.done') | Out-Null
 }

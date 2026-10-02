@@ -23,7 +23,7 @@ done
 rm -rf "$stage/source/PacManRecomp/easybuild"           # it's at the top level
 cp "$here/Build Pac-Man.bat" "$here/build.ps1" "$here/READ ME FIRST.txt" "$stage/"
 
-(cd "$out" && powershell -NoProfile -Command \
-    "Compress-Archive -Path '$name' -DestinationPath '$name.zip' -Force")
+# Windows' own tar writes a standard zip (Compress-Archive uses backslashes).
+(cd "$out" && /c/Windows/System32/tar.exe -a -c -f "$name.zip" "$name")
 rm -rf "$stage"
 echo "made $out/$name.zip"
