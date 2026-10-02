@@ -20,3 +20,6 @@ tests/run/
 # HD pack work folder (ROM-derived art)
 hdpack_starter/
 tests/inter_probe.txt
+
+# Easy Build packages (easybuild/make_package.sh)
+release/

@@ -1,0 +1,54 @@
+PacManRecomp 1.0 - Easy Build
+=============================
+
+Pac-Man for the NES, rebuilt as a real Windows game, with a launcher,
+extras, cheats and easy modding.
+
+This download does NOT contain the game itself. You build it on your own PC
+from your own copy of the Pac-Man ROM. It's automatic: no typing commands,
+nothing to install.
+
+
+WHAT YOU NEED
+  - Windows 10 or 11 (64-bit)
+  - Your own Pac-Man ROM: Pac-Man (USA) (Namco), a .nes file
+  - An internet connection the first time (the build tools are downloaded,
+    about 245 MB) and about 1 GB of free disk space
+
+
+HOW TO BUILD AND PLAY
+  1. Unzip this whole folder somewhere, e.g. your Desktop or Documents.
+  2. Copy your Pac-Man ROM (the .nes file) into this folder, next to
+     "Build Pac-Man.bat". Any file name is fine.
+  3. Double-click "Build Pac-Man.bat" and wait for "DONE!" (a few minutes).
+     If Windows shows "Windows protected your PC", click "More info", then
+     "Run anyway".
+  4. Open the new "Game" folder and double-click PacManRecomp.exe.
+
+The Game folder is your finished game: you can move it anywhere. Everything
+else in this folder can be deleted afterwards (or kept, to build again).
+
+
+IF SOMETHING GOES WRONG
+  - The window says what the problem is (wrong ROM, no internet...).
+  - If a build step fails, a file called build-log.txt explains why.
+    Include it if you ask for help on the GitHub page:
+    https://github.com/Mr-Shizzy/PacManRecomp/issues
+
+
+WHAT'S IN THIS FOLDER
+  Build Pac-Man.bat   double-click this to build
+  build.ps1           the build steps (used by the .bat)
+  source\             the source code (PacManRecomp, NESRecomp, recomp-ui)
+  build-tools\        made by the build: the compiler tools it downloaded
+  Game\               made by the build: your playable game
+
+
+The build tools are free and come from their official pages:
+  llvm-mingw  https://github.com/mstorsjo/llvm-mingw
+  CMake       https://cmake.org
+  Ninja       https://ninja-build.org
+
+Pac-Man (c) Bandai Namco Entertainment. Unofficial fan project, not
+affiliated with or endorsed by Bandai Namco. No ROM, graphics or sound from
+the game is included. See source\PacManRecomp\LICENSE for licenses.
