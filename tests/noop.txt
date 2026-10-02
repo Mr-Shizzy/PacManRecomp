@@ -1,2 +1,0 @@
-WAIT 2
-EXIT 0

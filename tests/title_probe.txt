@@ -1,3 +1,0 @@
-WAIT 420
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/tt_mod.png
-EXIT 0

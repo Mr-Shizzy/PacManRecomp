@@ -7,12 +7,13 @@
 #   Each extra argument becomes a line of the test's pacman_options.ini
 #   ("config:Key = value" goes to its config.ini instead);
 #   with none, the test runs on default settings.
+#   Screenshots (SCREENSHOT tests/out/x.png) land under this checkout's tests/out/.
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(dirname "$here")
 run="$here/run"
 
-mkdir -p "$run"
+mkdir -p "$run" "$here/out"
 rm -f "$run/config.ini" "$run/pacman_options.ini" "$run/pacman_scores.ini" "$run/keybinds.ini"
 cp "$root/build/PacManRecomp.exe" "$root/build/SDL2.dll" "$run/"
 
@@ -25,4 +26,9 @@ for line in "$@"; do
     esac
 done
 
-exec "$run/PacManRecomp.exe" "$root/pacman.nes" --script "$here/$(basename "$script")"
+# The runner resolves relative screenshot paths under C:/temp, so rewrite
+# "SCREENSHOT tests/out/x.png" to an absolute path in this checkout.
+sed -E "s#^SCREENSHOT tests/out/#SCREENSHOT $root/tests/out/#" "$here/$(basename "$script")" > "$run/script.txt"
+
+cd "$root"
+exec "$run/PacManRecomp.exe" "$root/pacman.nes" --script "$run/script.txt"

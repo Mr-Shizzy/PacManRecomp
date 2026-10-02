@@ -8,12 +8,12 @@ LOG ---early
 DUMP_RAM 03F 01
 DUMP_RAM 067 02
 DUMP_RAM 09F 16
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/g1_level5.png
+SCREENSHOT tests/out/g1_level5.png
 HOLD UP
 WAIT 1500
 RELEASE UP
 LOG ---late
 DUMP_RAM 03F 01
 DUMP_RAM 067 02
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/g2_late.png
+SCREENSHOT tests/out/g2_late.png
 EXIT 0

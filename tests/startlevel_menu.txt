@@ -37,9 +37,9 @@ RELEASE DOWN
 WAIT 6
 HOLD RIGHT
 WAIT 150
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sl_mid.png
+SCREENSHOT tests/out/sl_mid.png
 WAIT 200
 RELEASE RIGHT
 WAIT 5
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sl_end.png
+SCREENSHOT tests/out/sl_end.png
 EXIT 0

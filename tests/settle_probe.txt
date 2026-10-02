@@ -1,3 +1,0 @@
-WAIT 360
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/settle.png
-EXIT 0

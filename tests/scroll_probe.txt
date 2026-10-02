@@ -1,9 +1,0 @@
-WAIT 60
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sc60.png
-WAIT 60
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sc120.png
-WAIT 60
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sc180.png
-WAIT 60
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sc240.png
-EXIT 0

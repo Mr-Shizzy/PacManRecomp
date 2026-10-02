@@ -7,5 +7,5 @@ WAIT 280
 HOLD LEFT
 WAIT 60
 RELEASE LEFT
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/st_game.png
+SCREENSHOT tests/out/st_game.png
 EXIT 0

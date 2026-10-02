@@ -33,7 +33,7 @@ WAIT_RAM8 67 00
 WAIT_RAM8 67 00
 WAIT_RAM8 67 00
 WAIT 60
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/t1_first.png
+SCREENSHOT tests/out/t1_first.png
 HOLD SELECT
 WAIT 4
 RELEASE SELECT
@@ -50,7 +50,7 @@ HOLD START
 WAIT 4
 RELEASE START
 WAIT 10
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/t2_second.png
+SCREENSHOT tests/out/t2_second.png
 HOLD SELECT
 WAIT 4
 RELEASE SELECT
@@ -76,5 +76,5 @@ WAIT 4
 RELEASE START
 WAIT 10
 WAIT 140
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/t3_board.png
+SCREENSHOT tests/out/t3_board.png
 EXIT 0

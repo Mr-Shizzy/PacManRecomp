@@ -36,11 +36,11 @@ WAIT 4
 RELEASE A
 WAIT 8
 WAIT 20
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/mm1.png
+SCREENSHOT tests/out/mm1.png
 HOLD DOWN
 WAIT 4
 RELEASE DOWN
 WAIT 8
 WAIT 10
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/mm2.png
+SCREENSHOT tests/out/mm2.png
 EXIT 0

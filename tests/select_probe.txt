@@ -1,8 +1,0 @@
-WAIT 400
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sel0.png
-HOLD SELECT
-WAIT 6
-RELEASE SELECT
-WAIT 20
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/sel1.png
-EXIT 0

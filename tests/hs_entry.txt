@@ -16,7 +16,7 @@ WAIT_RAM8 3F 0A
 WAIT_RAM8 3F 0A
 WAIT_RAM8 3F 0A
 WAIT 30
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e1_entry.png
+SCREENSHOT tests/out/e1_entry.png
 HOLD SELECT
 WAIT 4
 RELEASE SELECT
@@ -37,23 +37,23 @@ HOLD START
 WAIT 4
 RELEASE START
 WAIT 10
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e2_entry_third.png
+SCREENSHOT tests/out/e2_entry_third.png
 HOLD START
 WAIT 4
 RELEASE START
 WAIT 10
 WAIT 140
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e3_results.png
+SCREENSHOT tests/out/e3_results.png
 WAIT 500
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e4_after.png
+SCREENSHOT tests/out/e4_after.png
 WAIT 300
 ASSERT_RAM8 48 FF back-at-title
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e5_title.png
+SCREENSHOT tests/out/e5_title.png
 WAIT 200
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e6_title_rest.png
+SCREENSHOT tests/out/e6_title_rest.png
 HOLD START
 WAIT 4
 RELEASE START
 WAIT 200
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/e7_hud.png
+SCREENSHOT tests/out/e7_hud.png
 EXIT 0

@@ -7,5 +7,5 @@ HOLD START
 WAIT 4
 RELEASE START
 WAIT 400
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/hud2p.png
+SCREENSHOT tests/out/hud2p.png
 EXIT 0

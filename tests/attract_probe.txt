@@ -1,5 +1,0 @@
-TURBO ON
-WAIT 2110
-SCREENSHOT C:/Recomp/PacMan/PacManRecomp/tests/out/attract_ready.png
-WAIT 5
-EXIT 0
