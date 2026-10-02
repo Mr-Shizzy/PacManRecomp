@@ -532,14 +532,27 @@ void options_quit_to_title(void) {
 
 enum { RUMBLE_OFF, RUMBLE_LIGHT, RUMBLE_MEDIUM, RUMBLE_HARD };
 
+/* Whose turn it is (1 or 2): only that player's gamepad rumbles. $46 is the
+ * current player in a 2-player game ($47 = 1). */
+#define RAM_CUR_PLAYER  0x46
+static int rumble_player(void) {
+    return (g_ram[RAM_GAME_MODE] & 1) && (g_ram[RAM_CUR_PLAYER] & 1) ? 2 : 1;
+}
+
 static void rumble_set(int level) {
-    static int cur = RUMBLE_OFF, age;
+    static int cur = RUMBLE_OFF, age, who = 1;
     static const uint16_t k_low[]  = { 0, 0x1800, 0x7000, 0xFFFF };
     static const uint16_t k_high[] = { 0, 0x2400, 0x6000, 0xFFFF };
+    int player = rumble_player();
+    if (player != who) {                /* turn changed: stop the other pad */
+        nesrecomp_rumble(who, 0, 0, 0);
+        who = player;
+        cur = RUMBLE_OFF;
+    }
     if (level == cur && (level == RUMBLE_OFF || ++age < RUMBLE_REFRESH)) return;
     cur = level;
     age = 0;
-    nesrecomp_rumble(1, k_low[level], k_high[level], level ? RUMBLE_SPAN_MS : 0);
+    nesrecomp_rumble(player, k_low[level], k_high[level], level ? RUMBLE_SPAN_MS : 0);
 }
 
 /* A tiny blip for each dot eaten: the current player's pellet count ($6A)
@@ -570,7 +583,7 @@ static void rumble_frame(uint8_t demo, uint8_t script, uint8_t prev_script) {
         rumble_set(RUMBLE_LIGHT);
     } else {
         rumble_set(RUMBLE_OFF);
-        if (ate_dot) nesrecomp_rumble(1, 0x0C00, 0x1800, DOT_BLIP_MS);
+        if (ate_dot) nesrecomp_rumble(rumble_player(), 0x0C00, 0x1800, DOT_BLIP_MS);
     }
 }
 
