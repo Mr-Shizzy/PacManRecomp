@@ -26,7 +26,7 @@ current checkout, so they work from anywhere.
 - `boot_smoke.txt` - boot, title screen, start a game, screenshots.
 - `options_classic.txt` - classic (Select-button) options menu.
 - `options_modern.txt` - modern options menu (run with `"ModernMenus = 1"`).
-- `title_quit.txt` - quitting from the title screen.
+- `title_quit.txt` - quitting from the title screen (run with `"ModernMenus = 1"`).
 - `pause_menu_yes.txt` - pause menu, confirming quit.
 - `cheats_probe.txt` - cheat codes (level skip and friends).
 - `hs_entry.txt` - high score name entry.
