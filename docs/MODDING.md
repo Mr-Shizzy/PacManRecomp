@@ -102,7 +102,7 @@ maze and backgrounds show through.
 | `hud/lives.png` | the lives icon (little Pac-Man) |
 | `font/A.png` ... `font/Z.png`, `font/0.png` ... `font/9.png` | letters and numbers (plus `dash`, `period`, `cursor`, `copyright`, `exclamation`), also used for READY!, PLAYER ONE/TWO and GAME OVER |
 | `intermission/big_pacman_closed.png`, `big_pacman_open.png`, `big_pacman_wide.png` | the giant Pac-Man in the first cutscene (32 x 32) |
-| `intermission/blinky_torn_*.png`, `snag_*.png`, `tear_*.png` | Blinky snagging and tearing his cloak on a nail (second cutscene) |
+| `intermission/blinky_torn_*.png`, `tear_*.png` | Blinky snagging and tearing his cloak on a nail (second cutscene) |
 | `intermission/blinky_patched_*.png`, `cloth.png` | Blinky's patched body and the dragged cloth (third cutscene) |
 | `namco_logo.png` | the red "namco" on the title screen (72 x 8) |
 | `dot.png`, `power_pellet.png` | the dots and the big flashing power pellets |
