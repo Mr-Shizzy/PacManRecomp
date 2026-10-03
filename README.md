@@ -21,6 +21,25 @@ cartridge, with a set of modern extras on top.
 |---|---|
 | ![Launcher settings](docs/images/launcher_settings.png) | ![Launcher mods page](docs/images/launcher_mods.png) |
 
+## Download & play (no programming needed)
+
+1. Download **PacManRecomp-1.0-EasyBuild.zip** from
+   [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
+2. Put your own Pac-Man ROM (a `.nes` file) in the folder.
+3. Double-click **Build Pac-Man.bat** and wait for "DONE!" (a few minutes; it
+   downloads free build tools the first time).
+4. Open the **Game** folder and double-click **PacManRecomp.exe**.
+
+### Why you build it yourself
+
+A recompiled game works by translating the cartridge's program into C and
+compiling it into the `.exe`. So a finished `.exe` contains Pac-Man's own
+game code, which belongs to Bandai Namco and can't be shared. To keep this
+project legal, nothing of the game is ever distributed: the download holds
+only the source code and a build script, and the game is made on your PC
+from your own ROM. The Easy Build does all of that for you with one
+double-click.
+
 ## Features
 
 ### The game, untouched
@@ -67,8 +86,7 @@ on don't go on the high score table.
 
 ## Getting started
 
-1. Build the game (below). There is no download: a build contains code
-   translated from the ROM, so it can't be shared.
+1. Build the game: with the Easy Build above, or from source (below).
 2. Start `PacManRecomp.exe`. The launcher opens; pick your ROM.
 3. Press **Play**.
 

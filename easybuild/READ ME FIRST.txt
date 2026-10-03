@@ -8,6 +8,13 @@ This download does NOT contain the game itself. You build it on your own PC
 from your own copy of the Pac-Man ROM. It's automatic: no typing commands,
 nothing to install.
 
+WHY YOU BUILD IT YOURSELF
+  A recompiled game works by translating the cartridge's program into C and
+  compiling it into the .exe, so a finished .exe contains Pac-Man's own game
+  code, which belongs to Bandai Namco and can't be shared. To keep this
+  project legal, the download holds only source code and a build script; the
+  game is made on your PC, from your own ROM.
+
 
 WHAT YOU NEED
   - Windows 10 or 11 (64-bit)
