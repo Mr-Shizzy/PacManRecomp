@@ -74,9 +74,12 @@ $env:PATH = ($bins -join ';') + ';' + $env:PATH
 function Run($what, $exe, [string[]]$argv) {
     $log = Join-Path $Root 'build-log.txt'
     "`n==== $what`n> $exe $($argv -join ' ')" | Out-File $log -Append -Encoding utf8
-    # Tools print warnings on stderr; only the exit code means failure.
+    # Tools print warnings on stderr; only the exit code means failure. cmd
+    # merges stderr into plain text lines (PowerShell would wrap each warning
+    # in a red error record and write it as UTF-16).
+    $env:EASYBUILD_CMD = (@($exe) + $argv | ForEach-Object { if ($_ -match '\s') { "`"$_`"" } else { $_ } }) -join ' '
     $ErrorActionPreference = 'Continue'
-    & $exe @argv *>> $log
+    cmd /d /s /c "%EASYBUILD_CMD% 2>&1" | Out-File $log -Append -Encoding utf8
     $code = $LASTEXITCODE
     $ErrorActionPreference = 'Stop'
     if ($code -ne 0) { Fail "$what failed. Details are in build-log.txt (please include it if you ask for help)." }
@@ -87,12 +90,12 @@ Remove-Item (Join-Path $Root 'build-log.txt') -ErrorAction SilentlyContinue
 Push-Location $Pac
 try {
     Say 'Step 3 of 4: building the recompiler...'
-    Run 'Configuring the recompiler' 'cmake' @('-S', '../nesrecomp/recompiler', '-B', '../nesrecomp/build/recompiler', '-G', 'Ninja', '-DCMAKE_C_COMPILER=clang', '-DCMAKE_BUILD_TYPE=Release')
+    Run 'Configuring the recompiler' 'cmake' @('-S', '../nesrecomp/recompiler', '-B', '../nesrecomp/build/recompiler', '-G', 'Ninja', '-Wno-dev', '-DCMAKE_C_COMPILER=clang', '-DCMAKE_BUILD_TYPE=Release')
     Run 'Building the recompiler' 'cmake' @('--build', '../nesrecomp/build/recompiler')
     Say '  Translating your ROM into C...'
     Run 'Translating the ROM' '..\nesrecomp\build\recompiler\NESRecomp.exe' @('pacman.nes', '--game', 'game.toml')
     Say 'Step 4 of 4: compiling the game (this takes a few minutes)...'
-    Run 'Configuring the game' 'cmake' @('-S', '.', '-B', 'build', '-G', 'Ninja', '-DCMAKE_C_COMPILER=clang', '-DCMAKE_CXX_COMPILER=clang++', '-DCMAKE_BUILD_TYPE=Release')
+    Run 'Configuring the game' 'cmake' @('-S', '.', '-B', 'build', '-G', 'Ninja', '-Wno-dev', '-DCMAKE_C_COMPILER=clang', '-DCMAKE_CXX_COMPILER=clang++', '-DCMAKE_BUILD_TYPE=Release')
     Run 'Compiling the game' 'cmake' @('--build', 'build')
 } finally { Pop-Location }
 
