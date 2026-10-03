@@ -5,12 +5,14 @@
 #include "game_extras.h"
 #include "options.h"
 #include "mods.h"
+#include "controls_page.h"
 #include "recomp_launcher.h"
 
 const struct RecompLauncherCHostPage *const *game_launcher_pages(int *count) {
-    static const RecompLauncherCHostPage *pages[2];
+    static const RecompLauncherCHostPage *pages[3];
     pages[0] = options_launcher_page();
-    pages[1] = mods_launcher_page();
-    *count = 2;
+    pages[1] = controls_launcher_page();
+    pages[2] = mods_launcher_page();
+    *count = 3;
     return pages;
 }

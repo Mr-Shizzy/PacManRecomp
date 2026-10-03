@@ -24,6 +24,7 @@ add_executable(PacManRecomp
     src/modgen.c
     src/sounddump.c
     src/launcher_pages.c
+    src/controls_page.c
     src/capture.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
