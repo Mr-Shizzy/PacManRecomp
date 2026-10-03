@@ -100,6 +100,8 @@ try {
 New-Item -ItemType Directory -Force $Game | Out-Null
 Copy-Item (Join-Path $Pac 'build\PacManRecomp.exe') $Game -Force
 Copy-Item (Join-Path $Pac 'build\SDL2.dll') $Game -Force
+New-Item -ItemType Directory -Force (Join-Path $Game 'assets') | Out-Null   # launcher fonts and pictures
+Copy-Item (Join-Path $Pac 'build\assets\*') (Join-Path $Game 'assets') -Recurse -Force
 Copy-Item $rom (Join-Path $Game 'pacman.nes') -Force
 Set-Content -Path (Join-Path $Game 'rom.cfg') -Value 'pacman.nes' -NoNewline -Encoding ascii   # next to the exe
 Copy-Item (Join-Path $Pac 'docs\MODDING.md') (Join-Path $Game 'Modding guide.md') -Force

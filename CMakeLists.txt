@@ -46,6 +46,13 @@ target_include_directories(PacManRecomp PRIVATE
 
 target_link_libraries(PacManRecomp PRIVATE ${SDL2_LIBRARIES} ${NESRECOMP_RUNNER_LIBRARIES})
 
+# Bake the compiler's C++ runtime into the exe, so players only need SDL2.dll
+# (llvm-mingw otherwise wants libc++.dll and libunwind.dll next to the game).
+if(MINGW)
+    target_link_options(PacManRecomp PRIVATE
+        -static-libstdc++ -static-libgcc -Wl,-Bstatic -lunwind -Wl,-Bdynamic)
+endif()
+
 # ---- Pre-boot GUI launcher (recomp-ui / Dear ImGui) ----
 # Defines RECOMP_LAUNCHER on the target, un-gating the launcher block in
 # launcher.c's main(), and stages the launcher assets next to the exe.
