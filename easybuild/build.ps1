@@ -66,18 +66,20 @@ foreach ($d in $downloads) {
     Remove-Item $zip -Force
     New-Item -ItemType File (Join-Path $dir '.done') | Out-Null
 }
-$bins = @(
-    (Get-ChildItem (Join-Path $Tools 'llvm-mingw') -Directory | Select-Object -First 1).FullName + '\bin',
-    (Get-ChildItem (Join-Path $Tools 'cmake') -Directory | Select-Object -First 1).FullName + '\bin',
-    (Join-Path $Tools 'ninja')
-)
+$llvmBin  = Join-Path (Get-ChildItem (Join-Path $Tools 'llvm-mingw') -Directory | Select-Object -First 1).FullName 'bin'
+$cmakeBin = Join-Path (Get-ChildItem (Join-Path $Tools 'cmake') -Directory | Select-Object -First 1).FullName 'bin'
+$bins = @($llvmBin, $cmakeBin, (Join-Path $Tools 'ninja'))
 $env:PATH = ($bins -join ';') + ';' + $env:PATH
 
 function Run($what, $exe, [string[]]$argv) {
     $log = Join-Path $Root 'build-log.txt'
     "`n==== $what`n> $exe $($argv -join ' ')" | Out-File $log -Append -Encoding utf8
+    # Tools print warnings on stderr; only the exit code means failure.
+    $ErrorActionPreference = 'Continue'
     & $exe @argv *>> $log
-    if ($LASTEXITCODE -ne 0) { Fail "$what failed. Details are in build-log.txt (please include it if you ask for help)." }
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    if ($code -ne 0) { Fail "$what failed. Details are in build-log.txt (please include it if you ask for help)." }
 }
 
 # ---- 3. Translate the ROM and compile -------------------------------------------
