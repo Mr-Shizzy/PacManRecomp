@@ -23,7 +23,7 @@ cartridge, with a set of modern extras on top.
 
 ## Download & play (no programming needed)
 
-1. Download **PacManRecomp-1.0-EasyBuild.zip** from
+1. Download **PacManRecomp-1.0.1-EasyBuild.zip** from
    [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
 2. Put your own Pac-Man ROM (a `.nes` file) in the folder.
 3. Double-click **Build Pac-Man.bat** and wait for "DONE!" (a few minutes; it
@@ -102,7 +102,8 @@ Expected ROM: *Pac-Man (USA) (Namco)*, 24,592 bytes, CRC32 `9E4E9CC2`
 | Select | `\` | Right Shift |
 | Start | Enter | Right Ctrl |
 
-Esc opens the pause menu. Keys and gamepads can be changed in the launcher.
+Esc opens the pause menu. The launcher's **Controls** page shows the current
+keys; change them in **Settings**, with **Configure** under each player.
 
 ## Building
 

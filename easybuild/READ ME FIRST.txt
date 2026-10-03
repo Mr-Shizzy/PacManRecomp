@@ -1,5 +1,5 @@
-PacManRecomp 1.0 - Easy Build
-=============================
+PacManRecomp 1.0.1 - Easy Build
+===============================
 
 Pac-Man for the NES, rebuilt as a real Windows game, with a launcher,
 extras, cheats and easy modding.
@@ -35,6 +35,13 @@ HOW TO BUILD AND PLAY
 
 The Game folder is your finished game: you can move it anywhere. Everything
 else in this folder can be deleted afterwards (or kept, to build again).
+
+
+KEYS (PLAYER 1)
+  Arrow keys = move     Enter = Start / pause     \ (backslash) = Select
+  Z = A     X = B     Esc = pause menu
+  The launcher's Controls page shows all keys and gamepad buttons. Change
+  them in Settings, with Configure under each player.
 
 
 IF SOMETHING GOES WRONG
