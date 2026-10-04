@@ -214,6 +214,9 @@ try {
             if ($total -gt 0) {
                 $pct = $s.Pct + ($next - $s.Pct) * $done / $total
                 $more = "$done of $total files"
+                if ($s.Log -eq 'Compiling the game' -and $total - $done -le 3) {
+                    $more += ' (the last ones are the biggest - almost there)'
+                }
             }
         } else {
             # No counter here: creep forward slowly so it never looks stuck.
