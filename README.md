@@ -27,39 +27,35 @@ different game program and won't work.
 
 ## Download & play (no programming needed)
 
-1. Download **PacManRecomp-1.0.3-Windows-EasyBuild.zip** from
+1. Download **PacManRecomp-1.1.0-Windows.zip** (about 5 MB) from
    [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
-2. Put your own Pac-Man ROM (a `.nes` file) in the folder.
-3. Double-click **Build Pac-Man.bat**. A window shows each step with progress
-   bars (a few minutes; it downloads free build tools, and deletes them and
-   its other temporary files when it's done).
-4. Press **Play**, or open the **Pac-Man Recomp** folder and double-click
-   **PacManRecomp.exe**.
+2. In the new folder, double-click **PacManRecomp.exe**.
+3. In the launcher, pick your own Pac-Man ROM (a `.nes` file) and press
+   **Play**.
 
-Build on a normal internal drive (like C:) if you can: USB sticks and drives
-formatted as exFAT are much slower with the thousands of small files the
-build makes (15 minutes or more). You can move the finished **Pac-Man
-Recomp** folder anywhere afterwards. The build needs about 2 GB of free space
-while it works.
+The first time you play, the game sets itself up from your ROM: a small
+window shows it working for a few seconds. After that it starts straight
+away. You can move the game's folder anywhere.
 
-### Why you build it yourself
+### Why the game sets itself up from your ROM
 
 A recompiled game works by translating the cartridge's program into C and
-compiling it into the `.exe`. So a finished `.exe` contains Pac-Man's own
-game code, which belongs to Bandai Namco and can't be shared. To keep this
-project legal, nothing of the game is ever distributed: the download holds
-only the source code and a build script, and the game is made on your PC
-from your own ROM. The Easy Build does all of that for you with one
-double-click.
+compiling it. The result contains Pac-Man's own game code, which belongs to
+Bandai Namco and can't be shared. So the download holds only this project's
+own program, with no game code in it, plus two small free tools: the
+recompiler and [TinyCC](https://bellard.org/tcc/), a tiny C compiler. On
+your PC they translate your ROM and compile it into `game.dll`, next to the
+exe. That file is made from your ROM, so like the ROM, it's yours: don't
+share it.
 
 **"Other recomps give you a ready-made .exe. Why not this one?"** Many
 projects do ship a finished `.exe` and ask you for your ROM. But the ROM
 usually only supplies graphics and data: the game's code is already inside
 that `.exe`, translated. Sharing it means sharing the publisher's code, and
-those projects accept that risk. This project doesn't: building on your own
-PC, from a ROM you own, is the safest way we know to do it. The cost is a
-few minutes of waiting the first time (and for each update), and the
-download of some free build tools.
+those projects accept that risk. This project doesn't: the game code is only
+ever made on your own PC, from a ROM you own, which is the safest way we
+know to do it. The cost is a few seconds of setup the first time (and after
+each update).
 
 (This is our understanding, not legal advice.)
 
@@ -82,8 +78,8 @@ into the game.
 - **Optional updates:** tick **Check for updates on startup** (or press
   **Check for updates now**) on the launcher's main page. Off by default: the game never
   goes online unless you ask. When a new version is out, it asks first, then
-  downloads it, builds it from your ROM and restarts the game, keeping your
-  settings, keys, high scores and mods, and deleting what it downloaded.
+  downloads and installs it and restarts the game, keeping your settings,
+  keys, high scores and mods, and deleting what it downloaded.
 
 ### Video and audio
 - Window size, fullscreen, integer scaling, smoothing filter, stretch to fill,
@@ -115,7 +111,7 @@ on don't go on the high score table.
 
 ## Getting started
 
-1. Build the game: with the Easy Build above, or from source (below).
+1. Get the game: the download above, or build it from source (below).
 2. Start `PacManRecomp.exe`. The launcher opens; pick your ROM.
 3. Press **Play**.
 
@@ -168,6 +164,13 @@ cmake --build build
 ```
 
 The game ends up in `build\PacManRecomp.exe` (with `SDL2.dll` next to it).
+This builds the game code into the exe, for development.
+
+The release is built differently: `sh easybuild/make_package.sh <version>`
+builds the exe with `-DPACMAN_GAME_DLL=ON`, from the committed sources only,
+so it holds no game code, and packs it with the recompiler and TinyCC. That
+exe makes `game.dll` from the player's ROM when it first starts
+(`src/game_dll_host.c`, `src/gamedll/`).
 
 ## Modding
 
@@ -233,6 +236,9 @@ Headless input-script tests live in `tests/` (build the game first); see
 - [NESRecomp](https://github.com/mstan/nesrecomp) and
   [recomp-ui](https://github.com/mstan/recomp-ui) by Matthew Stanley (mstan):
   the recompiler, runtime and launcher this is built on.
+- [TinyCC](https://bellard.org/tcc/) by Fabrice Bellard and contributors
+  (LGPL): compiles the game on the player's PC. The release includes its
+  source.
 - Pac-Man © Bandai Namco Entertainment. This is an unofficial fan project, not
   affiliated with or endorsed by Bandai Namco. No ROM, graphics or sound from
   the game is included.
@@ -243,4 +249,5 @@ Headless input-script tests live in `tests/` (build the game first); see
 
 The code in this repository is MIT licensed (see [LICENSE](LICENSE)).
 NESRecomp is under the PolyForm Noncommercial License 1.0.0, so builds of this
-game may not be used commercially. recomp-ui is MIT licensed.
+game may not be used commercially. recomp-ui is MIT licensed. TinyCC is
+LGPL 2.1. The release's `licenses` folder has every license.

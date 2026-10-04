@@ -8,7 +8,7 @@
 #include "hdpack.h"
 #include "game_extras.h"
 #include "nes_runtime.h"
-#include "pacman_full_decls.h"
+#include "nes_runtime.h"
 #include "pause_menu.h"
 #include "options.h"
 #include "highscores.h"
@@ -23,6 +23,9 @@
 
 /* Set by main_runner.c to the ROM path passed on the command line. */
 const char *g_rom_path_for_extras = NULL;
+#ifdef PACMAN_GAME_DLL
+void game_dll_prepare(const char *rom);
+#endif
 
 uint32_t game_get_expected_crc32(void) { return 0x9E4E9CC2u; }
 
@@ -30,6 +33,9 @@ const char *game_get_name(void) { return "Pac-Man"; }
 
 void game_on_init(void) {
     updater_startup_guard();     /* also covers "Skip launcher on boot" */
+#ifdef PACMAN_GAME_DLL
+    game_dll_prepare(g_rom_path_for_extras);   /* makes game.dll if needed */
+#endif
     options_init();
     hs_init();
     if (!sounddump_active()) mods_init();   /* sounds, logo, HD graphics */

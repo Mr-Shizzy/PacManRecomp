@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(PacManRecomp VERSION 1.0.3 LANGUAGES C CXX)
+project(PacManRecomp VERSION 1.1.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -36,9 +36,20 @@ add_executable(PacManRecomp
     src/capture.c
     src/updater.c
     ${CMAKE_BINARY_DIR}/update_ps1.c
-    generated/pacman_full.c
-    generated/pacman_dispatch.c
 )
+
+# PACMAN_GAME_DLL: build the exe without the game code, which then comes from
+# game.dll (src/gamedll/game_dll.c, compiled with TinyCC on the player's PC).
+option(PACMAN_GAME_DLL "Load the game code from game.dll" OFF)
+if(PACMAN_GAME_DLL)
+    target_sources(PacManRecomp PRIVATE src/game_dll_host.c)
+    target_compile_definitions(PacManRecomp PRIVATE
+        PACMAN_GAME_DLL=1 PACMAN_VERSION_BARE=${PROJECT_VERSION})
+    target_include_directories(PacManRecomp PRIVATE ${CMAKE_SOURCE_DIR}/src/gamedll)
+else()
+    target_sources(PacManRecomp PRIVATE generated/pacman_full.c generated/pacman_dispatch.c)
+    target_include_directories(PacManRecomp PRIVATE ${CMAKE_SOURCE_DIR}/generated)
+endif()
 
 target_compile_definitions(PacManRecomp PRIVATE
     NESRECOMP_GAME_ID="pacman"
@@ -52,7 +63,6 @@ target_include_directories(PacManRecomp PRIVATE
     ${NESRECOMP_ROOT}/runner/src
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/generated
     ${SDL2_INCLUDE_DIRS}
 )
 

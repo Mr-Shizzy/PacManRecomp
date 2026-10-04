@@ -23,3 +23,6 @@ tests/inter_probe.txt
 
 # Easy Build packages (easybuild/make_package.sh)
 release/
+
+# Game-code-free builds (-DPACMAN_GAME_DLL=ON)
+build-dll/

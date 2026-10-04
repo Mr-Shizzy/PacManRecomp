@@ -8,14 +8,18 @@
 #   ("config:Key = value" goes to its config.ini instead);
 #   with none, the test runs on default settings.
 #   Screenshots (SCREENSHOT tests/out/x.png) land under this checkout's tests/out/.
+#   BUILD=build-dll tests/run.sh ... tests that build dir instead of build/
+#   (its game.dll goes along).
 set -e
 here=$(cd "$(dirname "$0")" && (pwd -W 2>/dev/null || pwd))   # C:/... form for the exe
 root=$(dirname "$here")
 run="$here/run"
 
 mkdir -p "$run" "$here/out"
-rm -f "$run/config.ini" "$run/pacman_options.ini" "$run/pacman_scores.ini" "$run/keybinds.ini"
-cp "$root/build/PacManRecomp.exe" "$root/build/SDL2.dll" "$run/"
+rm -f "$run/config.ini" "$run/pacman_options.ini" "$run/pacman_scores.ini" "$run/keybinds.ini" "$run/game.dll"
+bdir="$root/${BUILD:-build}"
+cp "$bdir/PacManRecomp.exe" "$bdir/SDL2.dll" "$run/"
+[ ! -f "$bdir/game.dll" ] || cp "$bdir/game.dll" "$run/"
 
 script=$1
 shift

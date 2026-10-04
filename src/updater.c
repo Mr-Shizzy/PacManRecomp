@@ -6,10 +6,10 @@
  * latest release of Mr-Shizzy/PacManRecomp (on a background thread) and,
  * when it is newer than this build, asks the player. On Yes the game writes
  * its built-in update script (src/update.ps1) to %TEMP%, starts it and
- * quits; the script downloads that release's Easy Build, builds it from the
- * game folder's ROM (working in update-temp inside the game folder, about
- * 1 GB at most), replaces only the program files (settings, keys, high
- * scores and mods stay) and starts the game again, deleting what it made.
+ * quits; the script downloads that release (working in update-temp inside
+ * the game folder, about 30 MB), replaces only the program files (settings,
+ * keys, high scores and mods stay) and starts the game again, deleting what
+ * it made. The new exe then sets itself up from the ROM (game_dll_host.c).
  *
  * Testing: PACMAN_UPDATE_TEST_JSON=<file> reads the "latest release" from a
  * local file, whose zip may then be a local path.
@@ -151,11 +151,13 @@ static DWORD WINAPI check_thread(LPVOID arg) {
     LONG result = ST_FAILED;
     char tag[64] = "", url[1024] = "";
     if (json && json_str(json, "tag_name", tag, sizeof(tag))) {
-        /* The Easy Build zip among the release's files. */
+        /* The game's zip among the release's files: "...-Windows.zip", the
+         * game's files at its top. (The "...EasyBuild.zip" next to it is
+         * for the 1.0.x updaters.) */
         const char *p = json;
         while ((p = json_str(p, "browser_download_url", url, sizeof(url))) != NULL) {
             size_t n = strlen(url);
-            if (n > 13 && !strcmp(url + n - 13, "EasyBuild.zip")) break;
+            if (n > 12 && !strcmp(url + n - 12, "-Windows.zip")) break;
             url[0] = '\0';
         }
         if (version_num(tag) <= version_num(PACMAN_VERSION)) {
@@ -276,8 +278,8 @@ static void start_update(void) {
         ps, script, dir, name, zip, ver, (unsigned long)GetCurrentProcessId());
     cmd[4095] = 0;
 
-    /* Windows PowerShell must not load PowerShell 7's modules (as in the
-     * Easy Build's .bat); this only changes our own environment. */
+    /* Windows PowerShell must not load PowerShell 7's modules; this only
+     * changes our own environment. */
     SetEnvironmentVariableW(L"PSModulePath", NULL);
     STARTUPINFOW si;
     PROCESS_INFORMATION pi;
@@ -293,16 +295,17 @@ static void start_update(void) {
     nesrecomp_quit_to_desktop();
 }
 
-/* Free space an update needs while it works: the download, the build tools
- * and the build go in update-temp inside the game folder (measured peak
- * 0.9 GB), deleted afterwards. */
-#define UPDATE_NEED_GB 2
+/* Free space an update needs: the download and its unpacked files go in
+ * update-temp inside the game folder (about 30 MB, deleted afterwards), and
+ * the new version then makes a new game.dll (25 MB, with 20 MB of temporary
+ * files while it does). */
+#define UPDATE_NEED_MB 200
 
 /* Windows paths stop at 259 characters unless long paths are switched on.
- * The build's deepest file is 141 characters below its folder (measured;
- * +10 spare for newer tools), and that folder is <game folder>\update-temp,
- * so the game folder's path can be at most 259 - 12 - 151 = 96 long. */
-#define UPDATE_MAX_GAME_DIR 96
+ * The release's deepest file is 56 characters below update-temp (measured;
+ * +10 spare), so the game folder's path can be at most 259 - 12 - 66 = 181
+ * long. */
+#define UPDATE_MAX_GAME_DIR 180
 
 static int long_paths_on(void) {
     DWORD v = 0, sz = sizeof(v);
@@ -315,8 +318,8 @@ static void ask_to_update(void) {
     char msg[2400];
     wchar_t where[MAX_PATH];
     ULARGE_INTEGER avail;
-    int need = UPDATE_NEED_GB;
-    const char *tneed = getenv("PACMAN_UPDATE_TEST_NEED_GB");   /* tests only */
+    int need = UPDATE_NEED_MB;
+    const char *tneed = getenv("PACMAN_UPDATE_TEST_NEED_MB");   /* tests only */
     if (s_test && tneed && atoi(tneed) > 0) need = atoi(tneed);
     int max_dir = UPDATE_MAX_GAME_DIR;
     const char *tdir = getenv("PACMAN_UPDATE_TEST_MAX_DIR");    /* tests only */
@@ -324,7 +327,7 @@ static void ask_to_update(void) {
     if (game_dir(where) && (int)wcslen(where) - 1 > max_dir && (tdir || !long_paths_on())) {
         snprintf(msg, sizeof(msg),
             "Pac-Man %s is available, but the game folder's path is too long for "
-            "Windows to build the update inside it.\n\n"
+            "Windows to unpack the update inside it.\n\n"
             "Move the game folder somewhere with a shorter path, for example "
             "C:\\Games\\Pac-Man (your settings, high scores and mods are inside it, so "
             "they move too). Then press \"Check for updates now\" in the launcher.",
@@ -335,7 +338,7 @@ static void ask_to_update(void) {
         return;
     }
     if (game_dir(where) && GetDiskFreeSpaceExW(where, &avail, NULL, NULL) &&
-        avail.QuadPart < (ULONGLONG)need * 1024 * 1024 * 1024) {
+        avail.QuadPart < (ULONGLONG)need * 1024 * 1024) {
         char drive[64];
         if (where[0] && where[1] == L':')
             snprintf(drive, sizeof(drive), "drive %c: (where the game is)", (char)where[0]);
@@ -343,12 +346,9 @@ static void ask_to_update(void) {
             snprintf(drive, sizeof(drive), "the drive where the game is");
         snprintf(msg, sizeof(msg),
             "Pac-Man %s is available, but there isn't enough free space to update.\n\n"
-            "Updating needs about %d GB free on %s while it works. It uses that "
-            "space for temporary files in the game folder and deletes them when "
-            "it's done. You have %.1f GB free.\n\n"
+            "Updating needs about %d MB free on %s. You have %.0f MB free.\n\n"
             "Free up some space, then press \"Check for updates now\" in the launcher.",
-            s_tag, need, drive,
-            (double)avail.QuadPart / (1024.0 * 1024.0 * 1024.0));
+            s_tag, need, drive, (double)avail.QuadPart / (1024.0 * 1024.0));
         wchar_t w[2400];
         utf8_to_w(msg, w, 2400);
         MessageBoxW(GetActiveWindow(), w, L"Pac-Man update", MB_OK | MB_ICONWARNING | MB_SETFOREGROUND);
@@ -356,13 +356,13 @@ static void ask_to_update(void) {
     }
     snprintf(msg, sizeof(msg),
         "Pac-Man %s is available (you have %s).\n\n%s%s"
-        "Updating downloads the new version and builds it from your ROM, like the "
-        "first time. It takes a few minutes; the game closes and starts again when "
-        "it's done.\n\nYour settings, keys, high scores and mods are kept. While it "
-        "works it uses up to 1 GB of temporary files in the game folder, and "
-        "deletes them when it's done.\n\nSome antivirus programs may pause or block the "
-        "update, because it downloads and builds program code. If yours does, allow it, "
-        "or update by hand with the Easy Build from the GitHub page.\n\nUpdate now?",
+        "Updating downloads the new version (about 5 MB) and installs it. The game "
+        "closes and starts again when it's done, then sets itself up from your ROM "
+        "like the first time (a few seconds).\n\nYour settings, keys, high scores and "
+        "mods are kept, and the update's temporary files are deleted when it's done."
+        "\n\nSome antivirus programs may pause or block the update, because it "
+        "downloads and makes program code. If yours does, allow it, or update by "
+        "hand with the download from the GitHub page.\n\nUpdate now?",
         s_tag, PACMAN_VERSION, s_notes, s_notes[0] ? "\n\n" : "");
     wchar_t w[2400];
     utf8_to_w(msg, w, 2400);

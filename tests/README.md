@@ -11,6 +11,8 @@ sh tests/run.sh options_modern.txt "ModernMenus = 1"
 ```
 
 Needs `build/PacManRecomp.exe` (built) and `pacman.nes` in the repo root.
+`BUILD=build-dll sh tests/run.sh ...` tests a `-DPACMAN_GAME_DLL=ON` build in
+`build-dll/` instead (put a `game.dll` made from `generated/` next to its exe).
 Extra arguments become lines of the test's `pacman_options.ini`
 (prefix with `config:` to write to `config.ini` instead).
 

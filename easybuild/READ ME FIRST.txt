@@ -1,49 +1,43 @@
-PacManRecomp 1.0.3 for Windows - Easy Build
-===========================================
+PacManRecomp 1.1.0 for Windows
+==============================
 
 Pac-Man for the NES, rebuilt as a real Windows game, with a launcher,
 extras, cheats and easy modding. For Windows 10 and 11 (64-bit) only.
 
-This download does NOT contain the game itself. You build it on your own PC
-from your own copy of the Pac-Man ROM. It's automatic: no typing commands,
-nothing to install.
+This download does NOT contain the game itself: you need your own copy of
+the Pac-Man ROM. Nothing to install, and no internet needed.
 
 
-WHY YOU BUILD IT YOURSELF
-  A recompiled game works by translating the cartridge's program into C and
-  compiling it into the .exe, so a finished .exe contains Pac-Man's own game
-  code, which belongs to Bandai Namco and can't be shared. To keep this
-  project legal, the download holds only source code and a build script; the
-  game is made on your PC, from your own ROM.
-  Some other projects ship a ready-made .exe, but that .exe still contains
-  the publisher's game code. Building it yourself, from a ROM you own, is
-  the safest way we know to do it. (Our understanding, not legal advice.)
+HOW TO PLAY
+  1. Unzip the download somewhere, e.g. your Desktop or Documents
+     (right-click it, "Extract All...").
+  2. In the new folder, double-click PacManRecomp.exe. If Windows shows
+     "Windows protected your PC", click "More info", then "Run anyway".
+  3. In the launcher, pick your Pac-Man ROM (the .nes file) and press Play.
+
+The first time you play, the game sets itself up from your ROM: a small
+window shows it working for a few seconds. After that it starts straight
+away. You can move the game's folder anywhere.
 
 
 WHAT YOU NEED
   - Windows 10 or 11 (64-bit)
   - Your own Pac-Man ROM: Pac-Man (USA) (Namco), a .nes file. It must be
     the Namco release; the Tengen version won't work.
-  - An internet connection the first time (the build tools are downloaded,
-    about 245 MB) and about 2 GB of free disk space while it builds (the
-    temporary files are deleted at the end)
 
 
-HOW TO BUILD AND PLAY
-  1. Unzip this whole folder somewhere, e.g. your Desktop or Documents.
-     Tip: a normal internal drive (like C:) is much faster. USB sticks and
-     drives formatted as exFAT can make the build take 15 minutes or more.
-  2. Copy your Pac-Man ROM (the .nes file) into this folder, next to
-     "Build Pac-Man.bat". Any file name is fine.
-  3. Double-click "Build Pac-Man.bat". A window shows each step with progress
-     bars; it takes a few minutes. If Windows shows "Windows protected your
-     PC", click "More info", then "Run anyway".
-  4. When it says Done, press Play, or open the new "Pac-Man Recomp" folder
-     and double-click PacManRecomp.exe.
-
-The "Pac-Man Recomp" folder is your finished game: you can move it anywhere.
-The build deletes its tools and temporary files when it's done; everything
-else in this folder can be deleted too (or kept, to build again).
+WHY THE GAME SETS ITSELF UP FROM YOUR ROM
+  A recompiled game works by translating the cartridge's program into C and
+  compiling it. The result contains Pac-Man's own game code, which belongs
+  to Bandai Namco and can't be shared. So this download holds only the
+  project's own program, with no game code in it, plus two small free tools
+  (in the tools folder): the recompiler and TinyCC, a tiny C compiler. On
+  your PC they translate your ROM and compile it into game.dll, next to the
+  game. That file is made from your ROM, so like the ROM, it's yours: don't
+  share it.
+  Some other projects ship a ready-made .exe, but that .exe still contains
+  the publisher's game code. Making it on your PC, from a ROM you own, is
+  the safest way we know to do it. (Our understanding, not legal advice.)
 
 
 KEYS (PLAYER 1)
@@ -56,33 +50,31 @@ KEYS (PLAYER 1)
 UPDATES
   The launcher can check for new versions: tick "Check for updates on
   startup" or press "Check for updates now" (off by default, so the game
-  doesn't go online unless you ask). An update rebuilds the game from your
-  ROM, like the first time, and keeps your settings, high scores and mods.
-  It needs about 2 GB of free space while it works, and deletes its
-  temporary files when it's done.
+  doesn't go online unless you ask). An update downloads and installs the
+  new version, keeps your settings, high scores and mods, and the game sets
+  itself up again from your ROM (a few seconds).
 
 
 IF SOMETHING GOES WRONG
-  - The window says what the problem is (wrong ROM, no internet...).
-  - If a build step fails, a file called build-log.txt explains why (the
-    window's "Open log" button opens it).
-    Include it if you ask for help on the GitHub page:
+  - A message says what the problem is (wrong ROM, missing files...).
+  - If setting up fails, a file called setup-log.txt in the game folder
+    explains why. Some antivirus programs block it, because it makes program
+    code on your PC: allow the game folder and try again.
+  - Include setup-log.txt if you ask for help on the GitHub page:
     https://github.com/Mr-Shizzy/PacManRecomp/issues
 
 
 WHAT'S IN THIS FOLDER
-  Build Pac-Man.bat   double-click this to build
-  build.ps1           the build steps (used by the .bat)
-  source\             the source code (PacManRecomp, NESRecomp, recomp-ui)
-  build-tools\        while building: the downloaded tools (deleted at the end)
-  Pac-Man Recomp\     made by the build: your playable game
+  PacManRecomp.exe    the game: double-click it
+  SDL2.dll            part of the game (graphics, sound, gamepads)
+  assets\             the launcher's pictures and fonts
+  tools\              the recompiler and TinyCC, used to set the game up
+  licenses\           the licenses of everything included
+  Modding guide.md    how to make mods
+  game.dll            made from your ROM the first time you play
 
-
-The build tools are free and come from their official pages:
-  llvm-mingw  https://github.com/mstorsjo/llvm-mingw
-  CMake       https://cmake.org
-  Ninja       https://ninja-build.org
 
 Pac-Man (c) Bandai Namco Entertainment. Unofficial fan project, not
-affiliated with or endorsed by Bandai Namco. No ROM, graphics or sound from
-the game is included. See source\PacManRecomp\LICENSE for licenses.
+affiliated with or endorsed by Bandai Namco. No ROM, graphics, sound or
+game code is included. Source code:
+https://github.com/Mr-Shizzy/PacManRecomp
