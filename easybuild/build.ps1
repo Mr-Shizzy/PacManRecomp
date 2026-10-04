@@ -116,10 +116,11 @@ function Say($text, $info) {
 
 # Progress: this task's share of the whole build is [$from, $to] percent.
 $script:span = @(0, 0)
-function Task($from, $to) { $script:span = @($from, $to); Show-Bar 0 '' }
-function Show-Bar($frac, $detail) {
+function Task([double]$from, [double]$to) { $script:span = @($from, $to); Show-Bar 0 '' }
+# $frac: 0..1 done, or below 0 when the length is unknown (a moving bar).
+function Show-Bar([double]$frac, $detail) {
     if (-not $Gui) { return }
-    if ($frac -lt 0) {                              # unknown length: a moving bar
+    if ($frac -lt 0) {
         $uiBar.Style = 'Marquee'
     } else {
         $uiBar.Style = 'Continuous'
@@ -158,7 +159,10 @@ function Stop-Work {
     }
     if ($script:wc -and $script:wc.IsBusy) {
         $script:wc.CancelAsync()
-        for ($i = 0; $i -lt 50 -and $script:wc.IsBusy; $i++) { Pump 0 }
+        for ($i = 0; $i -lt 50 -and $script:wc.IsBusy; $i++) {
+            if ($Gui) { [Windows.Forms.Application]::DoEvents() }
+            Start-Sleep -Milliseconds 100
+        }
     }
 }
 
@@ -367,25 +371,26 @@ public static class Crc32 {
     }
 } catch {
     if (-not $Gui) { throw }
-    Stop-Work
-    $msg = $_.Exception.Message
+    $err = $_
+    $msg = $err.Exception.Message
+    try { Stop-Work } catch {}
     $buttons['Cancel'].Visible = $false
     $uiBar.Style = 'Continuous'
     if ($msg -eq 'CANCELLED') {
         $uiStep.Text = 'Cancelled. Cleaning up...'
-        Remove-Temp
+        try { Remove-Temp } catch {}
         Remove-Item $Log -ErrorAction SilentlyContinue
         $uiStep.Text = 'Cancelled.'
         $uiInfo.Text = 'Nothing was built, and the temporary files were deleted. Run Build Pac-Man.bat again whenever you like.'
     } else {
         if (-not ($msg -like 'PROBLEM:*')) {
-            [IO.File]::AppendAllText($Log, "`r`n==== Error`r`n$($_ | Out-String)")
+            [IO.File]::AppendAllText($Log, "`r`n==== Error`r`n$($err | Out-String)")
             $msg = "Something went wrong: $msg"
         }
         $uiStep.Text = 'Problem'
         $uiStep.ForeColor = [Drawing.Color]::Firebrick
         $uiDetail.Text = 'Cleaning up...'
-        Remove-Temp
+        try { Remove-Temp } catch {}
         $uiDetail.Text = ''
         $uiInfo.ForeColor = [Drawing.Color]::Firebrick
         $uiInfo.Text = ($msg -replace '^PROBLEM:\s*', '')
