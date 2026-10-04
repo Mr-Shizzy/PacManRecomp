@@ -117,6 +117,13 @@ function Say($text, $info) {
 # Progress: this task's share of the whole build is [$from, $to] percent.
 $script:span = @(0, 0)
 function Task([double]$from, [double]$to) { $script:span = @($from, $to); Show-Bar 0 '' }
+# Windows animates a bar's fill slowly, so it lags far behind fast updates;
+# stepping one past the value and back skips the animation.
+function Set-Bar($bar, [int]$v) {
+    $v = [Math]::Max(0, [Math]::Min($bar.Maximum, $v))
+    if ($v -lt $bar.Maximum) { $bar.Value = $v + 1 }
+    $bar.Value = $v
+}
 # $frac: 0..1 done, or below 0 when the length is unknown (a moving bar).
 function Show-Bar([double]$frac, $detail) {
     if (-not $Gui) { return }
@@ -124,11 +131,11 @@ function Show-Bar([double]$frac, $detail) {
         $uiBar.Style = 'Marquee'
     } else {
         $uiBar.Style = 'Continuous'
-        $uiBar.Value = [int](1000 * [Math]::Min(1, $frac))
+        Set-Bar $uiBar (1000 * [Math]::Min(1, $frac))
         $all = $script:span[0] + ($script:span[1] - $script:span[0]) * [Math]::Min(1, $frac)
         if ($all -gt $script:overall) { $script:overall = $all }
     }
-    $uiAll.Value = [int](10 * $script:overall)
+    Set-Bar $uiAll (10 * $script:overall)
     if ($detail -ne $null) { $uiDetail.Text = $detail }
     [Windows.Forms.Application]::DoEvents()
 }
