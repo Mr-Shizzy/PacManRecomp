@@ -204,6 +204,7 @@ static struct { const char *key; int *val; } k_keys[] = {
     { "InfiniteLives", &g_opt.inf_lives },
     { "StartLevel",    &g_opt.start_level },
     { "Invincible",    &g_opt.invincible },
+    { "CheckUpdates",  &g_opt.check_updates },
 };
 
 static void options_save(void) {

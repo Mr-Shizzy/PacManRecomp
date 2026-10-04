@@ -18,6 +18,7 @@ typedef struct {
     int inf_lives;
     int start_level;    /* 1..MAX */
     int invincible;
+    int check_updates;  /* launcher: check GitHub for a new release at startup */
     char mod[128];      /* active mod folder in mods/, "" = none */
 } PacOptions;
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(PacManRecomp C CXX)
+project(PacManRecomp VERSION 1.0.2 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -9,6 +9,14 @@ include(${NESRECOMP_ROOT}/runner/runner.cmake)
 
 list(APPEND CMAKE_PREFIX_PATH "${NESRECOMP_ROOT}/runner/external/SDL2/cmake")
 find_package(SDL2 REQUIRED)
+
+# The updater's script (src/update.ps1), built into the exe as a byte array.
+set(UPDATE_PS1 ${CMAKE_SOURCE_DIR}/src/update.ps1)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${UPDATE_PS1})
+file(READ ${UPDATE_PS1} UPDATE_PS1_HEX HEX)
+string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," UPDATE_PS1_BYTES "${UPDATE_PS1_HEX}")
+file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/update_ps1.c CONTENT
+    "const unsigned char g_update_ps1[] = {${UPDATE_PS1_BYTES}0};\nconst unsigned g_update_ps1_len = sizeof(g_update_ps1) - 1;\n")
 
 add_executable(PacManRecomp
     ${NESRECOMP_RUNNER_SOURCES}
@@ -26,6 +34,8 @@ add_executable(PacManRecomp
     src/launcher_pages.c
     src/controls_page.c
     src/capture.c
+    src/updater.c
+    ${CMAKE_BINARY_DIR}/update_ps1.c
     generated/pacman_full.c
     generated/pacman_dispatch.c
 )
@@ -34,6 +44,7 @@ target_compile_definitions(PacManRecomp PRIVATE
     NESRECOMP_GAME_ID="pacman"
     NESRECOMP_GAME_ROM_CRC32="9e4e9cc2"
     NESRECOMP_GAME_LAUNCHER_PAGES=1
+    PACMAN_VERSION="${PROJECT_VERSION}"
     NESRECOMP_GAME_HIDE_HDPACK_ROW=1)   # graphics come from the Mods page
 
 target_include_directories(PacManRecomp PRIVATE
@@ -46,6 +57,9 @@ target_include_directories(PacManRecomp PRIVATE
 )
 
 target_link_libraries(PacManRecomp PRIVATE ${SDL2_LIBRARIES} ${NESRECOMP_RUNNER_LIBRARIES})
+if(WIN32)
+    target_link_libraries(PacManRecomp PRIVATE winhttp)   # updater.c
+endif()
 
 # Bake the compiler's C++ runtime into the exe, so players only need SDL2.dll
 # (llvm-mingw otherwise wants libc++.dll and libunwind.dll next to the game).

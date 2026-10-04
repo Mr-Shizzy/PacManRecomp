@@ -1,4 +1,4 @@
-PacManRecomp 1.0.1 - Easy Build
+PacManRecomp 1.0.2 - Easy Build
 ===============================
 
 Pac-Man for the NES, rebuilt as a real Windows game, with a launcher,
