@@ -23,7 +23,7 @@ cartridge, with a set of modern extras on top.
 
 ## Download & play (no programming needed)
 
-1. Download **PacManRecomp-1.0.1-EasyBuild.zip** from
+1. Download **PacManRecomp-1.0.2-EasyBuild.zip** from
    [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
 2. Put your own Pac-Man ROM (a `.nes` file) in the folder.
 3. Double-click **Build Pac-Man.bat** and wait for "DONE!" (a few minutes; it
@@ -39,6 +39,17 @@ project legal, nothing of the game is ever distributed: the download holds
 only the source code and a build script, and the game is made on your PC
 from your own ROM. The Easy Build does all of that for you with one
 double-click.
+
+**"Other recomps give you a ready-made .exe. Why not this one?"** Many
+projects do ship a finished `.exe` and ask you for your ROM. But the ROM
+usually only supplies graphics and data: the game's code is already inside
+that `.exe`, translated. Sharing it means sharing the publisher's code, and
+those projects accept that risk. This project doesn't: building on your own
+PC, from a ROM you own, is the safest way we know to do it. The cost is a
+few minutes of waiting the first time (and for each update), and the
+download of some free build tools.
+
+(This is our understanding, not legal advice.)
 
 ## Features
 

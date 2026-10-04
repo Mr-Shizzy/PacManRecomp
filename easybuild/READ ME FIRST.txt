@@ -15,6 +15,9 @@ WHY YOU BUILD IT YOURSELF
   code, which belongs to Bandai Namco and can't be shared. To keep this
   project legal, the download holds only source code and a build script; the
   game is made on your PC, from your own ROM.
+  Some other projects ship a ready-made .exe, but that .exe still contains
+  the publisher's game code. Building it yourself, from a ROM you own, is
+  the safest way we know to do it. (Our understanding, not legal advice.)
 
 
 WHAT YOU NEED
