@@ -8,7 +8,9 @@ compiled into a real Windows program, built with
 [NESRecomp](https://github.com/mstan/nesrecomp). It plays exactly like the
 cartridge, with a set of modern extras on top.
 
-**No game files are included.** You need your own copy of the Pac-Man NES ROM.
+**No game files are included.** You need your own copy of the Pac-Man NES ROM:
+the **Namco** release, *Pac-Man (USA) (Namco)*. The Tengen version is a
+different game program and won't work.
 
 | | |
 |---|---|

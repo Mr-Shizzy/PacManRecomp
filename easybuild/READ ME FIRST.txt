@@ -22,7 +22,8 @@ WHY YOU BUILD IT YOURSELF
 
 WHAT YOU NEED
   - Windows 10 or 11 (64-bit)
-  - Your own Pac-Man ROM: Pac-Man (USA) (Namco), a .nes file
+  - Your own Pac-Man ROM: Pac-Man (USA) (Namco), a .nes file. It must be
+    the Namco release; the Tengen version won't work.
   - An internet connection the first time (the build tools are downloaded,
     about 245 MB) and about 2 GB of free disk space while it builds (the
     temporary files are deleted at the end)
