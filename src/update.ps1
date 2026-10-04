@@ -145,6 +145,12 @@ try {
     Remove-Item (Join-Path $GameDir 'update-log.txt') -Force -ErrorAction SilentlyContinue
 
     Remove-Work
+    $drive = New-Object IO.DriveInfo([IO.Path]::GetPathRoot($env:LOCALAPPDATA))
+    $freeGB = $drive.AvailableFreeSpace / 1GB
+    if ($freeGB -lt 2) {
+        throw ("there isn't enough free space. It needs about 2 GB free on drive {0} while it works " +
+               "(it's all deleted afterwards); you have {1:N1} GB.") -f $drive.Name, $freeGB
+    }
     New-Item -ItemType Directory -Force $Work | Out-Null
     $zip = Join-Path $Work 'update.zip'
     Show-Progress 2 'Downloading the new version...' ''

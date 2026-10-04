@@ -2,7 +2,7 @@
  * src/updater.c — optional update check, on the launcher's main page.
  *
  * Off by default: nothing goes online unless the player ticks "Check for
- * updates on startup" or presses "Check now". A check asks GitHub for the
+ * updates on startup" or presses "Check for updates now". A check asks GitHub for the
  * latest release of Mr-Shizzy/PacManRecomp (on a background thread) and,
  * when it is newer than this build, asks the player. On Yes the game writes
  * its built-in update script (src/update.ps1) to %TEMP%, starts it and
@@ -231,8 +231,32 @@ static void start_update(void) {
     nesrecomp_quit_to_desktop();
 }
 
+/* Free space an update needs while it works (the download, the build tools
+ * and the build, all in %LOCALAPPDATA%; deleted afterwards). */
+#define UPDATE_NEED_GB 2
+
 static void ask_to_update(void) {
     char msg[2400];
+    wchar_t where[MAX_PATH];
+    ULARGE_INTEGER avail;
+    int need = UPDATE_NEED_GB;
+    const char *tneed = getenv("PACMAN_UPDATE_TEST_NEED_GB");   /* tests only */
+    if (s_test && tneed && atoi(tneed) > 0) need = atoi(tneed);
+    DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", where, MAX_PATH);
+    if (n > 0 && n < MAX_PATH && GetDiskFreeSpaceExW(where, &avail, NULL, NULL) &&
+        avail.QuadPart < (ULONGLONG)need * 1024 * 1024 * 1024) {
+        snprintf(msg, sizeof(msg),
+            "Pac-Man %s is available, but there isn't enough free space to update.\n\n"
+            "Updating needs about %d GB free on drive %c: while it works (it's all "
+            "deleted afterwards). You have %.1f GB free.\n\n"
+            "Free up some space, then press \"Check for updates now\" in the launcher.",
+            s_tag, need, (char)where[0],
+            (double)avail.QuadPart / (1024.0 * 1024.0 * 1024.0));
+        wchar_t w[2400];
+        utf8_to_w(msg, w, 2400);
+        MessageBoxW(GetActiveWindow(), w, L"Pac-Man update", MB_OK | MB_ICONWARNING | MB_SETFOREGROUND);
+        return;
+    }
     snprintf(msg, sizeof(msg),
         "Pac-Man %s is available (you have %s).\n\n%s%s"
         "Updating downloads the new version and builds it from your ROM, like the "
@@ -280,7 +304,7 @@ static int rows_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         break;
     case ROW_NOW:
         r->type = RECOMP_HOST_ROW_BUTTON;
-        snprintf(r->label, sizeof(r->label), "Check now");
+        snprintf(r->label, sizeof(r->label), "Check for updates now");
         snprintf(r->help, sizeof(r->help), "Look for a newer version on GitHub now.");
         r->disabled = s_state == ST_CHECKING;
         break;
