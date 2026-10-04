@@ -185,7 +185,8 @@ static void utf8_to_w(const char *s, wchar_t *out, int cap) {
     if (!MultiByteToWideChar(CP_UTF8, 0, s, -1, out, cap)) out[0] = 0;
 }
 
-/* Write the update script to %TEMP%, start it in its own window, quit. */
+/* Write the update script to %TEMP%, start it (it shows its own progress
+ * window, no console), quit. */
 static void start_update(void) {
     wchar_t tmp[MAX_PATH], script[MAX_PATH], exe[MAX_PATH], dir[MAX_PATH];
     if (!GetTempPathW(MAX_PATH, tmp)) return;
@@ -207,7 +208,7 @@ static void start_update(void) {
     utf8_to_w(s_tag, ver, 64);
     static wchar_t cmd[4096];
     _snwprintf(cmd, 4096,
-        L"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%ls\" "
+        L"powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"%ls\" "
         L"-GameDir \"%ls\" -ExeName \"%ls\" -ZipUrl \"%ls\" -Version \"%ls\" -WaitPid %lu",
         script, dir, name, zip, ver, (unsigned long)GetCurrentProcessId());
     cmd[4095] = 0;
@@ -219,7 +220,7 @@ static void start_update(void) {
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
-    if (!CreateProcessW(NULL, cmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, dir, &si, &pi)) {
+    if (!CreateProcessW(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, dir, &si, &pi)) {
         DeleteFileW(script);
         MessageBoxW(GetActiveWindow(), L"Couldn't start the updater.", L"Pac-Man update",
                     MB_OK | MB_ICONWARNING);
@@ -273,7 +274,8 @@ static int rows_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         snprintf(r->label, sizeof(r->label), "Check for updates on startup");
         snprintf(r->help, sizeof(r->help),
                  "Ask GitHub for a newer version each time the launcher opens. "
-                 "Off: the game never goes online.");
+                 "Off: the game never goes online. With \"Skip launcher on boot\" "
+                 "ticked, the launcher doesn't open, so there are no checks.");
         r->value = g_opt.check_updates;
         break;
     case ROW_NOW:

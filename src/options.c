@@ -62,7 +62,7 @@ static const PacOptions k_defaults = {
 /* ---- menu model -------------------------------------------------------- */
 typedef enum {
     SCR_TITLE, SCR_OPTIONS, SCR_VIDEO, SCR_AUDIO, SCR_CONTROLS,
-    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_RESET_SCORES, SCR_MODS, SCR_COUNT
+    SCR_EXTRAS, SCR_CHEATS, SCR_RESET, SCR_RESET_SCORES, SCR_MODS, SCR_ABOUT, SCR_COUNT
 } Screen;
 
 typedef enum {
@@ -76,6 +76,7 @@ typedef enum {
     IT_RESET,       /* reset everything to defaults */
     IT_RESET_SCORES,/* clear the leaderboard */
     IT_QUIT,        /* quit the program */
+    IT_INFO,        /* read-only: fmt is the value text */
 } ItemKind;
 
 typedef struct {
@@ -110,6 +111,7 @@ static const Item k_options[] = {
     { "EXTRAS",           IT_SECTION, 0, SCR_EXTRAS },
     { "CHEATS",           IT_SECTION, 0, SCR_CHEATS },
     { "MODS",             IT_SECTION, 0, SCR_MODS },
+    { "ABOUT",            IT_SECTION, 0, SCR_ABOUT },
     { "RESET TO DEFAULT", IT_SECTION, 0, SCR_RESET },
     { "BACK",             IT_BACK },
 };
@@ -150,6 +152,13 @@ static const Item k_reset[] = {
     { "NO",  IT_BACK },
     { "YES", IT_RESET },
 };
+#ifndef PACMAN_VERSION
+#define PACMAN_VERSION "?"
+#endif
+static const Item k_about[] = {
+    { "VERSION", IT_INFO, 0, 0, 0, 0, PACMAN_VERSION },
+    { "BACK",    IT_BACK },
+};
 static const Item k_reset_scores[] = {
     { "NO",  IT_BACK },
     { "YES", IT_RESET_SCORES },
@@ -166,6 +175,7 @@ static const ScreenDef k_screens[SCR_COUNT] = {
     [SCR_RESET]    = { "RESET TO DEFAULT", k_reset,    N(k_reset),    SCR_OPTIONS },
     [SCR_RESET_SCORES] = { "RESET HIGH SCORES", k_reset_scores, N(k_reset_scores), SCR_EXTRAS },
     [SCR_MODS]     = { "MODS",             NULL,       0,             SCR_OPTIONS },
+    [SCR_ABOUT]    = { "ABOUT",            k_about,    N(k_about),    SCR_OPTIONS },
 };
 
 /* The title loop is showing: flag FF and the title's "PLAY" still in
@@ -700,6 +710,7 @@ static void value_text(const Item *it, char *buf, int n) {
     case IT_STYLE:  snprintf(buf, n, "%s", *it->val ? "MODERN" : "CLASSIC"); break;
     case IT_SPEED:  snprintf(buf, n, "%s", *it->val == 2 ? "1.5X" : *it->val ? "1.25X" : "NORMAL"); break;
     case IT_RANGE:  snprintf(buf, n, it->fmt, *it->val); break;
+    case IT_INFO:   snprintf(buf, n, "%s", it->fmt); break;
     default: break;
     }
 }
