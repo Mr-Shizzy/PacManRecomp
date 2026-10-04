@@ -359,7 +359,9 @@ static void ask_to_update(void) {
         "first time. It takes a few minutes; the game closes and starts again when "
         "it's done.\n\nYour settings, keys, high scores and mods are kept. While it "
         "works it uses up to 1 GB of temporary files in the game folder, and "
-        "deletes them when it's done.\n\nUpdate now?",
+        "deletes them when it's done.\n\nSome antivirus programs may pause or block the "
+        "update, because it downloads and builds program code. If yours does, allow it, "
+        "or update by hand with the Easy Build from the GitHub page.\n\nUpdate now?",
         s_tag, PACMAN_VERSION, s_notes, s_notes[0] ? "\n\n" : "");
     wchar_t w[2400];
     utf8_to_w(msg, w, 2400);
