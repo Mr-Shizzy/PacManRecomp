@@ -44,6 +44,15 @@ KEYS (PLAYER 1)
   them in Settings, with Configure under each player.
 
 
+UPDATES
+  The launcher can check for new versions: tick "Check for updates on
+  startup" or press "Check for updates now" (off by default, so the game
+  doesn't go online unless you ask). An update rebuilds the game from your
+  ROM, like the first time, and keeps your settings, high scores and mods.
+  It needs about 2 GB of free space while it works, and deletes its
+  temporary files when it's done.
+
+
 IF SOMETHING GOES WRONG
   - The window says what the problem is (wrong ROM, no internet...).
   - If a build step fails, a file called build-log.txt explains why.
