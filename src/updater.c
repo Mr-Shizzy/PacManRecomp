@@ -46,6 +46,7 @@ enum { ST_IDLE, ST_CHECKING, ST_LATEST, ST_NEWER, ST_NOFILE, ST_FAILED };
 static volatile LONG s_state = ST_IDLE;
 static int  s_started;          /* the startup check ran (once per process) */
 static int  s_prompted;         /* the player has been asked about this result */
+static int  s_manual;           /* "Check for updates now" pressed: always answer */
 static int  s_loaded;
 static char s_tag[64];          /* newer release: "1.0.3" */
 static char s_zip[1024];
@@ -382,7 +383,21 @@ static void poll(void) {
     }
     if (s_state == ST_NEWER && !s_prompted) {
         s_prompted = 1;
+        s_manual = 0;
         ask_to_update();
+    }
+    /* "Check for updates now" always answers, so the button never seems
+     * dead; the startup check stays quiet unless there is an update. */
+    if (s_manual && s_state != ST_CHECKING && s_state != ST_NEWER) {
+        s_manual = 0;
+        const wchar_t *t =
+            s_state == ST_LATEST ? L"You're on the latest version (" WIDEN(PACMAN_VERSION) L")." :
+            s_state == ST_NOFILE ? L"A new version has been released, but its download isn't "
+                                   L"ready yet. Please try again in a few minutes." :
+                                   L"Couldn't check for updates. Check your internet "
+                                   L"connection and try again.";
+        MessageBoxW(GetActiveWindow(), t, L"Pac-Man update",
+                    MB_OK | (s_state == ST_LATEST ? MB_ICONINFORMATION : MB_ICONWARNING));
     }
 }
 
@@ -432,6 +447,7 @@ static int rows_set(void *ctx, int i, int value, const char *rom) {
         g_opt.check_updates = value ? 1 : 0;
         options_save_now();
     } else if (i == ROW_NOW) {
+        s_manual = 1;
         start_check();
     }
     return 1;

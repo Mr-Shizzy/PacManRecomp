@@ -1,10 +1,4 @@
 @echo off
-title PacManRecomp Easy Build
-echo PacManRecomp Easy Build
-echo =======================
-echo This builds Pac-Man on your PC from your own ROM. It takes a few minutes.
-echo.
+rem PacManRecomp Easy Build (Windows): opens the build window and closes this one.
 set PSModulePath=
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0build.ps1"
-echo.
-pause
+start "" powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0build.ps1" -Gui

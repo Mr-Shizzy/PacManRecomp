@@ -19,7 +19,7 @@ if [ "$ver" != "$built" ] && [ -z "$TEST_PACKAGE" ]; then
 fi
 top=$(dirname "$pac")
 out=${2:-$pac/release}
-name="PacManRecomp-$ver-EasyBuild"
+name="PacManRecomp-$ver-Windows-EasyBuild"
 stage="$out/$name"
 
 rm -rf "$stage" "$out/$name.zip"

@@ -1,4 +1,6 @@
-# PacManRecomp
+# PacManRecomp (Windows)
+
+**For Windows 10 and 11 (64-bit).** There is no Mac or Linux version.
 
 A native Windows version of **Pac-Man for the NES** (Namco, 1993), made by
 static recompilation: the game's original 6502 code is translated into C and
@@ -23,12 +25,20 @@ cartridge, with a set of modern extras on top.
 
 ## Download & play (no programming needed)
 
-1. Download **PacManRecomp-1.0.2-EasyBuild.zip** from
+1. Download **PacManRecomp-1.0.3-Windows-EasyBuild.zip** from
    [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
 2. Put your own Pac-Man ROM (a `.nes` file) in the folder.
-3. Double-click **Build Pac-Man.bat** and wait for "DONE!" (a few minutes; it
-   downloads free build tools the first time).
-4. Open the **Game** folder and double-click **PacManRecomp.exe**.
+3. Double-click **Build Pac-Man.bat**. A window shows each step with progress
+   bars (a few minutes; it downloads free build tools, and deletes them and
+   its other temporary files when it's done).
+4. Press **Play**, or open the **Pac-Man Recomp** folder and double-click
+   **PacManRecomp.exe**.
+
+Build on a normal internal drive (like C:) if you can: USB sticks and drives
+formatted as exFAT are much slower with the thousands of small files the
+build makes (15 minutes or more). You can move the finished **Pac-Man
+Recomp** folder anywhere afterwards. The build needs about 2 GB of free space
+while it works.
 
 ### Why you build it yourself
 
