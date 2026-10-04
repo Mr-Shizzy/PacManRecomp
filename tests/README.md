@@ -28,7 +28,7 @@ current checkout, so they work from anywhere.
 - `options_modern.txt` - modern options menu (run with `"ModernMenus = 1"`).
 - `menu_arrows.txt` - classic menus also move with Up/Down (title, pause).
 - `title_quit.txt` - quitting from the title screen (run with `"ModernMenus = 1"`).
-- `pause_menu_yes.txt` - pause menu, confirming quit.
+- `pause_menu_yes.txt` - pause menu, confirming quit (run with `"ModernMenus = 1"`).
 - `cheats_probe.txt` - cheat codes (level skip and friends).
 - `hs_entry.txt` - high score name entry.
 - `hs_2p.txt` - two-player high scores.
