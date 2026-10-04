@@ -292,7 +292,7 @@ public static class Crc32 {
     $bytes = [IO.File]::ReadAllBytes($rom)
     if ($bytes.Length -lt 16 -or $bytes[0] -ne 0x4E -or $bytes[1] -ne 0x45 -or $bytes[2] -ne 0x53) { Fail "$($roms[0].Name) is not an NES ROM." }
     $crc = [Crc32]::Of($bytes, 16)
-    if ($crc -ne $RomCrc) { Fail "$($roms[0].Name) is not the right ROM (CRC32 $crc, expected $RomCrc).`nYou need Pac-Man (USA) (Namco) for the NES." }
+    if ($crc -ne $RomCrc) { Fail "$($roms[0].Name) is not the right ROM (CRC32 $crc, expected $RomCrc).`nYou need Pac-Man (USA) (Namco) for the NES (the Namco release, not the Tengen one)." }
     Say "  Found $($roms[0].Name): correct ROM."
     Copy-Item $rom (Join-Path $Pac 'pacman.nes') -Force
     Show-Bar 1 ''
