@@ -58,7 +58,7 @@ target_include_directories(PacManRecomp PRIVATE
 
 target_link_libraries(PacManRecomp PRIVATE ${SDL2_LIBRARIES} ${NESRECOMP_RUNNER_LIBRARIES})
 if(WIN32)
-    target_link_libraries(PacManRecomp PRIVATE winhttp shell32)   # updater.c
+    target_link_libraries(PacManRecomp PRIVATE winhttp shell32 advapi32)   # updater.c
 endif()
 
 # Bake the compiler's C++ runtime into the exe, so players only need SDL2.dll

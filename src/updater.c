@@ -41,7 +41,7 @@ extern const unsigned char g_update_ps1[];
 extern const unsigned g_update_ps1_len;
 void nesrecomp_quit_to_desktop(void);
 
-enum { ST_IDLE, ST_CHECKING, ST_LATEST, ST_NEWER, ST_FAILED };
+enum { ST_IDLE, ST_CHECKING, ST_LATEST, ST_NEWER, ST_NOFILE, ST_FAILED };
 
 static volatile LONG s_state = ST_IDLE;
 static int  s_started;          /* the startup check ran (once per process) */
@@ -159,7 +159,9 @@ static DWORD WINAPI check_thread(LPVOID arg) {
         }
         if (version_num(tag) <= version_num(PACMAN_VERSION)) {
             result = ST_LATEST;
-        } else if (url[0] && (s_test || !strncmp(url, ZIP_PREFIX, strlen(ZIP_PREFIX)))) {
+        } else if (!url[0]) {
+            result = ST_NOFILE;     /* e.g. a release whose zip isn't uploaded yet */
+        } else if (s_test || !strncmp(url, ZIP_PREFIX, strlen(ZIP_PREFIX))) {
             snprintf(s_tag, sizeof(s_tag), "%s", tag[0] == 'v' ? tag + 1 : tag);
             snprintf(s_zip, sizeof(s_zip), "%s", url);
             if (!json_str(json, "body", s_notes, sizeof(s_notes))) s_notes[0] = '\0';
@@ -196,8 +198,19 @@ static int game_dir(wchar_t out[MAX_PATH]) {
     return 1;
 }
 
+/* Held by update.ps1 while it runs (released just before it restarts the
+ * game). */
+#define UPDATE_MUTEX L"Local\\PacManRecomp-update"
+
+static int update_running(void) {
+    HANDLE h = OpenMutexW(SYNCHRONIZE, FALSE, UPDATE_MUTEX);
+    if (!h) return 0;
+    CloseHandle(h);
+    return 1;
+}
+
 /* An update that was cut off (power cut, crash) can leave its update-temp
- * folder behind; the game is running, so no update is: delete it. */
+ * folder behind; only called when no update is running: delete it. */
 static void remove_leftover_temp(void) {
     wchar_t dir[MAX_PATH + 16];
     if (!game_dir(dir)) return;
@@ -212,19 +225,41 @@ static void remove_leftover_temp(void) {
     SHFileOperationW(&op);
 }
 
+void updater_startup_guard(void) {
+    if (update_running()) {
+        /* Started (e.g. double-clicked) while an update is building: this
+         * copy would lock the files the update is about to replace. */
+        MessageBoxW(NULL, L"Pac-Man is being updated right now.\n\n"
+                          L"It will start by itself when the update is done.",
+                    L"Pac-Man update", MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
+        exit(0);
+    }
+    remove_leftover_temp();
+}
+
+static void cant_start(void) {
+    MessageBoxW(GetActiveWindow(), L"Couldn't start the updater. Your game was not changed.",
+                L"Pac-Man update", MB_OK | MB_ICONWARNING);
+}
+
 /* Write the update script to %TEMP%, start it (it shows its own progress
  * window, no console), quit. */
 static void start_update(void) {
-    wchar_t tmp[MAX_PATH], script[MAX_PATH], exe[MAX_PATH], dir[MAX_PATH];
-    if (!GetTempPathW(MAX_PATH, tmp)) return;
+    wchar_t tmp[MAX_PATH], script[MAX_PATH], exe[MAX_PATH], dir[MAX_PATH], ps[MAX_PATH];
+    if (!GetTempPathW(MAX_PATH, tmp)) { cant_start(); return; }
     _snwprintf(script, MAX_PATH, L"%lsPacManRecomp-update.ps1", tmp);
     script[MAX_PATH - 1] = 0;
     FILE *f = _wfopen(script, L"wb");
-    if (!f) return;
+    if (!f) { cant_start(); return; }
     fwrite(g_update_ps1, 1, g_update_ps1_len, f);
     fclose(f);
 
-    if (!GetModuleFileNameW(NULL, exe, MAX_PATH)) return;
+    /* Windows PowerShell by full path, not whatever "powershell" PATH finds. */
+    UINT sl = GetSystemDirectoryW(ps, MAX_PATH);
+    if (sl == 0 || sl + 40 >= MAX_PATH) { DeleteFileW(script); cant_start(); return; }
+    wcscat(ps, L"\\WindowsPowerShell\\v1.0\\powershell.exe");
+
+    if (!GetModuleFileNameW(NULL, exe, MAX_PATH)) { DeleteFileW(script); cant_start(); return; }
     wcscpy(dir, exe);
     wchar_t *slash = wcsrchr(dir, L'\\');
     const wchar_t *name = slash ? slash + 1 : exe;
@@ -235,9 +270,9 @@ static void start_update(void) {
     utf8_to_w(s_tag, ver, 64);
     static wchar_t cmd[4096];
     _snwprintf(cmd, 4096,
-        L"powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"%ls\" "
+        L"\"%ls\" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"%ls\" "
         L"-GameDir \"%ls\" -ExeName \"%ls\" -ZipUrl \"%ls\" -Version \"%ls\" -WaitPid %lu",
-        script, dir, name, zip, ver, (unsigned long)GetCurrentProcessId());
+        ps, script, dir, name, zip, ver, (unsigned long)GetCurrentProcessId());
     cmd[4095] = 0;
 
     /* Windows PowerShell must not load PowerShell 7's modules (as in the
@@ -247,10 +282,9 @@ static void start_update(void) {
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
-    if (!CreateProcessW(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, dir, &si, &pi)) {
+    if (!CreateProcessW(ps, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, dir, &si, &pi)) {
         DeleteFileW(script);
-        MessageBoxW(GetActiveWindow(), L"Couldn't start the updater.", L"Pac-Man update",
-                    MB_OK | MB_ICONWARNING);
+        cant_start();
         return;
     }
     CloseHandle(pi.hThread);
@@ -263,6 +297,19 @@ static void start_update(void) {
  * 0.9 GB), deleted afterwards. */
 #define UPDATE_NEED_GB 2
 
+/* Windows paths stop at 259 characters unless long paths are switched on.
+ * The build's deepest file is 141 characters below its folder (measured;
+ * +10 spare for newer tools), and that folder is <game folder>\update-temp,
+ * so the game folder's path can be at most 259 - 12 - 151 = 96 long. */
+#define UPDATE_MAX_GAME_DIR 96
+
+static int long_paths_on(void) {
+    DWORD v = 0, sz = sizeof(v);
+    return RegGetValueW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\FileSystem",
+                        L"LongPathsEnabled", RRF_RT_REG_DWORD, NULL, &v, &sz) == ERROR_SUCCESS &&
+           v == 1;
+}
+
 static void ask_to_update(void) {
     char msg[2400];
     wchar_t where[MAX_PATH];
@@ -270,6 +317,22 @@ static void ask_to_update(void) {
     int need = UPDATE_NEED_GB;
     const char *tneed = getenv("PACMAN_UPDATE_TEST_NEED_GB");   /* tests only */
     if (s_test && tneed && atoi(tneed) > 0) need = atoi(tneed);
+    int max_dir = UPDATE_MAX_GAME_DIR;
+    const char *tdir = getenv("PACMAN_UPDATE_TEST_MAX_DIR");    /* tests only */
+    if (s_test && tdir && atoi(tdir) > 0) max_dir = atoi(tdir);
+    if (game_dir(where) && (int)wcslen(where) - 1 > max_dir && (tdir || !long_paths_on())) {
+        snprintf(msg, sizeof(msg),
+            "Pac-Man %s is available, but the game folder's path is too long for "
+            "Windows to build the update inside it.\n\n"
+            "Move the game folder somewhere with a shorter path, for example "
+            "C:\\Games\\Pac-Man (your settings, high scores and mods are inside it, so "
+            "they move too). Then press \"Check for updates now\" in the launcher.",
+            s_tag);
+        wchar_t w[2400];
+        utf8_to_w(msg, w, 2400);
+        MessageBoxW(GetActiveWindow(), w, L"Pac-Man update", MB_OK | MB_ICONWARNING | MB_SETFOREGROUND);
+        return;
+    }
     if (game_dir(where) && GetDiskFreeSpaceExW(where, &avail, NULL, NULL) &&
         avail.QuadPart < (ULONGLONG)need * 1024 * 1024 * 1024) {
         char drive[64];
@@ -313,7 +376,6 @@ static void poll(void) {
     if (!s_loaded) { options_reload(); s_loaded = 1; }
     if (!s_started) {
         s_started = 1;
-        remove_leftover_temp();
         if (g_opt.check_updates) start_check();
     }
     if (s_state == ST_NEWER && !s_prompted) {
@@ -333,8 +395,9 @@ static int rows_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         snprintf(r->label, sizeof(r->label), "Check for updates on startup");
         snprintf(r->help, sizeof(r->help),
                  "Ask GitHub for a newer version each time the launcher opens. "
-                 "Off: the game never goes online. With \"Skip launcher on boot\" "
-                 "ticked, the launcher doesn't open, so there are no checks.");
+                 "Off: it only checks when you press \"Check for updates now\". With "
+                 "\"Skip launcher on boot\" ticked, the launcher doesn't open, so "
+                 "there are no checks.");
         r->value = g_opt.check_updates;
         break;
     case ROW_NOW:
@@ -348,9 +411,10 @@ static int rows_get(void *ctx, int i, RecompLauncherCHostRow *r) {
         const char *t = "";
         switch (s_state) {
         case ST_CHECKING: t = "Checking..."; break;
-        case ST_LATEST:   t = "You have the latest version (" PACMAN_VERSION ")."; break;
-        case ST_NEWER:    t = "A new version is available."; break;
-        case ST_FAILED:   t = "Couldn't check (no internet?)."; break;
+        case ST_LATEST:   t = "Up to date (version " PACMAN_VERSION ")"; break;
+        case ST_NEWER:    t = "A new version is available"; break;
+        case ST_NOFILE:   t = "Update not ready yet - try later"; break;
+        case ST_FAILED:   t = "Couldn't check (no internet?)"; break;
         default:          t = "Version " PACMAN_VERSION; break;
         }
         snprintf(r->label, sizeof(r->label), "%s", t);
@@ -384,4 +448,5 @@ const RecompLauncherCHostPage *updater_launcher_page(void) {
 
 #else  /* not Windows: no updater */
 const RecompLauncherCHostPage *updater_launcher_page(void) { return NULL; }
+void updater_startup_guard(void) {}
 #endif

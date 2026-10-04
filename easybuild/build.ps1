@@ -1,6 +1,13 @@
 # PacManRecomp Easy Build: builds the game on this PC from your own ROM.
 # Started by "Build Pac-Man.bat". Downloads the free build tools (once), then
 # translates your ROM and compiles the game into the "Game" folder.
+#
+# The in-game updater (src/update.ps1, built into OLDER versions of the game)
+# runs this script too, so keep its contract: the one .nes file in this
+# folder, the finished game in .\Game, "PROBLEM:" before an error, exit code
+# 1 on failure, and the step messages and build-log headings it follows for
+# its progress bar ("Step N of 4", "Downloading <tool>", "==== Compiling the
+# game"...). Changing those only makes its progress bar less exact.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'      # much faster downloads
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

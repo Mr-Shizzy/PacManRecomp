@@ -17,6 +17,7 @@
 #include "mods.h"
 #include "sounddump.h"
 #include "capture.h"
+#include "updater.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -28,6 +29,7 @@ uint32_t game_get_expected_crc32(void) { return 0x9E4E9CC2u; }
 const char *game_get_name(void) { return "Pac-Man"; }
 
 void game_on_init(void) {
+    updater_startup_guard();     /* also covers "Skip launcher on boot" */
     options_init();
     hs_init();
     if (!sounddump_active()) mods_init();   /* sounds, logo, HD graphics */

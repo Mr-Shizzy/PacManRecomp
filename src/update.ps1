@@ -20,9 +20,15 @@ Add-Type -AssemblyName System.Windows.Forms, System.Drawing, System.IO.Compressi
 
 $Work = Join-Path $GameDir 'update-temp'    # on the game's own drive
 $Exe  = Join-Path $GameDir $ExeName
-$script:cancel = $false
-$script:shown  = 0          # progress shown, 0-100 (never goes back)
-$script:proc   = $null
+$script:cancel   = $false
+$script:noCancel = $false   # set once installing starts (past the point of no return)
+$script:changed  = $false   # the game files were left half replaced
+$script:shown    = 0        # progress shown, 0-100 (never goes back)
+$script:proc     = $null
+$script:wc       = $null
+# While this exists the game refuses to start (updater.c), so a copy opened
+# mid-update can't lock the files being replaced. Released before restarting.
+$script:mutex = New-Object Threading.Mutex($false, 'Local\PacManRecomp-update')
 
 # ---- the window ----------------------------------------------------------------
 [Windows.Forms.Application]::EnableVisualStyles()
@@ -65,13 +71,15 @@ $btn.Location = New-Object Drawing.Point(410, 192)
 $btn.Size = New-Object Drawing.Size(90, 30)
 $btn.Add_Click({ $script:cancel = $true })
 $form.Controls.Add($btn)
-$form.Add_FormClosing({ param($s, $e) if (-not $script:done) { $e.Cancel = $true; $script:cancel = $true } })
+$form.Add_FormClosing({ param($s, $e)
+    if (-not $script:done) { $e.Cancel = $true; if (-not $script:noCancel) { $script:cancel = $true } }
+})
 $form.Show()
 
 function Pump($ms) {
     $end = [DateTime]::Now.AddMilliseconds($ms)
     do { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 30 } while ([DateTime]::Now -lt $end)
-    if ($script:cancel) { throw 'CANCELLED' }
+    if ($script:cancel -and -not $script:noCancel) { throw 'CANCELLED' }
 }
 function Show-Progress($pct, $text, $more) {
     $pct = [Math]::Max(0, [Math]::Min(100, [int]$pct))
@@ -101,6 +109,10 @@ function Stop-Build {
     if ($script:proc -and -not $script:proc.HasExited) {
         & taskkill.exe /T /F /PID $script:proc.Id 2>&1 | Out-Null
     }
+    if ($script:wc -and $script:wc.IsBusy) {
+        $script:wc.CancelAsync()
+        for ($i = 0; $i -lt 50 -and $script:wc.IsBusy; $i++) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 100 }
+    }
 }
 
 function Finish($ok, $message) {
@@ -113,14 +125,18 @@ function Finish($ok, $message) {
         } else {
             $log = Join-Path $GameDir 'update-log.txt'
             $extra = if (Test-Path $log) { "`n`nDetails are in:`n$log" } else { '' }
+            $state = if ($script:changed) {
+                'Some game files may have been replaced. To repair the game, build it again with the Easy Build.'
+            } else { 'Your game was not changed.' }
             [Windows.Forms.MessageBox]::Show($form,
-                "The update didn't work: $message`n`nYour game was not changed.$extra",
+                "The update didn't work: $message`n`n$state$extra",
                 'Pac-Man update', 'OK', 'Warning') | Out-Null
             Show-Progress $script:shown 'Cleaning up...' ''
         }
     }
     Remove-Work
     if ($ok) { Show-Progress 100 "Done! Starting Pac-Man $Version..." 'Temporary files deleted.'; Start-Sleep -Milliseconds 1200 }
+    if ($script:mutex) { $script:mutex.Dispose(); $script:mutex = $null }   # let the game start
     if (Test-Path $Exe) { Start-Process -FilePath $Exe -WorkingDirectory $GameDir }
     $form.Close()
     Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
@@ -146,6 +162,18 @@ try {
     Remove-Item (Join-Path $GameDir 'update-log.txt') -Force -ErrorAction SilentlyContinue
 
     Remove-Work
+    # Windows paths stop at 259 characters unless long paths are switched on;
+    # the build's deepest file is ~150 below update-temp (see updater.c).
+    $longPaths = $false
+    try {
+        $longPaths = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' `
+                      -Name LongPathsEnabled -ErrorAction Stop).LongPathsEnabled -eq 1
+    } catch {}
+    if (-not $longPaths -and $GameDir.TrimEnd([char]92).Length -gt 96) {
+        throw ("the game folder's path is too long for Windows to build the update inside it. " +
+               "Move the game folder somewhere with a shorter path, for example C:\Games\Pac-Man, " +
+               "then try again")
+    }
     $freeGB = $null
     try {
         $drive = New-Object IO.DriveInfo([IO.Path]::GetPathRoot($GameDir))
@@ -161,27 +189,43 @@ try {
     Show-Progress 2 'Downloading the new version...' ''
     if (Test-Path -LiteralPath $ZipUrl) { Copy-Item -LiteralPath $ZipUrl $zip }   # local test package
     else {
-        $wc = New-Object Net.WebClient
-        $wc.DownloadFileAsync([Uri]$ZipUrl, $zip)
-        while ($wc.IsBusy) {
+        $script:wc = New-Object Net.WebClient
+        $script:wc.DownloadFileAsync([Uri]$ZipUrl, $zip)
+        while ($script:wc.IsBusy) {
             Pump 200
             if (Test-Path $zip) { Show-Progress 2 $null ('{0:N1} MB' -f ((Get-Item $zip).Length / 1MB)) }
         }
         if (-not (Test-Path $zip) -or (Get-Item $zip).Length -lt 1000) { throw "couldn't download the new version (no internet?)" }
     }
+    # Unpack straight into update-temp, without the zip's top folder, so the
+    # build's paths stay as short as possible.
     Show-Progress 5 'Unpacking...' ''
-    $src = Join-Path $Work 'src'
-    [IO.Compression.ZipFile]::ExtractToDirectory($zip, $src)
+    $za = [IO.Compression.ZipFile]::OpenRead($zip)
+    try {
+        $names = @($za.Entries | ForEach-Object { $_.FullName })
+        $top = ($names[0] -split '[/\\]')[0] + '/'
+        $strip = @($names | Where-Object { -not $_.StartsWith($top) }).Count -eq 0
+        $n = 0
+        foreach ($e in $za.Entries) {
+            $rel = if ($strip) { $e.FullName.Substring($top.Length) } else { $e.FullName }
+            if (-not $rel -or $rel -match '(^|[/\\])\.\.([/\\]|$)') { continue }
+            $dest = Join-Path $Work $rel
+            if ($rel.EndsWith('/')) { New-Item -ItemType Directory -Force $dest | Out-Null; continue }
+            $dir = Split-Path $dest -Parent
+            if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force $dir | Out-Null }
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($e, $dest, $true)
+            if ((++$n % 200) -eq 0) { Pump 0 }
+        }
+    } finally { $za.Dispose() }
     Remove-Item $zip -Force
-    $root = Get-ChildItem $src -Recurse -Filter build.ps1 -File | Select-Object -First 1
-    if (-not $root) { throw 'the download has no build script' }
-    $root = $root.DirectoryName
+    $root = $Work
+    if (-not (Test-Path (Join-Path $root 'build.ps1'))) { throw 'the download has no build script' }
 
     # The ROM the game already uses (rom.cfg, else the .nes in the game folder).
     $rom = $null
     $cfg = Join-Path $GameDir 'rom.cfg'
     if (Test-Path $cfg) {
-        $p = (Get-Content $cfg -Raw).Trim()
+        $p = "$(Get-Content $cfg -Raw)".Trim()
         if ($p -and -not [IO.Path]::IsPathRooted($p)) { $p = Join-Path $GameDir $p }
         if ($p -and (Test-Path -LiteralPath $p)) { $rom = $p }
     }
@@ -196,7 +240,7 @@ try {
     # hidden; its messages and build log drive the progress bar.
     $out  = Join-Path $Work 'build-out.txt'
     $blog = Join-Path $root 'build-log.txt'
-    $script:proc = Start-Process powershell -PassThru -WindowStyle Hidden -RedirectStandardOutput $out `
+    $script:proc = Start-Process (Join-Path $PSHOME 'powershell.exe') -PassThru -WindowStyle Hidden -RedirectStandardOutput $out `
         -RedirectStandardError (Join-Path $Work 'build-err.txt') `
         -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$(Join-Path $root 'build.ps1')`"")
     $null = $script:proc.Handle          # keeps ExitCode readable after exit
@@ -244,20 +288,41 @@ try {
         throw 'the build failed'
     }
 
+    # Install: every program file the new build made (exe, DLLs, launcher
+    # assets, guide...), so a later version can add files. Never the
+    # player's own: the ROM, rom.cfg, *.ini (settings, keys, scores), mods\.
     Show-Progress 95 'Installing...' ''
-    $btn.Enabled = $false            # past the point of no return
+    $script:noCancel = $true; $btn.Enabled = $false      # past the point of no return
     $new = Join-Path $root 'Game'
+    $plan = @()
+    foreach ($f in Get-ChildItem $new -Recurse -File) {
+        $rel = $f.FullName.Substring($new.Length + 1)
+        if ($rel -match '\.(nes|ini)$' -or $rel -eq 'rom.cfg' -or $rel -match '^mods[\\/]') { continue }
+        $dest = if ($rel -eq 'PacManRecomp.exe') { $Exe } else { Join-Path $GameDir $rel }
+        $plan += @{ From = $f.FullName; To = $dest; Back = (Join-Path $Work "backup\$($plan.Count)"); Had = (Test-Path -LiteralPath $dest) }
+    }
+    # Back up what gets replaced, so a failure can put the old game back.
+    New-Item -ItemType Directory -Force (Join-Path $Work 'backup') | Out-Null
+    foreach ($c in $plan) { if ($c.Had) { Copy-Item -LiteralPath $c.To $c.Back -Force } }
     for ($try = 1; ; $try++) {
         try {
-            Copy-Item (Join-Path $new 'PacManRecomp.exe') $Exe -Force
-            Copy-Item (Join-Path $new 'SDL2.dll') $GameDir -Force
-            Copy-Item (Join-Path $new 'Modding guide.md') $GameDir -Force
-            New-Item -ItemType Directory -Force (Join-Path $GameDir 'assets') | Out-Null
-            Copy-Item (Join-Path $new 'assets\*') (Join-Path $GameDir 'assets') -Recurse -Force
+            foreach ($c in $plan) {
+                $dir = Split-Path $c.To -Parent
+                if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force $dir | Out-Null }
+                Copy-Item -LiteralPath $c.From $c.To -Force
+                $c.Done = $true
+            }
             break
         } catch {
-            if ($try -ge 10) { throw "couldn't replace the game files (is the game still open?)" }
-            Pump 1000
+            if ($try -lt 10) { Pump 1000; continue }
+            foreach ($c in $plan) {           # put back what was replaced
+                if (-not $c.Done) { continue }
+                try {
+                    if ($c.Had) { Copy-Item -LiteralPath $c.Back $c.To -Force }
+                    elseif (Test-Path -LiteralPath $c.To) { Remove-Item -LiteralPath $c.To -Force }
+                } catch { $script:changed = $true }
+            }
+            throw "couldn't replace the game files (is the game still open?)"
         }
     }
     Show-Progress 97 'Deleting temporary files...' ''

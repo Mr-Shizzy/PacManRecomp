@@ -9,6 +9,14 @@ ver=$1
 [ -n "$ver" ] || { echo "usage: $0 <version> [out_dir]"; exit 1; }
 here=$(cd "$(dirname "$0")" && pwd)
 pac=$(dirname "$here")
+
+# The release must match the version built into the game (CMakeLists.txt
+# project VERSION): the updater compares the two, and a mismatch would offer
+# the same update forever. TEST_PACKAGE=1 skips this (updater tests).
+built=$(sed -n 's/^project(PacManRecomp VERSION \([0-9.]*\).*/\1/p' "$pac/CMakeLists.txt")
+if [ "$ver" != "$built" ] && [ -z "$TEST_PACKAGE" ]; then
+    echo "version $ver doesn't match CMakeLists.txt's project VERSION $built"; exit 1
+fi
 top=$(dirname "$pac")
 out=${2:-$pac/release}
 name="PacManRecomp-$ver-EasyBuild"
