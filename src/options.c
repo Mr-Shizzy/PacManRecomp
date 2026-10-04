@@ -428,8 +428,10 @@ static void title_menu_input(uint8_t pressed) {
     int start_game = 0;
 
     if (!g_opt.modern) {
-        /* Classic: Select moves the cursor, Start picks (the original feel). */
-        if (pressed & BTN_SELECT) move_sel(sd, sel, +1);
+        /* Classic: Select (or Up/Down) moves the cursor, Start picks (the
+         * original feel; the d-pad is unused here by the game itself). */
+        if (pressed & (BTN_SELECT | BTN_DOWN)) move_sel(sd, sel, +1);
+        else if (pressed & BTN_UP) move_sel(sd, sel, -1);
         else if (pressed & BTN_START) start_game = activate(it);
     } else {
         /* Modern: D-pad moves / changes, A (or Start) picks, B goes back. */
@@ -864,7 +866,7 @@ static const PageText k_page_text[] = {
     { &g_opt.echo, IT_TOGGLE, "Echo effect",
       "Add an echo to all the sound, like playing in a big hall." },
     { &g_opt.modern, IT_STYLE, "Menu buttons",
-      "How you move through the game's menus.\nClassic: Select moves the cursor, Start "
+      "How you move through the game's menus.\nClassic: Select or Up/Down moves the cursor, Start "
       "picks (like the original).\nModern: D-pad moves, A picks, B goes back." },
     { &g_opt.rumble, IT_TOGGLE, "Controller rumble",
       "Shake the gamepad when you eat a ghost, lose a life and so on "

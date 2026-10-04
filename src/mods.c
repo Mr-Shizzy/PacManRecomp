@@ -261,7 +261,8 @@ void mods_menu_close(void) {
 int mods_menu_input(uint8_t pressed, int modern) {
     int n = item_count(), pick = 0;
     if (!modern) {
-        if (pressed & BTN_SELECT) s_sel = (s_sel + 1) % n;
+        if (pressed & (BTN_SELECT | BTN_DOWN)) s_sel = (s_sel + 1) % n;
+        if (pressed & BTN_UP) s_sel = (s_sel + n - 1) % n;
         pick = pressed & BTN_START;
     } else {
         if (pressed & BTN_UP)   s_sel = (s_sel + n - 1) % n;

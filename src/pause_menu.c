@@ -8,7 +8,7 @@
  * prompt by pausing through the game's own Start handling. Everything is a
  * host-side overlay: game RAM and VRAM are never written, only read.
  *
- * Controls follow the OPTIONS menu style: classic (Select moves the cursor,
+ * Controls follow the OPTIONS menu style: classic (Select or Up/Down moves the cursor,
  * Start picks) or modern (d-pad moves, A picks, B backs out).
  */
 #include "pause_menu.h"
@@ -115,7 +115,8 @@ void pause_menu_on_frame(void) {
     } else {
         int pick;
         if (!g_opt.modern) {
-            if (pressed & BTN_SELECT) s_sel = (s_sel + 1) % PICK_COUNT;
+            if (pressed & (BTN_SELECT | BTN_DOWN)) s_sel = (s_sel + 1) % PICK_COUNT;
+            if (pressed & BTN_UP) s_sel = (s_sel + PICK_COUNT - 1) % PICK_COUNT;
             pick = pressed & BTN_START;
         } else {
             if (pressed & (BTN_UP | BTN_LEFT))    s_sel = (s_sel + PICK_COUNT - 1) % PICK_COUNT;

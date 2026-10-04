@@ -66,7 +66,7 @@ into the game.
 - **Controller rumble:** a soft buzz while the ghosts are blue, a jolt when
   you eat one, a rumble as Pac-Man dies, and a tiny blip for each dot. In
   2-player games only the player whose turn it is feels it.
-- **Menu style:** the classic NES way (Select moves, Start picks) or modern
+- **Menu style:** the classic NES way (Select or Up/Down moves, Start picks) or modern
   (D-pad to move, A to pick, B to go back).
 
 ### In-game menus

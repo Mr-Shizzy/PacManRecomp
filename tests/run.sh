@@ -9,7 +9,7 @@
 #   with none, the test runs on default settings.
 #   Screenshots (SCREENSHOT tests/out/x.png) land under this checkout's tests/out/.
 set -e
-here=$(cd "$(dirname "$0")" && pwd)
+here=$(cd "$(dirname "$0")" && (pwd -W 2>/dev/null || pwd))   # C:/... form for the exe
 root=$(dirname "$here")
 run="$here/run"
 
