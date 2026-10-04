@@ -56,6 +56,12 @@ video, audio, controls, game options, cheats and mods, each with a short
 explanation when you hover over it. You can also skip it and go straight
 into the game.
 
+- **Optional updates:** tick **Check for updates on startup** (or press
+  **Check now**) on the launcher's main page. Off by default: the game never
+  goes online unless you ask. When a new version is out, it asks first, then
+  downloads it, builds it from your ROM and restarts the game, keeping your
+  settings, keys, high scores and mods, and deleting what it downloaded.
+
 ### Video and audio
 - Window size, fullscreen, integer scaling, smoothing filter, stretch to fill,
   hide the screen edges (overscan) and an inverse-colors mode.
