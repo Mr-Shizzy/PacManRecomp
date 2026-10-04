@@ -7,7 +7,8 @@
  * when it is newer than this build, asks the player. On Yes the game writes
  * its built-in update script (src/update.ps1) to %TEMP%, starts it and
  * quits; the script downloads that release's Easy Build, builds it from the
- * game folder's ROM, replaces only the program files (settings, keys, high
+ * game folder's ROM (working in update-temp inside the game folder, about
+ * 1 GB at most), replaces only the program files (settings, keys, high
  * scores and mods stay) and starts the game again, deleting what it made.
  *
  * Testing: PACMAN_UPDATE_TEST_JSON=<file> reads the "latest release" from a
@@ -24,6 +25,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winhttp.h>
+#include <shellapi.h>
 
 #ifndef PACMAN_VERSION
 #define PACMAN_VERSION "0.0.0"
@@ -185,6 +187,31 @@ static void utf8_to_w(const char *s, wchar_t *out, int cap) {
     if (!MultiByteToWideChar(CP_UTF8, 0, s, -1, out, cap)) out[0] = 0;
 }
 
+/* The folder holding the exe (the game folder), with a trailing backslash. */
+static int game_dir(wchar_t out[MAX_PATH]) {
+    if (!GetModuleFileNameW(NULL, out, MAX_PATH)) return 0;
+    wchar_t *slash = wcsrchr(out, L'\\');
+    if (!slash) return 0;
+    slash[1] = 0;
+    return 1;
+}
+
+/* An update that was cut off (power cut, crash) can leave its update-temp
+ * folder behind; the game is running, so no update is: delete it. */
+static void remove_leftover_temp(void) {
+    wchar_t dir[MAX_PATH + 16];
+    if (!game_dir(dir)) return;
+    wcscat(dir, L"update-temp");
+    if (GetFileAttributesW(dir) == INVALID_FILE_ATTRIBUTES) return;
+    dir[wcslen(dir) + 1] = 0;           /* SHFileOperation: double-NUL list */
+    SHFILEOPSTRUCTW op;
+    ZeroMemory(&op, sizeof(op));
+    op.wFunc = FO_DELETE;
+    op.pFrom = dir;
+    op.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+    SHFileOperationW(&op);
+}
+
 /* Write the update script to %TEMP%, start it (it shows its own progress
  * window, no console), quit. */
 static void start_update(void) {
@@ -231,8 +258,9 @@ static void start_update(void) {
     nesrecomp_quit_to_desktop();
 }
 
-/* Free space an update needs while it works (the download, the build tools
- * and the build, all in %LOCALAPPDATA%; deleted afterwards). */
+/* Free space an update needs while it works: the download, the build tools
+ * and the build go in update-temp inside the game folder (measured peak
+ * 0.9 GB), deleted afterwards. */
 #define UPDATE_NEED_GB 2
 
 static void ask_to_update(void) {
@@ -242,15 +270,20 @@ static void ask_to_update(void) {
     int need = UPDATE_NEED_GB;
     const char *tneed = getenv("PACMAN_UPDATE_TEST_NEED_GB");   /* tests only */
     if (s_test && tneed && atoi(tneed) > 0) need = atoi(tneed);
-    DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", where, MAX_PATH);
-    if (n > 0 && n < MAX_PATH && GetDiskFreeSpaceExW(where, &avail, NULL, NULL) &&
+    if (game_dir(where) && GetDiskFreeSpaceExW(where, &avail, NULL, NULL) &&
         avail.QuadPart < (ULONGLONG)need * 1024 * 1024 * 1024) {
+        char drive[64];
+        if (where[0] && where[1] == L':')
+            snprintf(drive, sizeof(drive), "drive %c: (where the game is)", (char)where[0]);
+        else
+            snprintf(drive, sizeof(drive), "the drive where the game is");
         snprintf(msg, sizeof(msg),
             "Pac-Man %s is available, but there isn't enough free space to update.\n\n"
-            "Updating needs about %d GB free on drive %c: while it works (it's all "
-            "deleted afterwards). You have %.1f GB free.\n\n"
+            "Updating needs about %d GB free on %s while it works. It uses that "
+            "space for temporary files in the game folder and deletes them when "
+            "it's done. You have %.1f GB free.\n\n"
             "Free up some space, then press \"Check for updates now\" in the launcher.",
-            s_tag, need, (char)where[0],
+            s_tag, need, drive,
             (double)avail.QuadPart / (1024.0 * 1024.0 * 1024.0));
         wchar_t w[2400];
         utf8_to_w(msg, w, 2400);
@@ -261,8 +294,9 @@ static void ask_to_update(void) {
         "Pac-Man %s is available (you have %s).\n\n%s%s"
         "Updating downloads the new version and builds it from your ROM, like the "
         "first time. It takes a few minutes; the game closes and starts again when "
-        "it's done.\n\nYour settings, keys, high scores and mods are kept, and the "
-        "downloaded files are deleted afterwards.\n\nUpdate now?",
+        "it's done.\n\nYour settings, keys, high scores and mods are kept. While it "
+        "works it uses up to 1 GB of temporary files in the game folder, and "
+        "deletes them when it's done.\n\nUpdate now?",
         s_tag, PACMAN_VERSION, s_notes, s_notes[0] ? "\n\n" : "");
     wchar_t w[2400];
     utf8_to_w(msg, w, 2400);
@@ -279,6 +313,7 @@ static void poll(void) {
     if (!s_loaded) { options_reload(); s_loaded = 1; }
     if (!s_started) {
         s_started = 1;
+        remove_leftover_temp();
         if (g_opt.check_updates) start_check();
     }
     if (s_state == ST_NEWER && !s_prompted) {

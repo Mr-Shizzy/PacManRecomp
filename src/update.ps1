@@ -3,7 +3,8 @@
 # downloads the new Easy Build, builds it from the ROM in the game folder,
 # swaps in the new program files and starts the game again. Only the program
 # files are replaced: settings, keys, high scores and mods are never touched.
-# Everything it downloads is deleted at the end.
+# It works in a temporary folder inside the game folder (update-temp, about
+# 1 GB at most), which is deleted at the end.
 # Built into the exe (CMake embeds this file); written to %TEMP% to run.
 param(
     [string]$GameDir,
@@ -17,7 +18,7 @@ $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing, System.IO.Compression.FileSystem
 
-$Work = Join-Path $env:LOCALAPPDATA 'PacManRecomp-update'
+$Work = Join-Path $GameDir 'update-temp'    # on the game's own drive
 $Exe  = Join-Path $GameDir $ExeName
 $script:cancel = $false
 $script:shown  = 0          # progress shown, 0-100 (never goes back)
@@ -55,7 +56,7 @@ $form.Controls.Add($bar)
 $detail = New-Label 98 20 '' $false
 $detail.ForeColor = [Drawing.Color]::DimGray
 $note  = New-Label 124 58 ("This takes a few minutes. Your settings, keys, high scores and mods are kept. " +
-    "Temporary files (the download and the build tools, about 1 GB) are deleted when it's finished, " +
+    "It needs up to 1 GB of temporary files (in the game folder), which are deleted when it's finished, " +
     "and the game starts again by itself.") $false
 $note.ForeColor = [Drawing.Color]::DimGray
 $btn = New-Object Windows.Forms.Button
@@ -145,11 +146,15 @@ try {
     Remove-Item (Join-Path $GameDir 'update-log.txt') -Force -ErrorAction SilentlyContinue
 
     Remove-Work
-    $drive = New-Object IO.DriveInfo([IO.Path]::GetPathRoot($env:LOCALAPPDATA))
-    $freeGB = $drive.AvailableFreeSpace / 1GB
-    if ($freeGB -lt 2) {
-        throw ("there isn't enough free space. It needs about 2 GB free on drive {0} while it works " +
-               "(it's all deleted afterwards); you have {1:N1} GB.") -f $drive.Name, $freeGB
+    $freeGB = $null
+    try {
+        $drive = New-Object IO.DriveInfo([IO.Path]::GetPathRoot($GameDir))
+        $freeGB = $drive.AvailableFreeSpace / 1GB
+        $driveName = $drive.Name.TrimEnd([char]92)          # "D:\" -> "D:"
+    } catch {}                                              # network folder: can't tell
+    if ($freeGB -ne $null -and $freeGB -lt 2) {
+        throw ("there isn't enough free space on drive {0} (where the game is). Updating needs " +
+               "about 2 GB free there while it works; you have {1:N1} GB.") -f $driveName, $freeGB
     }
     New-Item -ItemType Directory -Force $Work | Out-Null
     $zip = Join-Path $Work 'update.zip'
