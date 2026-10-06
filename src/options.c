@@ -49,7 +49,7 @@
 #define BTN_LEFT    0x02
 #define BTN_RIGHT   0x01
 
-#define START_LEVEL_MAX 256
+#define START_LEVEL_MAX 255
 
 PacOptions g_opt;
 
@@ -440,10 +440,13 @@ static void title_menu_input(uint8_t pressed) {
 
     if (!g_opt.modern) {
         /* Classic: Select (or Up/Down) moves the cursor, Start picks (the
-         * original feel; the d-pad is unused here by the game itself). */
+         * original feel; the d-pad is unused here by the game itself), and
+         * Left/Right change a value (held: repeats, then by 10s). */
         if (pressed & (BTN_SELECT | BTN_DOWN)) move_sel(sd, sel, +1);
         else if (pressed & BTN_UP) move_sel(sd, sel, -1);
         else if (pressed & BTN_START) start_game = activate(it);
+        else if (pressed & BTN_LEFT)  change_value(it, -1);
+        else if (pressed & BTN_RIGHT) change_value(it, +1);
     } else {
         /* Modern: D-pad moves / changes, A (or Start) picks, B goes back. */
         if (pressed & BTN_UP)   move_sel(sd, sel, -1);
@@ -472,7 +475,11 @@ static void title_menu_input(uint8_t pressed) {
  * Game loop (demo flag $48 = 00): $3F 04 = play, 08 = death sequence (set
  * only by the ghost-collision check, which also sets $32, $DB and $87).
  * Lives: $67 current player, $77 the other. Stage: $68/$78, FF at game
- * start and incremented at each new stage's setup (stage 0 = level 1).
+ * start and incremented at each new stage's setup (stage 0 = level 1), but
+ * only up to $16 ($CF3C): it's the row of the 23-row difficulty table at
+ * $EBB6, so level 23 and every level after it play the same. It isn't a
+ * level number; s_level[] below counts levels. Dots left: $6A, $C0 at each
+ * new stage's setup (and only there), down to 0 when the maze is cleared.
  * Speeds: 11 pairs (fraction, whole pixels) at $9F-$B4 reloaded from the
  * stage table at every stage/life start; pairs 0-3 are Pac-Man's, 6-10 the
  * ghosts' (normal, frightened, tunnel, Blinky's two "Elroy" speeds). */
@@ -486,6 +493,33 @@ static void title_menu_input(uint8_t pressed) {
 #define SCRIPT_PLAY     0x04
 #define SCRIPT_DEATH    0x08
 #define SPEED_PAIRS     11
+#define RAM_DOTS_LEFT   0x6A
+#define STAGE_LAST      0x16        /* the game's own cap (see above) */
+#define DOTS_FULL       0xC0
+#define RAM_CUR_PLAYER  0x46        /* 2 players: whose turn (0/1) */
+
+/* Each player's level number (1 = first). A level is counted when a maze is
+ * cleared ($6A reaches 0) and the next one is set up ($6A back to $C0),
+ * which a switch between players can't fake: they only switch on a death. */
+static int s_level[2];
+static int s_level_cleared[2];
+
+static int cur_player(void) {
+    return (g_ram[RAM_GAME_MODE] & 1) ? (g_ram[RAM_CUR_PLAYER] & 1) : 0;
+}
+
+static void count_levels(void) {
+    static uint8_t prev_dots;
+    int p = cur_player();
+    uint8_t dots = g_ram[RAM_DOTS_LEFT];
+    /* The last dot eaten (1 -> 0); a new game's setup can also pass 0. */
+    if (dots == 0 && prev_dots == 1) s_level_cleared[p] = 1;
+    else if (dots == DOTS_FULL && s_level_cleared[p]) {
+        s_level_cleared[p] = 0;
+        s_level[p]++;
+    }
+    prev_dots = dots;
+}
 
 static uint16_t s_speed_base[SPEED_PAIRS];
 static uint16_t s_speed_written[SPEED_PAIRS];
@@ -546,8 +580,7 @@ void options_quit_to_title(void) {
 enum { RUMBLE_OFF, RUMBLE_LIGHT, RUMBLE_MEDIUM, RUMBLE_HARD };
 
 /* Whose turn it is (1 or 2): only that player's gamepad rumbles. $46 is the
- * current player in a 2-player game ($47 = 1). */
-#define RAM_CUR_PLAYER  0x46
+ * current player in a 2-player game ($47 = 1; RAM_CUR_PLAYER above). */
 static int rumble_player(void) {
     return (g_ram[RAM_GAME_MODE] & 1) && (g_ram[RAM_CUR_PLAYER] & 1) ? 2 : 1;
 }
@@ -615,12 +648,22 @@ static void gameplay_frame(void) {
         level_pending = 0;
         return;
     }
-    if (prev_demo != 0x00) level_pending = g_opt.start_level > 1;
+    if (prev_demo != 0x00) {
+        level_pending = g_opt.start_level > 1;
+        for (int p = 0; p < 2; p++) {
+            s_level[p] = g_opt.start_level;
+            s_level_cleared[p] = 0;
+        }
+    }
+    count_levels();
     if (level_pending) {
         /* New game: the stage reads FF (set a frame or two after the demo
-         * flag clears) until the first stage setup increments it. */
+         * flag clears) until the first stage setup increments it. Levels
+         * past 23 all use the table's last row, as in a long game. */
         if (g_ram[RAM_STAGE] == 0xFF) {
-            uint8_t st = (uint8_t)(g_opt.start_level - 2);
+            int row = g_opt.start_level - 1;
+            if (row > STAGE_LAST) row = STAGE_LAST;
+            uint8_t st = (uint8_t)(row - 1);
             g_ram[RAM_STAGE] = st;
             if (g_ram[RAM_STAGE_2] == 0xFF) g_ram[RAM_STAGE_2] = st;
             level_pending = 0;
@@ -758,14 +801,14 @@ static void draw_screen(uint32_t *fb) {
 static void draw_level_hud(uint32_t *fb) {
     char num[8];
     int row = (g_ram[RAM_GAME_MODE] & 1) ? HUD_LEVEL_ROW_2P : HUD_LEVEL_ROW;
-    snprintf(num, sizeof(num), "%d", g_ram[RAM_STAGE] + 1);
+    snprintf(num, sizeof(num), "%d", s_level[cur_player()]);
     text_draw(fb, HUD_LABEL_COL, row, "LEVEL", TEXT_RED);
     text_draw(fb, HUD_VALUE_END + 1 - (int)strlen(num), row + 2, num, TEXT_WHITE);
 }
 
 void options_render(uint32_t *fb) {
-    /* The stage reads FF before a new game's first level is set up, and also
-     * on level 256: show it once the game has had a real stage. */
+    /* The stage reads FF before a new game's first level is set up: show
+     * the level once the game has had a real stage. */
     static int stage_seen;
     if (g_ram[RAM_FLAG_DEMO] != 0x00) stage_seen = 0;
     else if (g_ram[RAM_STAGE] != 0xFF) stage_seen = 1;
@@ -879,7 +922,7 @@ static const PageText k_page_text[] = {
       "Add an echo to all the sound, like playing in a big hall." },
     { &g_opt.modern, IT_STYLE, "Menu buttons",
       "How you move through the game's menus.\nClassic: Select or Up/Down moves the cursor, Start "
-      "picks (like the original).\nModern: D-pad moves, A picks, B goes back." },
+      "picks (like the original), Left/Right change a value.\nModern: D-pad moves, A picks, B goes back." },
     { &g_opt.rumble, IT_TOGGLE, "Controller rumble",
       "Shake the gamepad when you eat a ghost, lose a life and so on "
       "(gamepads that can rumble)." },
@@ -896,7 +939,8 @@ static const PageText k_page_text[] = {
     { &g_opt.inf_lives, IT_TOGGLE, "Infinite lives",
       "Never run out of lives." },
     { &g_opt.start_level, IT_RANGE, "Start on level",
-      "Begin new games on this level instead of level 1." },
+      "Begin new games on this level instead of level 1.\nFrom level 23 on, every level "
+      "plays the same, as in the original." },
     { &g_opt.invincible, IT_TOGGLE, "Invincible",
       "Ghosts can't kill you." },
 };

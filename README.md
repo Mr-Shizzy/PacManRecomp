@@ -65,8 +65,9 @@ each update).
 - **Recompiled, not emulated.** The cartridge's own program runs as native
   code, so the gameplay, ghost behavior, timing, sound and the three
   intermissions are the real thing.
-- **All 256 levels**, exactly as the cartridge plays them (no kill screen on
-  the NES: after level 256 the game wraps back to level 1).
+- **Endless levels**, exactly as the cartridge plays them: the game gets
+  harder up to level 23, then every level plays the same, with no kill
+  screen. The optional level counter keeps counting.
 - **1 and 2 players**, each with their own keyboard or gamepad.
 
 ### Launcher
@@ -91,7 +92,8 @@ into the game.
 - **Controller rumble:** a soft buzz while the ghosts are blue, a jolt when
   you eat one, a rumble as Pac-Man dies, and a tiny blip for each dot. In
   2-player games only the player whose turn it is feels it.
-- **Menu style:** the classic NES way (Select or Up/Down moves, Start picks) or modern
+- **Menu style:** the classic NES way (Select or Up/Down moves, Start picks,
+  Left/Right change a value) or modern
   (D-pad to move, A to pick, B to go back).
 
 ### In-game menus
@@ -105,7 +107,7 @@ into the game.
   entered arcade-style when you make the list (1 and 2 players).
 
 ### Cheats
-Infinite lives, start on any level from 1 to 256, Pac-Man speed (normal,
+Infinite lives, start on any level from 1 to 255, Pac-Man speed (normal,
 1.25x or 1.5x, ghosts unchanged) and invincibility. Games played with a cheat
 on don't go on the high score table.
 

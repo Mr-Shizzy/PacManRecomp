@@ -37,7 +37,11 @@ current checkout, so they work from anywhere.
 - `cap_death.txt` - losing a life.
 - `cap_gameover.txt` - game over.
 - `inter_probe.txt` - intermission cutscenes (mod screenshots).
-- `startlevel_menu.txt` - start-level select, up to level 256.
+- `startlevel_menu.txt` - start-level select, up to level 255 (run with `"ModernMenus = 1"`).
+- `startlevel_classic.txt` - the same with classic menus (Left/Right change values).
+- `level_counter.txt` - start on level 21, clear three mazes: the shown level
+  counts 21-24 and the game's difficulty row stops at level 23 (run with
+  `"StartLevel = 21" "ShowLevel = 1"`).
 - `hud_1p.txt` / `hud_2p.txt` - level HUD in 1- and 2-player games.
 - `mods_menu_probe.txt` - mods menu.
 - `starter_probe.txt` - starter mod loads and runs.
