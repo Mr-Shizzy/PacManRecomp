@@ -4,7 +4,8 @@
  * game code is made on the player's PC from their own ROM, into game.dll
  * next to the exe, the first time the game starts (and again after an
  * update): game_dll_prepare() runs the recompiler (tools\NESRecomp.exe) and
- * TinyCC (tools\tcc\tcc.exe) while a small window shows the progress. */
+ * TinyCC (tools\tcc\tcc.exe) while a small window shows the progress, then
+ * deletes the tools folder. */
 #include "nes_runtime.h"
 #include "crc32.h"
 #include "game_extras.h"
@@ -98,6 +99,8 @@ static int try_load(void)
 static HWND s_win;
 static wchar_t s_step[128];
 static int s_pct;
+static double s_ui = 1.0;   /* Windows' scaling, or bigger on a big screen */
+#define UI(x) ((int)((x) * s_ui))
 
 static LRESULT CALLBACK win_proc(HWND w, UINT m, WPARAM wp, LPARAM lp)
 {
@@ -107,17 +110,17 @@ static LRESULT CALLBACK win_proc(HWND w, UINT m, WPARAM wp, LPARAM lp)
         RECT r;
         GetClientRect(w, &r);
         FillRect(dc, &r, (HBRUSH)GetStockObject(WHITE_BRUSH));
-        HFONT font = CreateFontW(-15, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET,
+        HFONT font = CreateFontW(-UI(15), 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET,
                                  0, 0, CLEARTYPE_QUALITY, 0, L"Segoe UI");
         HGDIOBJ old = SelectObject(dc, font);
         SetBkMode(dc, TRANSPARENT);
-        RECT t = { 20, 16, r.right - 20, 76 };
+        RECT t = { UI(20), UI(16), r.right - UI(20), UI(76) };
         DrawTextW(dc, L"Setting up Pac-Man from your ROM. This happens the first "
                       L"time you play and after an update, and takes a few seconds.",
                   -1, &t, DT_WORDBREAK);
-        RECT s = { 20, 80, r.right - 20, 100 };
+        RECT s = { UI(20), UI(80), r.right - UI(20), UI(100) };
         DrawTextW(dc, s_step, -1, &s, DT_SINGLELINE);
-        RECT bar = { 20, 108, r.right - 20, 128 };
+        RECT bar = { UI(20), UI(108), r.right - UI(20), UI(128) };
         FrameRect(dc, &bar, (HBRUSH)GetStockObject(GRAY_BRUSH));
         RECT fill = { bar.left + 2, bar.top + 2,
                       bar.left + 2 + (bar.right - bar.left - 4) * s_pct / 100,
@@ -143,7 +146,16 @@ static void win_open(void)
     wc.hIcon = LoadIconW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(1));
     wc.lpszClassName = L"PacManRecompSetup";
     RegisterClassW(&wc);
-    RECT r = { 0, 0, 460, 148 };
+    /* Sized like the launcher: Windows' scaling, or with the screen on a big
+     * one left at 100% (the game is DPI aware, so these are real pixels). */
+    HDC screen = GetDC(NULL);
+    double dpi = GetDeviceCaps(screen, LOGPIXELSY) / 96.0;
+    ReleaseDC(NULL, screen);
+    double big = GetSystemMetrics(SM_CYSCREEN) / 1080.0;
+    s_ui = dpi > big ? dpi : big;
+    if (s_ui < 1.0) s_ui = 1.0;
+    if (s_ui > 3.0) s_ui = 3.0;
+    RECT r = { 0, 0, UI(460), UI(148) };
     DWORD style = WS_CAPTION | WS_SYSMENU;
     AdjustWindowRect(&r, style, FALSE);
     int w = r.right - r.left, h = r.bottom - r.top;
@@ -282,14 +294,18 @@ static void build(const char *rom)
         remove_tree(work);
         DestroyWindow(s_win);
         fail(rc == (DWORD)-1
-             ? "a file of the game is missing (the tools folder).\n\n"
-               "Unzip the whole download again."
+             ? "its setup tools aren't here (the tools folder is deleted after "
+               "the first setup).\n\nDownload the game again from "
+               "github.com/Mr-Shizzy/PacManRecomp/releases and unzip it into "
+               "this folder: your settings, high scores and mods are kept."
              : "a setup step failed. setup-log.txt in the game folder says why.\n\n"
                "Your antivirus may have blocked it: allow the game folder and try again.");
     }
     DeleteFileW(keep);
     win_show(L"Done.", 100);
     remove_tree(work);                     /* the ROM copy and generated C */
+    remove_tree(tools);                    /* only needed for setting up; an
+                                              update brings them again */
     DestroyWindow(s_win);
 }
 

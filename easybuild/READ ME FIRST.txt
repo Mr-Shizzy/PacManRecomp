@@ -1,4 +1,4 @@
-PacManRecomp 1.1.0 for Windows
+PacManRecomp 1.1.1 for Windows
 ==============================
 
 Pac-Man for the NES, rebuilt as a real Windows game, with a launcher,
@@ -11,13 +11,16 @@ the Pac-Man ROM. Nothing to install, and no internet needed.
 HOW TO PLAY
   1. Unzip the download somewhere, e.g. your Desktop or Documents
      (right-click it, "Extract All...").
-  2. In the new folder, double-click PacManRecomp.exe. If Windows shows
-     "Windows protected your PC", click "More info", then "Run anyway".
-  3. In the launcher, pick your Pac-Man ROM (the .nes file) and press Play.
+  2. Copy your Pac-Man ROM (the .nes file, any name) into the new folder.
+  3. Double-click PacManRecomp.exe. If Windows shows "Windows protected
+     your PC", click "More info", then "Run anyway".
+  4. The launcher finds the ROM by itself. Press Play.
+     (Or skip step 2 and pick the ROM in the launcher.)
 
 The first time you play, the game sets itself up from your ROM: a small
-window shows it working for a few seconds. After that it starts straight
-away. You can move the game's folder anywhere.
+window shows it working for a few seconds, then it deletes the tools it
+used. After that it starts straight away. You can move the game's folder
+anywhere.
 
 
 WHAT YOU NEED
@@ -68,7 +71,8 @@ WHAT'S IN THIS FOLDER
   PacManRecomp.exe    the game: double-click it
   SDL2.dll            part of the game (graphics, sound, gamepads)
   assets\             the launcher's pictures and fonts
-  tools\              the recompiler and TinyCC, used to set the game up
+  tools\              the recompiler and TinyCC: used once to set the game
+                      up, then deleted
   licenses\           the licenses of everything included
   Modding guide.md    how to make mods
   game.dll            made from your ROM the first time you play

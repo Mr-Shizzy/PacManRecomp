@@ -27,15 +27,16 @@ different game program and won't work.
 
 ## Download & play (no programming needed)
 
-1. Download **PacManRecomp-1.1.0-Windows.zip** (about 5 MB) from
+1. Download **PacManRecomp-1.1.1-Windows.zip** (about 5 MB) from
    [Releases](https://github.com/Mr-Shizzy/PacManRecomp/releases) and unzip it.
-2. In the new folder, double-click **PacManRecomp.exe**.
-3. In the launcher, pick your own Pac-Man ROM (a `.nes` file) and press
-   **Play**.
+2. Copy your own Pac-Man ROM (a `.nes` file, any name) into the new folder.
+3. Double-click **PacManRecomp.exe**. The launcher finds the ROM by itself
+   (or pick it there); press **Play**.
 
 The first time you play, the game sets itself up from your ROM: a small
-window shows it working for a few seconds. After that it starts straight
-away. You can move the game's folder anywhere.
+window shows it working for a few seconds, then it deletes the tools it
+used. After that it starts straight away. You can move the game's folder
+anywhere. The launcher and the game window size themselves to your screen.
 
 ### Why the game sets itself up from your ROM
 
